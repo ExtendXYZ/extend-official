@@ -684,40 +684,72 @@ export class Board extends React.Component {
             alpha: false,
             desynchronized: true,
         });
+        
         if (center) {
-            this.scale = Math.max(
+            const dest = {}
+            dest.scale = Math.max(
                 Math.min(100, height / center.height, (width - LEFT) / center.width),
                 1
             );
-            this.scale = Math.round(this.scale);
+            dest.scale = Math.round(dest.scale);
             const center_x = center.x + 0.5 * center.width;
             const center_y = center.y + 0.5 * center.height;
-            this.x = -center_x * this.scale + 0.5 * width + 0.5 * LEFT;
-            this.y = -center_y * this.scale + 0.5 * height;
-        }
-        const scale = this.scale;
-        context.clearRect(0, 0, width, height);
-        const neighborhood_scale = scale * NEIGHBORHOOD_SIZE;
-        const startx = Math.floor(-this.x / neighborhood_scale);
-        const starty = Math.floor(-this.y / neighborhood_scale);
-        const endx = Math.ceil((-this.x + width) / neighborhood_scale);
-        const endy = Math.ceil((-this.y + height) / neighborhood_scale);
+            dest.x = -center_x * dest.scale + 0.5 * width + 0.5 * LEFT;
+            dest.y = -center_y * dest.scale + 0.5 * height;
+            origin = {scale: this.scale, x: this.x, y: this.y};
+            this.approachAnimation(origin, dest, Date.now());
+        } else {
+            const scale = this.scale;
+            context.clearRect(0, 0, width, height);
+            const neighborhood_scale = scale * NEIGHBORHOOD_SIZE;
+            const startx = Math.floor(-this.x / neighborhood_scale);
+            const starty = Math.floor(-this.y / neighborhood_scale);
+            const endx = Math.ceil((-this.x + width) / neighborhood_scale);
+            const endy = Math.ceil((-this.y + height) / neighborhood_scale);
 
-        for (let n_x = startx; n_x < endx; ++n_x) {
-            for (let n_y = starty; n_y < endy; ++n_y) {
-                let key = JSON.stringify({ n_x, n_y });
-                if (key in this.canvasCache) {
-                    context.drawImage(
-                        this.canvasCache[key],
-                        this.x + n_x * neighborhood_scale,
-                        this.y + n_y * neighborhood_scale,
-                        neighborhood_scale,
-                        neighborhood_scale
-                    );
+            for (let n_x = startx; n_x < endx; ++n_x) {
+                for (let n_y = starty; n_y < endy; ++n_y) {
+                    let key = JSON.stringify({ n_x, n_y });
+                    if (key in this.canvasCache) {
+                        context.drawImage(
+                            this.canvasCache[key],
+                            this.x + n_x * neighborhood_scale,
+                            this.y + n_y * neighborhood_scale,
+                            neighborhood_scale,
+                            neighborhood_scale
+                        );
+                    }
                 }
             }
+            this.canvasCache.t = Date.now();
         }
-        this.canvasCache.t = Date.now();
+    }
+
+    approachAnimation(origin, dest, start) {
+        const current = Date.now();
+        const elapse = current - start;
+        if (elapse >= 1000) {
+            this.x = dest.x;
+            this.y = dest.y;
+            this.scale = dest.scale;
+            requestAnimationFrame(() => {
+                this.drawCanvasCache();
+                this.drawMouseTracker();
+                this.drawNTracker();
+                this.drawSelected();
+            });
+        } else {
+            this.x = origin.x + (dest.x - origin.x) * elapse / 1000;
+            this.y = origin.y + (dest.y - origin.y) * elapse / 1000;
+            this.scale = origin.scale + (dest.scale - origin.scale) * elapse / 1000;
+            requestAnimationFrame(() => {
+                this.drawCanvasCache();
+                this.drawMouseTracker();
+                this.drawNTracker();
+                this.drawSelected();
+                this.approachAnimation(origin, dest, start);
+            });
+        }
     }
 
     drawNeighborhood(map, tmpCanvas) {
