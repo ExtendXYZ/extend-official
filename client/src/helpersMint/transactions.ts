@@ -280,7 +280,7 @@ async function awaitTransactionSignatureConfirmation(
   return status;
 }
 
-export const sendInstructionsGreedyBatch = async (
+export const sendInstructionsGreedyBatchMint = async (
   connection,
   wallet: any,
   Ixs: anchor.web3.TransactionInstruction[][],

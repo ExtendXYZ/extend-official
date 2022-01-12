@@ -1,33 +1,33 @@
-import {useEffect, useRef, useState, useCallback} from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import styled from "styled-components";
 import Countdown from "react-countdown";
-import {Alert, Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select} from "@mui/material";
+import { Alert, Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select } from "@mui/material";
 
 import * as anchor from "@project-serum/anchor";
 
-import {Commitment, LAMPORTS_PER_SOL, PublicKey, Transaction} from "@solana/web3.js";
-import {MintLayout} from "@solana/spl-token";
+import { Commitment, LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/web3.js";
+import { MintLayout } from "@solana/spl-token";
 
-import {useAnchorWallet} from "@solana/wallet-adapter-react";
+import { useAnchorWallet } from "@solana/wallet-adapter-react";
 
-import {sendInstructionsGreedyBatch, sendSignedTransaction} from "../../helpersMint/transactions";
+import { sendInstructionsGreedyBatchMint, sendSignedTransaction } from "../../helpersMint/transactions";
 
 import {
-    awaitTransactionSignatureConfirmation,
-    CandyMachine,
-    getCandyMachineState,
-    getTokenWallet,
-    mintOneTokenInstructions,
-    receiveTokenInstructions,
+  awaitTransactionSignatureConfirmation,
+  CandyMachine,
+  getCandyMachineState,
+  getTokenWallet,
+  mintOneTokenInstructions,
+  receiveTokenInstructions,
 } from "./candy-machine";
 
 import Reaptcha from 'reaptcha';
 import {
-  CAPTCHA_SITE_KEY, 
-  CAPTCHA_VERIFY_URL, 
-  VOUCHER_MINT_SEED, 
+  CAPTCHA_SITE_KEY,
+  CAPTCHA_VERIFY_URL,
+  VOUCHER_MINT_SEED,
   VOUCHER_SINK_SEED,
-  VOUCHER_PRICE_CONSTANT, 
+  VOUCHER_PRICE_CONSTANT,
   VOUCHER_MAX_PRICE,
   SPACE_PROGRAM_ID,
   BASE,
@@ -35,11 +35,17 @@ import {
   NEIGHBORHOOD_METADATA_SEED,
   NEIGHBORHOOD_LIST_SEED,
   MINT_PRICE,
+  SPACE_METADATA_SEED,
+  MAX_REGISTER_ACCS,
 } from "../../constants";
-import {Divider} from "antd";
+import { Divider } from "antd";
 
-import {ModalEnum, useModal, useWalletModal} from "../../contexts";
-import {sleep, twoscomplement_i2u, twoscomplement_u2i, convertToInt} from "../../utils";
+import { ModalEnum, useModal, useWalletModal } from "../../contexts";
+import { sleep, twoscomplement_i2u, twoscomplement_u2i, convertToInt, loading } from "../../utils";
+import { Server } from "../Game/server.js";
+import { Database } from "../Game/database.js";
+import { initSpaceMetadataInstructions, sendInstructionsGreedyBatch } from "../../actions";
+import {ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID} from "@solana/spl-token";
 
 const axios = require('axios');
 
@@ -95,7 +101,7 @@ export const Home = (props: HomeProps) => {
   const [totalTokens, setTotalTokens] = useState(0);
   const [clicked, setClicked] = useState(false); // if getTokens button is clicked
   const [verified, setVerified] = useState(false);
-  
+
   const [neighborhoodX, setNeighborhoodX] = useState<Number>(); // for switching neighborhoods
   const [neighborhoodY, setNeighborhoodY] = useState<Number>();
   const [currNeighborhood, setCurrNeighborhood] = useState<String>();
@@ -103,53 +109,57 @@ export const Home = (props: HomeProps) => {
   const [doneFetching, setDoneFetching] = useState(false);
   const [noMint, setNoMint] = useState(false);
 
+  const [isRegistering, setIsRegistering] = useState(false); // for register
+  const server = new Server();
+  const database = new Database();
+
   const captchaRef = useRef<Reaptcha>(null);
 
-  const getVoucherMint = async() => {
+  const getVoucherMint = async () => {
     const n_x = twoscomplement_i2u(neighborhoodX);
     const n_y = twoscomplement_i2u(neighborhoodY);
     return (await anchor.web3.PublicKey.findProgramAddress(
-        [
-          BASE.toBuffer(), 
-          Buffer.from(VOUCHER_MINT_SEED), 
-          Buffer.from(n_x), 
-          Buffer.from(n_y)],
-        SPACE_PROGRAM_ID
-      )
+      [
+        BASE.toBuffer(),
+        Buffer.from(VOUCHER_MINT_SEED),
+        Buffer.from(n_x),
+        Buffer.from(n_y)],
+      SPACE_PROGRAM_ID
+    )
     )[0];
   }
 
-  const getVoucherSink = async() => {
+  const getVoucherSink = async () => {
     const n_x = twoscomplement_i2u(neighborhoodX);
     const n_y = twoscomplement_i2u(neighborhoodY);
     return (await anchor.web3.PublicKey.findProgramAddress(
-        [
-          BASE.toBuffer(), 
-          Buffer.from(VOUCHER_SINK_SEED), 
-          Buffer.from(n_x), 
-          Buffer.from(n_y)],
-        SPACE_PROGRAM_ID
-      )
+      [
+        BASE.toBuffer(),
+        Buffer.from(VOUCHER_SINK_SEED),
+        Buffer.from(n_x),
+        Buffer.from(n_y)],
+      SPACE_PROGRAM_ID
+    )
     )[0];
   }
 
-  const getNeighborhoodMetadata = async() => {
+  const getNeighborhoodMetadata = async () => {
     const n_x = twoscomplement_i2u(neighborhoodX);
     const n_y = twoscomplement_i2u(neighborhoodY);
     return (await anchor.web3.PublicKey.findProgramAddress(
-        [
-          BASE.toBuffer(), 
-          Buffer.from(NEIGHBORHOOD_METADATA_SEED), 
-          Buffer.from(n_x), 
-          Buffer.from(n_y)],
-        SPACE_PROGRAM_ID
-      )
+      [
+        BASE.toBuffer(),
+        Buffer.from(NEIGHBORHOOD_METADATA_SEED),
+        Buffer.from(n_x),
+        Buffer.from(n_y)],
+      SPACE_PROGRAM_ID
+    )
     )[0];
   }
 
   const getPossibleNeighborhoods = () => {
     let keys: any[] = [];
-    if (neighborhoods) { 
+    if (neighborhoods) {
       for (let n of neighborhoods) {
         keys.push(<MenuItem value={n}>{"Neighborhood (" + n + ")"}</MenuItem>);
       }
@@ -157,7 +167,7 @@ export const Home = (props: HomeProps) => {
     return keys;
   }
 
-  const getTokenBalance = async(user, mint) => {
+  const getTokenBalance = async (user, mint) => {
     let ATA = await getTokenWallet(user, mint);
     // if (user != VOUCHER_TOKEN_AUTH) { // avoid getAccountInfo by caching?
     const data = await props.connection.getAccountInfo(ATA);
@@ -165,7 +175,7 @@ export const Home = (props: HomeProps) => {
       return 0;
     }
     // }
-    const b = (await props.connection.getTokenAccountBalance(ATA)).value.amount; 
+    const b = (await props.connection.getTokenAccountBalance(ATA)).value.amount;
     const balance = Number(b);
     return balance;
   }
@@ -202,7 +212,7 @@ export const Home = (props: HomeProps) => {
       setIsSoldOut(itemsRemaining === 0);
       setStartDate(goLiveDate);
       setCandyMachine(candyMachine);
-      
+
       // global tokens
       const voucherMint = await getVoucherMint();
       const totalTokenBalance = await getTokenBalance(VOUCHER_MINT_AUTH, voucherMint);
@@ -233,7 +243,7 @@ export const Home = (props: HomeProps) => {
         severity: "error",
       });
       return;
-    } 
+    }
 
     try {
       setIsMinting(true);
@@ -265,11 +275,11 @@ export const Home = (props: HomeProps) => {
       }
 
       // greedy batch send mint transactions
-      const response = await sendInstructionsGreedyBatch(
+      const response = await sendInstructionsGreedyBatchMint(
         props.connection,
         wallet,
-        ixs, 
-        mints, 
+        ixs,
+        mints,
       )
 
       if (response.numSucceed === 0) {
@@ -362,7 +372,7 @@ export const Home = (props: HomeProps) => {
         message: "Failed to receive Space Voucher! Please try again!",
         severity: "error",
       });
-      } finally {
+    } finally {
       if (wallet) {
         const balance = await props.connection.getBalance(wallet.publicKey);
         setBalance(balance / LAMPORTS_PER_SOL);
@@ -391,13 +401,13 @@ export const Home = (props: HomeProps) => {
       let commitment: Commitment = "singleGossip";
 
       const price = getPrice(numTokens) * Math.pow(10, 9);
-      
+
       let nbd = await getNeighborhoodMetadata();
       let account = await props.connection.getAccountInfo(nbd);
       if (!account) {
         return;
       }
-      let creator = new PublicKey(account.data.slice(1,33));
+      let creator = new PublicKey(account.data.slice(1, 33));
 
       const tokenInstructions = await receiveTokenInstructions(
         connection,
@@ -431,6 +441,137 @@ export const Home = (props: HomeProps) => {
     }
   }
 
+  const onRegister = async() => {
+    setIsRegistering(true);
+    if (!wallet) {
+      setIsRegistering(false);
+      return;
+    }
+    const currSpaceAccs = {};
+    const currMints = {};
+    let accs: any[] = [];
+    let tokenCache = new Set();
+    
+    const dbData = await database.getSpacesByOwner(wallet.publicKey); // call to db for cache
+    for (let pos in dbData.mints) {
+      const [spaceATA,] =
+        await PublicKey.findProgramAddress(
+          [
+            wallet.publicKey.toBuffer(),
+            TOKEN_PROGRAM_ID.toBuffer(),
+            dbData.mints[pos].toBuffer(),
+          ],
+          ASSOCIATED_TOKEN_PROGRAM_ID
+        );
+        tokenCache.add(spaceATA.toBase58());
+    }
+
+    const data = await server.getSpacesByOwner(props.connection, wallet.publicKey, true, tokenCache);
+    if (!data) {
+      setAlertState({
+        open: true,
+        message: "No spaces owned or minted",
+        severity: "info",
+      });
+      setIsRegistering(false);
+      return;
+    }
+    let ownedSpacesArray: any[] = [...data.spaces]; // get unregistered spaces and mints
+    let ownedMintsDict = data.mints;
+
+    for (const p of ownedSpacesArray) {
+      const pos = JSON.parse(p);
+      const space_x = twoscomplement_i2u(pos.x);
+      const space_y = twoscomplement_i2u(pos.y);
+      const spaceAcc = (await PublicKey.findProgramAddress(
+        [
+          BASE.toBuffer(),
+          Buffer.from(SPACE_METADATA_SEED),
+          Buffer.from(space_x),
+          Buffer.from(space_y),
+        ],
+        SPACE_PROGRAM_ID
+      ))[0];
+      accs.push(spaceAcc);
+    }
+    console.log("Accounts", accs.length)
+    const accInfos = await server.batchGetMultipleAccountsInfoLoading(props.connection, accs, 'Registering');
+    loading(null, 'Registering', null);
+
+    // pass the accounts and mints we want to initialize
+    let numAccountsToRegister = 0;
+    for (let i = 0; i < accInfos.length; i++) {
+      if (accInfos[i] === null) {
+        if(numAccountsToRegister < MAX_REGISTER_ACCS) { // limit to MAX register accs in current batch
+          currSpaceAccs[ownedSpacesArray[i]] = accs[i];
+          currMints[ownedSpacesArray[i]] = ownedMintsDict[ownedSpacesArray[i]];
+        } 
+        numAccountsToRegister++;
+      }
+    }
+
+    const numRegistering = Object.keys(currMints).length;
+    console.log("Need to register", numRegistering)
+
+    if (numRegistering === 0) { // if there are no spaces to register
+      setAlertState({
+        open: true,
+        message: "Already registered all spaces",
+        severity: "info",
+      });
+    } else {
+      try {
+        let ixs = await initSpaceMetadataInstructions(wallet, BASE, currSpaceAccs, currMints);
+        let res = await sendInstructionsGreedyBatch(props.connection, wallet, ixs, "Register", false);
+
+        // update mints that have been registered
+        let responses = res.responses;
+        let ixPerTx = res.ixPerTx;
+        let allPositions = Object.keys(currSpaceAccs);
+        let ind = 0;
+        let doneMints = {};
+        for (let i = 0; i < responses.length; i++) {
+          if (responses[i]) { // if tx success
+            for (let j = 0; j < ixPerTx[i]; j++) { 
+              doneMints[allPositions[ind + j]] = currMints[allPositions[ind + j]];
+            }
+          }
+          ind += ixPerTx[i];
+        }
+
+        // update database for mints that have registered
+        await sleep(20000); // sleep 20 seconds metadata completion
+        await database.register(wallet.publicKey, doneMints);
+
+        // notify if need to reclick register
+        let numSucceed = res.spacesSucceed;
+        if (numAccountsToRegister > numRegistering) {
+          setAlertState({
+            open: true,
+            message: `Registered succeeded for ${numSucceed} out of ${numRegistering} spaces, need to register ${numAccountsToRegister - numSucceed} more spaces, reclick register!`,
+            severity: "success",
+          });
+        } else {
+          setAlertState({
+            open: true,
+            message: `Register succeeded for ${numSucceed} out of ${numRegistering} spaces`,
+            severity: "success",
+          });
+        }
+      }
+      catch (e) {
+        console.log(e);
+        setAlertState({
+          open: true,
+          message: `Registered failed, please try again`,
+          severity: "error",
+        });
+      }
+    }
+    loading(null, 'Registering', 'success'); // TODO use correct status
+    setIsRegistering(false);
+  }
+
   const onExpire = () => {
     setVerified(false);
   };
@@ -441,7 +582,7 @@ export const Home = (props: HomeProps) => {
     setClicked(false);
     setVerified(false);
   };
-  
+
   const changeNumMint = (e) => {
     setNumRedeeming(parseInt(e.target.value));
   };
@@ -465,7 +606,7 @@ export const Home = (props: HomeProps) => {
   }, [wallet, props.connection]);
 
   useEffect(() => {
-    const getActiveNeighborhoods = async() => {
+    const getActiveNeighborhoods = async () => {
       // fetch active neighborhoods at beginning to populate dropdown
       const nhoodList = (await anchor.web3.PublicKey.findProgramAddress(
         [
@@ -475,7 +616,7 @@ export const Home = (props: HomeProps) => {
         SPACE_PROGRAM_ID
       ))[0];
       const account = await props.connection.getAccountInfo(nhoodList);
-      if(!account) {
+      if (!account) {
         return;
       }
       let goodNeighborhoods: string[] = [];
@@ -485,8 +626,8 @@ export const Home = (props: HomeProps) => {
       for (let i = 0; i < len; i++) {
         let x, y;
         try {
-          x = twoscomplement_u2i(activeNeighborhoods.slice(i*8+preBuffer, (i+1)*8+preBuffer));
-          y = twoscomplement_u2i(activeNeighborhoods.slice((len+i)*8+preBuffer+4, (len+i+1)*8+preBuffer+4));
+          x = twoscomplement_u2i(activeNeighborhoods.slice(i * 8 + preBuffer, (i + 1) * 8 + preBuffer));
+          y = twoscomplement_u2i(activeNeighborhoods.slice((len + i) * 8 + preBuffer + 4, (len + i + 1) * 8 + preBuffer + 4));
         } catch (e) {
           console.log(e)
           return;
@@ -502,11 +643,11 @@ export const Home = (props: HomeProps) => {
 
   useEffect(() => {
     // with every change of neighborhood x and y, update the neigborhood info
-    const updateNeighborhoodInfo = async() => {
+    const updateNeighborhoodInfo = async () => {
       setNoMint(false);
       if (neighborhoodX != null && neighborhoodY != null) {
         const n_x = twoscomplement_i2u(neighborhoodX);
-        const n_y = twoscomplement_i2u(neighborhoodY);  
+        const n_y = twoscomplement_i2u(neighborhoodY);
         const nhoodAcc = (await anchor.web3.PublicKey.findProgramAddress(
           [
             BASE.toBuffer(),
@@ -538,140 +679,161 @@ export const Home = (props: HomeProps) => {
   return (
     <div id="home" className="centered-full">
       <div >
-        <img src={require("../../assets/images/space.gif").default} style={{height: window.innerHeight - 63 + "px"}}></img>
+        <img src={require("../../assets/images/space.gif").default} style={{ height: window.innerHeight - 63 + "px" }}></img>
       </div>
 
       {wallet ? (
-      <div>
-      <p>Your balance: {(balance || 0).toLocaleString()} SOL</p>
-      <FormControl sx={{ minWidth: 300, maxWidth: 300}}>
-        <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
-        <Select
-          labelId="demo-simple-select-label"
-          id="demo-simple-select"
-          value={currNeighborhood}
-          label="Select Neighborhood"
-          onChange={changeNeighborhood}
-        >
-          {getPossibleNeighborhoods()}
-        </Select>
-      </FormControl>
-      
-      <Divider/>
-
-      {neighborhoodX != null && neighborhoodY != null && !noMint ? (
         <div>
-        {wallet && <p>Claimed Space vouchers: {tokensRedeemed} / {itemsAvailable}</p>}
+          <p>Your balance: {(balance || 0).toLocaleString()} SOL</p>
+          <FormControl sx={{ minWidth: 300, maxWidth: 300 }}>
+            <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
+            <Select
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              value={currNeighborhood}
+              label="Select Neighborhood"
+              onChange={changeNeighborhood}
+            >
+              {getPossibleNeighborhoods()}
+            </Select>
+          </FormControl>
 
-        <MintContainer>
+          <Divider />
+
+          {neighborhoodX != null && neighborhoodY != null && !noMint ? (
             <div>
-              <TextField 
-                required
-                id="outlined-required"
-                label="Space vouchers to buy"
-                type="number"
-                defaultValue={1}
-                onChange={changeNum}
-                value={numTokens}
-              />
-              <TextField
-              disabled
-              label="Price"
-              type="number"
-              id="outlined-disabled"
-              value={getPrice(numTokens).toFixed(4)}/>
-              <Button
-                disabled={tokensSoldOut}
-                variant="contained"
-                onClick={(e) => {setClicked(true)}}
-                sx={{marginLeft: "10px", marginTop: "10px"}}>
-                {tokensSoldOut ? (
-                  "SOLD OUT"
-                ) :
-                ("GET VOUCHERS")
-                }
-              </Button>
-              {clicked && numTokens > 0 && wallet && candyMachine?.program ? 
-                [
-                <Reaptcha
-                  sitekey={CAPTCHA_SITE_KEY}
-                  ref={captchaRef}
-                  onVerify={onVerify}
-                  onExpire={onExpire}
-                />,
-                <Button
-                  disabled={isReceivingToken || !verified}
-                  onClick={onReceiveToken}
-                  variant="contained">
-                    Receive Vouchers
-                </Button>
-                ]
-                : null
-              }
-              <Divider/>
-              {wallet && <p><b>Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></p>}
+              {wallet && <p><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></p>}
 
-              {wallet && <p>Your Space vouchers: {totalTokens} </p>}
-
-              {wallet && <p>Estimated cost to mint and register Spaces: {Math.round(totalTokens * (MINT_PRICE) * 1000) / 1000 } SOL</p>}
-
-              <TextField 
-                required
-                id="outlined-required"
-                label="Space vouchers to redeem"
-                type="number"
-                defaultValue={1}
-                value={numRedeeming}
-                onChange={changeNumMint}/>
-              <MintButton
-                disabled={isSoldOut || isMinting || !isActive}
-                onClick={onMint}
-                variant="contained"
-                sx={{marginLeft: "10px", marginTop: "10px"}}
-              >
-                {isSoldOut ? (
-                  "SOLD OUT"
-                ) : isActive ? (
-                  isMinting ? (
-                    <CircularProgress />
-                  ) : (
-                    "MINT"
-                  )
-                ) : (
-                  <Countdown
-                    date={startDate}
-                    onMount={({ completed }) => completed && setIsActive(true)}
-                    onComplete={() => setIsActive(true)}
-                    renderer={renderCounter}
+              {/* {wallet && <p>Receive space vouchers to mint your spaces </p>} */}
+              <MintContainer>
+                <div>
+                  <TextField
+                    required
+                    id="outlined-required"
+                    label="Space vouchers to buy"
+                    type="number"
+                    defaultValue={1}
+                    onChange={changeNum}
+                    value={numTokens}
                   />
-                )}
-              </MintButton>
+                  <TextField
+                    disabled
+                    label="Price"
+                    type="number"
+                    id="outlined-disabled"
+                    value={getPrice(numTokens).toFixed(4)} />
+                  <Button
+                    disabled={tokensSoldOut}
+                    variant="contained"
+                    onClick={(e) => { setClicked(true) }}
+                    sx={{ marginLeft: "10px", marginTop: "10px" }}>
+                    {tokensSoldOut ? (
+                      "SOLD OUT"
+                    ) :
+                      ("GET VOUCHERS")
+                    }
+                  </Button>
+                  {clicked && numTokens > 0 && wallet && candyMachine?.program ?
+                    [
+                      <Reaptcha
+                        sitekey={CAPTCHA_SITE_KEY}
+                        ref={captchaRef}
+                        onVerify={onVerify}
+                        onExpire={onExpire}
+                      />,
+                      <Button
+                        disabled={isReceivingToken || !verified}
+                        onClick={onReceiveToken}
+                        variant="contained">
+                        Receive Vouchers
+                      </Button>
+                    ]
+                    : null
+                  }
+                  <Divider />
+                  {wallet && <p><b>2. Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></p>}
+
+                  {/* {wallet && <p>Use your space vouchers from Step 1 to mint spaces </p>}  */}
+                  {wallet && <p>Your Space vouchers: {totalTokens} </p>}
+
+                  {wallet && <p>Estimated cost to mint and register Spaces: {Math.round(totalTokens * (MINT_PRICE) * 1000) / 1000} SOL</p>}
+
+                  <TextField
+                    required
+                    id="outlined-required"
+                    label="Space vouchers to redeem"
+                    type="number"
+                    defaultValue={1}
+                    value={numRedeeming}
+                    onChange={changeNumMint} />
+                  <MintButton
+                    disabled={isSoldOut || isMinting || !isActive}
+                    onClick={onMint}
+                    variant="contained"
+                    sx={{ marginLeft: "10px", marginTop: "10px" }}
+                  >
+                    {isSoldOut ? (
+                      "SOLD OUT"
+                    ) : isActive ? (
+                      isMinting ? (
+                        <CircularProgress />
+                      ) : (
+                        "MINT"
+                      )
+                    ) : (
+                      <Countdown
+                        date={startDate}
+                        onMount={({ completed }) => completed && setIsActive(true)}
+                        onComplete={() => setIsActive(true)}
+                        renderer={renderCounter}
+                      />
+                    )}
+                  </MintButton>
+                  <Divider/>
+                  {wallet ? (
+                  <div>
+                    <b>3. Register your Spaces </b>
+                    {/* <p> Register your spaces in order to see them on the canvas and change their colors </p> */}
+                  <Button
+                    disabled={isRegistering || isMinting}
+                    onClick={onRegister}
+                    variant="contained"
+                    sx={{ marginLeft: "10px"}}
+                  >
+                    {isRegistering ? (
+                    <CircularProgress />
+                    ) : (
+                    "Register"
+                    )}
+                  </Button>
+                  </div>) : null
+                  }
+                </div>
+              </MintContainer>
+            </div>)
+            :
+            <div>
+              {noMint ?
+                <div>
+                  No Mint Available, Check Back Soon
+                </div> : null
+              }
             </div>
-        </MintContainer> 
-        </div>)
-        :
-        <div>
-        {noMint ?
-          <div>
-            No Mint Available, Check Back Soon
-          </div> : null
-        }
+          }
         </div>
-      }
-      </div> 
       ) :
-      (<Button
-      size = "large"
-      variant="contained"
-      onClick={handleConnect}
-      style={{ 
-        color: "#FFFFFF", 
-        background: 'linear-gradient(to right bottom, #36EAEF80, #6B0AC980)', 
-        borderRadius: '40px'
-      }}
-    >
-      <b>Connect Your Wallet</b>
-    </Button>)
+        (<Button
+          size="large"
+          variant="contained"
+          onClick={handleConnect}
+          style={{
+            color: "#FFFFFF",
+            background: 'linear-gradient(to right bottom, #36EAEF80, #6B0AC980)',
+            borderRadius: '40px'
+          }}
+        >
+          <b>Connect Your Wallet</b>
+        </Button>)
       }
 
       <Snackbar
