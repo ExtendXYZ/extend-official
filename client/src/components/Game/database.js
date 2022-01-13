@@ -133,6 +133,7 @@ export class Database {
           volume: Number(data.from_trades[0][0]) / LAMPORTS_PER_SOL,
           average: Number(data.from_trades[0][1]) / LAMPORTS_PER_SOL,
           owners: data.from_listed[0][0],
+          floor_list : data.floor,
         };
     } 
 }
