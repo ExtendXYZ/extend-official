@@ -415,6 +415,7 @@ export function Screen(props) {
             let price = purchaseSpaceTrigger["price"];
             if (price) {
                 if (wallet.publicKey) {
+                    let currentUser = wallet.publicKey;
                     const x = purchaseSpaceTrigger["x"];
                     const y = purchaseSpaceTrigger["y"];
                     const bob = purchaseSpaceTrigger["owner"];
@@ -429,13 +430,17 @@ export function Screen(props) {
                             let newOwnedMints = {...ownedMints};
                             newOwnedSpaces.add(position);
                             newOwnedMints[position] = spaceMint;
-                            setOwnedSpaces(newOwnedSpaces);
-                            setOwnedMints(newOwnedMints);
-                        }
-                        // refresh focus if not changed
-                        const focus = game.current?.state.focus;
-                        if (focus && focus.focus && focus.x == x && focus.y == y){
-                            game.current?.handleFocusRefresh();
+                            // refresh focus if not changed
+                            const focus = game.current?.state.focus;
+                            if (focus && focus.focus && focus.x == x && focus.y == y){
+                                game.current?.handleFocusRefresh();
+                            }
+                            // if wallet is unchanged, update state
+                            if (wallet.publicKey == currentUser){
+                                setOwnedSpaces(newOwnedSpaces);
+                                setOwnedMints(newOwnedMints);
+                                // database.register(wallet.publicKey, newOwnedMints);
+                            }
                         }
                     }
                     catch (e) {
@@ -455,6 +460,7 @@ export function Screen(props) {
         const asyncBuySpaces = async() => {
             if (purchaseSpacesTrigger["purchasableInfo"]) {
                 if (wallet.publicKey) {
+                    let currentUser = wallet.publicKey;
                     let changes = purchaseSpacesTrigger["purchasableInfo"].map(x => new AcceptOfferArgs(x));
 
                     try {
@@ -482,8 +488,12 @@ export function Screen(props) {
                                 }
                             }
                         }
-                        setOwnedSpaces(newOwnedSpaces);
-                        setOwnedMints(newOwnedMints);
+                        // if wallet is unchanged, update state
+                        if (wallet.publicKey == currentUser){
+                            setOwnedSpaces(newOwnedSpaces);
+                            setOwnedMints(newOwnedMints);
+                            // database.register(wallet.publicKey, newOwnedMints);
+                        }
                     }
                     catch (e) {
                         return;
