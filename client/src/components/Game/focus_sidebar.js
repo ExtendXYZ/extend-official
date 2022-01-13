@@ -25,7 +25,7 @@ import ListItem from "@mui/material/ListItem";
 import SearchIcon from "@mui/icons-material/Search";
 import CancelIcon from "@mui/icons-material/Cancel";
 import HelpIcon from "@mui/icons-material/Help";
-import { getSize, revertSize } from "../../utils"; 
+import { solToLamports, lamportsToSol, formatPrice} from "../../utils"; 
 import {Tab, Tabs, AppBar} from "@mui/material";
 
 
@@ -301,7 +301,7 @@ export class FocusSidebar extends React.Component {
                                     <b>
                                         <font color="#82CBC5" style={{ marginLeft: "5px" }}>
                                         {this.props.focus.hasPrice
-                                            ? (this.props.focus.price.toFixed(3) > 0 ? this.props.focus.price.toFixed(3) : this.props.focus.price.toPrecision(2) )
+                                            ? formatPrice(this.props.focus.price)
                                             : "NONE"}
                                         </font>
                                     </b>

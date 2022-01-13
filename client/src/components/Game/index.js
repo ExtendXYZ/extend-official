@@ -31,7 +31,7 @@ import { Board } from './canvas.js';
 import { FocusSidebar } from './focus_sidebar.js';
 import { SelectingSidebar } from './selecting_sidebar.js';
 import { NeighborhoodSidebar } from './neighborhood_sidebar.js';
-import { getSize, revertSize } from "../../utils";
+import { solToLamports, lamportsToSol } from "../../utils";
 import {loading} from '../../utils/loading';
 import { letterSpacing } from "@mui/system";
 
@@ -73,6 +73,7 @@ export class Game extends React.Component {
             neighborhood_data: {},
             showNav: false,
             focus: {
+                focus: false,
                 x: 0,
                 y: 0,
                 color: "#000000",
@@ -104,7 +105,8 @@ export class Game extends React.Component {
             neighborhood: {
                 focused: false,
                 n_x: 0,
-                n_y: 0
+                n_y: 0,
+                infoLoaded: false,
             },
             findingSpaces: false,
             refreshingUserSpaces: false,
@@ -607,7 +609,7 @@ export class Game extends React.Component {
             this.props.setChangePriceTrigger({
                 x: this.state.focus.x,
                 y: this.state.focus.y,
-                price: getSize(price),
+                price: solToLamports(price),
                 delist: false,
                 mint: this.state.focus.mint,
             });
@@ -631,7 +633,7 @@ export class Game extends React.Component {
         } else {
             this.props.setChangePricesTrigger({
                 spaces: this.state.selecting.poses,
-                price: getSize(price),
+                price: solToLamports(price),
                 delist: false,
             });
             notify({
@@ -707,7 +709,7 @@ export class Game extends React.Component {
             this.props.setPurchaseSpaceTrigger({
                 x: this.state.focus.x,
                 y: this.state.focus.y,
-                price: getSize(price),
+                price: solToLamports(price),
                 owner: this.state.focus.owner,
                 mint: this.state.focus.mint,
             });
@@ -776,7 +778,7 @@ export class Game extends React.Component {
                 ...this.state.selecting,
                 purchasable,
                 purchasableInfo,
-                totalPrice: revertSize(totalPrice),
+                totalPrice: lamportsToSol(totalPrice),
             },
         });
     }
@@ -821,7 +823,7 @@ export class Game extends React.Component {
                     loadingFloorStatus: 2,
                     purchasableInfo,
                     purchasable,
-                    totalPrice: revertSize(floor),
+                    totalPrice: lamportsToSol(floor),
                 },
             });
             return;
@@ -891,7 +893,7 @@ export class Game extends React.Component {
                 loadingFloorStatus: 2,
                 purchasableInfo,
                 purchasable,
-                totalPrice: revertSize(floor),
+                totalPrice: lamportsToSol(floor),
             },
         });
     }
@@ -1262,6 +1264,7 @@ export class Game extends React.Component {
     resetFocus = () => {
         this.setState({
             focus: {
+                focus: false,
                 x: 0,
                 y: 0,
                 color: "#000000",
@@ -1280,13 +1283,17 @@ export class Game extends React.Component {
 
     resetNeighborhood = () => {
         this.setState({
-            neighborhood: {focused: false}
+            neighborhood: {
+                focused: false,
+                n_x: 0,
+                n_y: 0,
+                infoLoaded: false,
+            }
         });
     }
 
     resetSelecting = () => {
         this.setState({
-            showNav: false,
             selecting: {
                 selecting: false,
                 poses: new Set(),
@@ -1313,12 +1320,12 @@ export class Game extends React.Component {
             showNav: true,
             focus: {
                 ...this.state.focus,
+                focus: true,
                 x,
                 y,
                 infoLoaded: false,
                 imgLoaded: this.state.focus.imgLoaded && (x == this.state.focus.x, y == this.state.focus.y) // true if img already loaded and focus unchanged
             },
-            neighborhood: {focused: false}
         });
         const connection = this.props.connection;
         // let space_metadata_data = await this.props.server.getSpaceMetadata(
@@ -1344,7 +1351,7 @@ export class Game extends React.Component {
             mint = space_metadata_data.mint;
             //swappable = space_metadata_data.swappable;
             if (space_metadata_data.has_price) {
-                price = revertSize(space_metadata_data.price);
+                price = lamportsToSol(space_metadata_data.price);
                 hasPrice = true;
             } else {
                 price = null;
@@ -1389,16 +1396,29 @@ export class Game extends React.Component {
     }
 
     setNeighborhood = async (n_x, n_y) => {
-        const trades = await this.props.database.getNeighborhoodTrades(n_x, n_y);
         this.resetSelecting();
         this.resetFocus();
+        this.setState({
+            showNav: true,
+            neighborhood: {
+              focused: true,
+              n_x,
+              n_y,
+              infoLoaded: false
+            },
+          });
+        const trades = await this.props.database.getNeighborhoodTrades(n_x, n_y);
         console.log("NEIGHBOR SIDEBAR");
+        if (!this.state.neighborhood.focused){ // sidebar changed
+            return;
+        }
         this.setState({
           showNav: true,
           neighborhood: {
             focused: true,
-            n_x: n_x,
-            n_y: n_y,
+            n_x,
+            n_y,
+            infoLoaded: true,
             trades,
           },
         });
@@ -1409,6 +1429,7 @@ export class Game extends React.Component {
         this.resetFocus();
         if (poses.size === 0) {
             this.resetSelecting();
+            this.setState({showNav: false});
         } else {
             const owned = this.intersection(poses, this.props.spaces);
             this.setState({
@@ -1699,14 +1720,12 @@ export class Game extends React.Component {
             const n_x = this.state.neighborhood.n_x;
             const n_y = this.state.neighborhood.n_y;
             info = <NeighborhoodSidebar
-            trades = {this.state.neighborhood.trades}
-            name = { this.viewport.neighborhood_names[JSON.stringify({ n_x:  this.state.neighborhood.n_x, n_y : this.state.neighborhood.n_y })]} 
-            n_x = {n_x}
-            n_y = {n_y}
-            canvas = {this.board.current.canvasCache[JSON.stringify({ n_x, n_y })]}
-            canvasSize = {Math.min(SIDE_NAV_WIDTH, window.innerWidth - 48)}
-            addNewFrame={this.addNewFrame}
-            setSelecting={this.setSelecting}
+                neighborhood={this.state.neighborhood}
+                name = { this.viewport.neighborhood_names[JSON.stringify({ n_x:  this.state.neighborhood.n_x, n_y : this.state.neighborhood.n_y })]} 
+                canvas = {this.board.current.canvasCache[JSON.stringify({ n_x, n_y })]}
+                canvasSize = {Math.min(SIDE_NAV_WIDTH, window.innerWidth - 48)}
+                addNewFrame={this.addNewFrame}
+                setSelecting={this.setSelecting}
             />;
         }
         return (
@@ -1721,16 +1740,16 @@ export class Game extends React.Component {
                         this.viewport.neighborhood_end = [endx, endy];
                     }}
                     prepare={async () => await this.fetch_neighborhoods(0)}
-                    click={(x, y) => this.setFocus(x, y)}
-                    clickNeighborhood={async (n_x, n_y) => this.setNeighborhood(n_x, n_y)}
+                    click={this.setFocus}
+                    clickNeighborhood={this.setNeighborhood}
                     selecting={this.state.selecting}
-                    reset={() => this.resetSelecting()}
+                    reset={this.resetSelecting}
                     shiftClick={async (x) =>
                         this.setSelecting(
                             this.xor(this.state.selecting.poses || new Set(), x)
                         )
                     }
-                    clicked={this.state.showNav}
+                    clicked={this.state.focus.focus}
                     clicked_x={this.state.focus.x}
                     clicked_y={this.state.focus.y}
                     expand={(n) => {

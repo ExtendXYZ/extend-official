@@ -28,7 +28,7 @@ import ListItem from "@mui/material/ListItem";
 import SearchIcon from "@mui/icons-material/Search";
 import CancelIcon from "@mui/icons-material/Cancel";
 import HelpIcon from "@mui/icons-material/Help";
-import { getSize, revertSize } from "../../utils";
+import { solToLamports, lamportsToSol, formatPrice } from "../../utils";
 import {Tab, Tabs, AppBar} from "@mui/material";
 
 
@@ -351,7 +351,7 @@ export class SelectingSidebar extends React.Component {
                               this.props.selecting.loadingPricesStatus !== 2
                                 ? "not loaded"
                                 :
-                                (this.props.selecting.totalPrice.toFixed(3) > 0 ? this.props.selecting.totalPrice.toFixed(3) : this.props.selecting.totalPrice.toPrecision(2) )
+                                formatPrice(this.props.selecting.totalPrice)
                               }
                             </font>
                           </b>
