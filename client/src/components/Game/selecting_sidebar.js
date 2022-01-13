@@ -92,7 +92,7 @@ export class SelectingSidebar extends React.Component {
 
         const sidebarHeader = <List style={{ marginTop: "0px" }}>
         <ListItem className="info" style={{ display: "block" }}>
-          <Box style={{ fontSize: "12px", color: "gray" }}>OWNED SPACES</Box>
+          <Box className="infoHeader">OWNED SPACES</Box>
           <Box>
             <b>
               <font color="#82CBC5">
@@ -135,7 +135,7 @@ export class SelectingSidebar extends React.Component {
                           Modify Colors
                       </Divider>
                       <ListItem className="info" style={{ display: "block" }}>
-                        <Box style={{ fontSize: "10px", color: "gray" }}>
+                        <Box className="infoText2">
                           Estimated Cost:{" "}
                           {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
                         </Box>
@@ -151,7 +151,7 @@ export class SelectingSidebar extends React.Component {
                             control={<Radio size="small" />}
                             label={
                               <Typography
-                                style={{ fontSize: "12px", color: "gray" }}
+                                className="infoText1"
                               >{`Current frame (Frame ${this.props.frame})`}</Typography>
                             }
                           />
@@ -159,12 +159,13 @@ export class SelectingSidebar extends React.Component {
                             value={true}
                             control={<Radio size="small" />}
                             label={
-                              <Typography style={{ fontSize: "12px", color: "gray" }}>
+                              <Typography className="infoText1">
                                 All frames
                               </Typography>
                             }
                           />
                         </RadioGroup>
+                        <Box className="infoHeader">COLOR</Box>
                         <div style={{ display: "flex", alignItems: "center" }}>
                           <input
                             className="newColor"
@@ -190,35 +191,35 @@ export class SelectingSidebar extends React.Component {
                           </Button>
                         </div>
 
-                        <Box style={{ fontSize: "12px", color: "gray", marginTop: "10px"}}>IMAGE</Box>
+                        <Box className="infoHeader" style={{marginTop: "10px"}}>IMAGE</Box>
                         <div style={{ display: "flex", alignItems: "center" }}>
-                        <Tooltip title="Upload an image on your selected spaces">
-                          <Button
-                            variant="outlined"
-                            component="label"
-                            style={{ width: "100%" }}
-                            size="small"
-                            disabled={!this.state.ownedSelection.size}
-                            style={{
-                              marginLeft: "5px",
-                              color: "#FFFFFF",
-                              background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                            }}
-                          >
-                            Choose File
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => this.props.handleChangeImg(e)}
-                              hidden
-                            />
-                          </Button>
-                        </Tooltip>
-                        {this.props.hasImage && 
-                          <Box style={{marginLeft: "10px"}}>
-                            {this.props.imageFilename}
-                          </Box> 
-                        }
+                          <Tooltip title="Upload an image on your selected spaces">
+                            <Button
+                              variant="outlined"
+                              component="label"
+                              style={{ width: "100%" }}
+                              size="small"
+                              disabled={!this.state.ownedSelection.size}
+                              style={{
+                                marginLeft: "5px",
+                                color: "#FFFFFF",
+                                background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                              }}
+                            >
+                              Choose File
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => this.props.handleChangeImg(e)}
+                                hidden
+                              />
+                            </Button>
+                          </Tooltip>
+                          {this.props.hasImage && 
+                            <Box className="infoText1" style={{marginLeft: "10px"}}>
+                              {this.props.imageFilename}
+                            </Box> 
+                          }
                         </div>
                         <Button
                           size="small"
@@ -250,10 +251,11 @@ export class SelectingSidebar extends React.Component {
                           Modify Listing
                       </Divider>
                       <ListItem className="info" style={{ display: "block" }}>
-                        <Box style={{ fontSize: "10px", color: "gray" }}>
+                        <Box className="infoText2">
                           Estimated Cost:{" "}
                           {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
                         </Box>
+                        <Box className="infoHeader">PRICE</Box>
                         <TextField
                           hiddenLabel
                           id="price-textfield"
@@ -316,7 +318,7 @@ export class SelectingSidebar extends React.Component {
                           Purchase Spaces
                       </Divider>
                       <ListItem className="info" style={{ display: "block" }}>
-                        <Box style={{ fontSize: "12px", color: "gray" }}>
+                        <Box className="infoText1">
                           Targeted cells count
                         </Box>
                         <Box
@@ -342,7 +344,7 @@ export class SelectingSidebar extends React.Component {
                         </Box>
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
-                        <Box style={{ fontSize: "12px", color: "gray" }}>Total Price</Box>
+                        <Box className="infoText1">Total Price</Box>
                         <Box
                           style={{
                             filter:

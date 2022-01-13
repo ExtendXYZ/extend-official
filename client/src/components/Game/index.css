@@ -140,6 +140,21 @@
     background-color: white;
 }
 
+.sidenav .infoHeader {
+    color: azure;
+    font-size: 14px;
+}
+
+.sidenav .infoText1 {
+    color: azure;
+    font-size: 12px;
+}
+
+.sidenav .infoText2 {
+    color: azure;
+    font-size: 10px;
+}
+
 .sidenav .close {
     z-index: 2;
     position: absolute;

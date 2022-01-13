@@ -117,7 +117,7 @@ export class FocusSidebar extends React.Component {
         <>
         <List id="focusSidebarPrefix">
             <ListItem className="info" style={{ display: "block" }}>
-                <Box style={{ fontSize: "12px", color: "gray" }}>POSITION</Box>
+                <Box className="infoHeader">POSITION</Box>
                 <Box>
                 <b>
                     <font color="#82CBC5">
@@ -127,7 +127,7 @@ export class FocusSidebar extends React.Component {
                 </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-                <Box style={{ fontSize: "12px", color: "gray" }}>NEIGHBORHOOD</Box>
+                <Box className="infoHeader">NEIGHBORHOOD</Box>
                 <Box>
                 <b>
                     <font color="#82CBC5">
@@ -137,8 +137,8 @@ export class FocusSidebar extends React.Component {
                 </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-                <Box style={{ fontSize: "12px", color: "gray" }}>
-                {this.state.owned ? "OWNER (YOU)" : "OWNER"}
+                <Box className="infoHeader">
+                    {this.state.owned ? "OWNER (YOU)" : "OWNER"}
                 </Box>
                 <Box>
                 <Button
@@ -167,7 +167,7 @@ export class FocusSidebar extends React.Component {
                 </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-                <Box style={{ fontSize: "12px", color: "gray" }}>
+                <Box className="infoHeader">
                     MINT
                 </Box>
                 <Box>
@@ -243,7 +243,7 @@ export class FocusSidebar extends React.Component {
                                         disabled={!this.state.owned}
                                         label={
                                         <Typography
-                                            style={{ fontSize: "12px", color: "gray" }}
+                                            className="infoText1"
                                         >{`Current frame (Frame ${this.props.frame})`}</Typography>
                                         }
                                     />
@@ -252,13 +252,13 @@ export class FocusSidebar extends React.Component {
                                         control={<Radio size="small" />}
                                         disabled={!this.state.owned}
                                         label={
-                                        <Typography style={{ fontSize: "12px", color: "gray" }}>
+                                        <Typography className="infoText1">
                                             All frames
                                         </Typography>
                                         }
                                     />
                                     </RadioGroup>
-                                    <Box style={{ fontSize: "12px", color: "gray" }}>COLOR</Box>
+                                    <Box className="infoHeader">COLOR</Box>
                                     <div style={{ display: "flex", alignItems: "center" }}>
                                     <input
                                         className="newColor"
@@ -305,7 +305,7 @@ export class FocusSidebar extends React.Component {
                                     Purchase Space
                                 </Divider>
                                 <ListItem className="info" style={{ display: "block" }}>
-                                    <Box style={{ fontSize: "12px", color: "gray" }}>PRICE</Box>
+                                    <Box className="infoHeader">PRICE</Box>
                                     <Box>
                                     <img
                                         src={
@@ -355,6 +355,7 @@ export class FocusSidebar extends React.Component {
                                     Modify Listing
                                 </Divider>
                                 <ListItem className="info" style={{ display: "block" }}>
+                                    <Box className="infoHeader">PRICE</Box>
                                     <TextField
                                     hiddenLabel
                                     id="price-textfield"
