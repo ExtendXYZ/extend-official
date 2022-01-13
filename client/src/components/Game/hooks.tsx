@@ -439,7 +439,7 @@ export function Screen(props) {
                             if (wallet.publicKey == currentUser){
                                 setOwnedSpaces(newOwnedSpaces);
                                 setOwnedMints(newOwnedMints);
-                                // database.register(wallet.publicKey, newOwnedMints);
+                                database.register(wallet.publicKey, newOwnedMints);
                             }
                         }
                     }
@@ -492,7 +492,7 @@ export function Screen(props) {
                         if (wallet.publicKey == currentUser){
                             setOwnedSpaces(newOwnedSpaces);
                             setOwnedMints(newOwnedMints);
-                            // database.register(wallet.publicKey, newOwnedMints);
+                            database.register(wallet.publicKey, newOwnedMints);
                         }
                     }
                     catch (e) {
