@@ -108,6 +108,8 @@ export const Home = (props: HomeProps) => {
   const [neighborhoods, setNeighborhoods] = useState<string[]>();
   const [doneFetching, setDoneFetching] = useState(false);
   const [noMint, setNoMint] = useState(false);
+  const [disableMint, setDisableMint] = useState(false); // disable buttons while changing neighborhoods
+  const [disableToken, setDisableToken] = useState(false);
 
   const [isRegistering, setIsRegistering] = useState(false); // for register
   const server = new Server();
@@ -223,6 +225,9 @@ export const Home = (props: HomeProps) => {
       const tokenBalance = await getTokenBalance(wallet.publicKey, voucherMint);
       //console.log(tokenBalance)
       setTotalTokens(tokenBalance);
+
+      setDisableMint(false); // reset disable
+      setDisableToken(false);
     })();
   };
 
@@ -588,6 +593,8 @@ export const Home = (props: HomeProps) => {
   };
 
   const changeNeighborhood = (e) => {
+    setDisableMint(true);
+    setDisableToken(true);
     const n: String = e.target.value;
     const split = n.split(',');
     setNeighborhoodX(parseInt(split[0]));
@@ -645,6 +652,7 @@ export const Home = (props: HomeProps) => {
     // with every change of neighborhood x and y, update the neigborhood info
     const updateNeighborhoodInfo = async () => {
       setNoMint(false);
+      setClicked(false);
       if (neighborhoodX != null && neighborhoodY != null) {
         const n_x = twoscomplement_i2u(neighborhoodX);
         const n_y = twoscomplement_i2u(neighborhoodY);
@@ -679,13 +687,9 @@ export const Home = (props: HomeProps) => {
   return (
     <div id="home" className="centered-full">
       <div >
-        <img src={require("../../assets/images/space.gif").default} style={{ height: window.innerHeight - 63 + "px" }}></img>
-      </div>
-
-      {wallet ? (
-        <div>
-          <p>Your balance: {(balance || 0).toLocaleString()} SOL</p>
-          <FormControl sx={{ minWidth: 300, maxWidth: 300 }}>
+        <Divider/>
+      <p style={{textAlign: "center"}}>Your balance: {(balance || 0).toLocaleString()} SOL</p>
+          <FormControl sx={{marginLeft: "27%", minWidth: 300, maxWidth: 300 }}>
             <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
             <Select
               labelId="demo-simple-select-label"
@@ -697,14 +701,18 @@ export const Home = (props: HomeProps) => {
               {getPossibleNeighborhoods()}
             </Select>
           </FormControl>
+          <Divider/>
+        <img src={require("../../assets/images/space.gif").default} style={{ float: "left", height: window.innerHeight - 200 + "px" }}></img>
+      </div>
 
-          <Divider />
+      {wallet ? (
+        <div>
 
           {neighborhoodX != null && neighborhoodY != null && !noMint ? (
             <div>
-              {wallet && <p><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></p>}
+              {wallet && <h3 style={{color: "#82CBC5"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>}
 
-              {/* {wallet && <p>Receive space vouchers to mint your spaces </p>} */}
+              {wallet && <p>Receive space vouchers to mint your spaces </p>}
               <MintContainer>
                 <div>
                   <TextField
@@ -723,7 +731,7 @@ export const Home = (props: HomeProps) => {
                     id="outlined-disabled"
                     value={getPrice(numTokens).toFixed(4)} />
                   <Button
-                    disabled={tokensSoldOut}
+                    disabled={tokensSoldOut || disableToken}
                     variant="contained"
                     onClick={(e) => { setClicked(true) }}
                     sx={{ marginLeft: "10px", marginTop: "10px" }}>
@@ -751,9 +759,9 @@ export const Home = (props: HomeProps) => {
                     : null
                   }
                   <Divider />
-                  {wallet && <p><b>2. Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></p>}
+                  {wallet && <h3 style={{color: "#82CBC5"}}><b>2. Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></h3>}
 
-                  {/* {wallet && <p>Use your space vouchers from Step 1 to mint spaces </p>}  */}
+                  {wallet && <p>Use your space vouchers to mint spaces </p>} 
                   {wallet && <p>Your Space vouchers: {totalTokens} </p>}
 
                   {wallet && <p>Estimated cost to mint and register Spaces: {Math.round(totalTokens * (MINT_PRICE) * 1000) / 1000} SOL</p>}
@@ -767,7 +775,7 @@ export const Home = (props: HomeProps) => {
                     value={numRedeeming}
                     onChange={changeNumMint} />
                   <MintButton
-                    disabled={isSoldOut || isMinting || !isActive}
+                    disabled={isSoldOut || isMinting || !isActive || disableMint}
                     onClick={onMint}
                     variant="contained"
                     sx={{ marginLeft: "10px", marginTop: "10px" }}
@@ -792,8 +800,8 @@ export const Home = (props: HomeProps) => {
                   <Divider/>
                   {wallet ? (
                   <div>
-                    <b>3. Register your Spaces </b>
-                    {/* <p> Register your spaces in order to see them on the canvas and change their colors </p> */}
+                    <h3 style={{color: "#82CBC5"}}><b>3. Register your Spaces </b></h3>
+                    <p> After minting, register your spaces in order to see them on the canvas and change their colors </p>
                   <Button
                     disabled={isRegistering || isMinting}
                     onClick={onRegister}
