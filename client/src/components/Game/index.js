@@ -917,6 +917,9 @@ export class Game extends React.Component {
     }
 
     handleGetMySpaces = async () => {
+        if (!this.props.user){
+            return;
+        }
         this.setState({
             mySpacesOpen: false,
             mySpacesAnchorEl: null,
@@ -1848,7 +1851,7 @@ export class Game extends React.Component {
                         <Tooltip title="Click for your spaces">
                             <Button
                                 variant="contained"
-                                disabled={!this.props.loadedOwned || this.state.refreshingUserSpaces}
+                                disabled={!this.props.user || !this.props.loadedOwned || this.state.refreshingUserSpaces}
                                 sx={{
                                     marginRight: "10px",
                                     borderRadius: "40px",
