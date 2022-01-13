@@ -1227,6 +1227,28 @@ export class Game extends React.Component {
         let f = files[0];
 
         this.setState({ img_upl: f, has_img: true });
+
+        // // draw image on sidebar
+        // let reader = new FileReader();
+
+        // reader.onload = function (e) {
+        //     let bfile = e.target.result;
+
+        //     let image = new Image();
+
+        //     // draw image in sidebar
+        //     const img = document.getElementById("image-uploaded");
+        //     const context = img.getContext("2d", {
+        //         alpha: false,
+        //         desynchronized: true,
+        //     });
+        //     context.drawImage(image, 0, 0);
+        //     image.setAttribute("src",bfile);
+        // }.bind(this);
+
+        // console.log(f)
+
+        // reader.readAsDataURL(f);
     }
 
     handleChangeFocusPrice = (e) => {
