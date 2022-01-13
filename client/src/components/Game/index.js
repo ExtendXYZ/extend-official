@@ -1706,6 +1706,7 @@ export class Game extends React.Component {
             canvas = {this.board.current.canvasCache[JSON.stringify({ n_x, n_y })]}
             canvasSize = {Math.min(SIDE_NAV_WIDTH, window.innerWidth - 48)}
             addNewFrame={this.addNewFrame}
+            setSelecting={this.setSelecting}
             />;
         }
         return (

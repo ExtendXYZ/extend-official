@@ -33,19 +33,37 @@ export class NeighborhoodSidebar extends React.Component {
       <List id="focusSidebarPrefix">
         <ListItem className="info" style={{ display: "block" }}>
           <Box style={{ fontSize: "12px", color: "gray" }}>FLOOR</Box>
-          <Box>
-            <img
-              src={
-                require("../../assets/images/solana-transparent.svg").default
-              }
-              alt="SOL"
-            />
-            <b>
-              <font color="#82CBC5" style={{ marginLeft: "5px" }}>
-                {this.props.trades.floor.toFixed(3)}
-              </font>
-            </b>
-          </Box>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <Box>
+              <img
+                src={
+                  require("../../assets/images/solana-transparent.svg").default
+                }
+                alt="SOL"
+              />
+              <b>
+                <font color="#82CBC5" style={{ marginLeft: "5px" }}>
+                  {this.props.trades.floor.toFixed(3)}
+                </font>
+              </b>
+            </Box>
+            <Button
+              size="small"
+              variant="contained"
+              onClick={() => {
+                  const poses = new Set(this.props.trades.floor_list.map( el => JSON.stringify({x : el[0], y: el[1]})));
+                  this.props.setSelecting(poses);
+              }}
+              style={{
+              marginLeft: "5px",
+              color: "#FFFFFF",
+              background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+              }}
+              // disabled={!this.props.focus.owned}
+              >
+              Select
+            </Button>
+          </div>
         </ListItem>
         <ListItem className="info" style={{ display: "block" }}>
           <Box style={{ fontSize: "12px", color: "gray" }}>VOLUME (LAST 24H)</Box>
