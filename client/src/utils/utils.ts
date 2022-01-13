@@ -77,7 +77,7 @@ export function convertToInt(arr) {
   return result;
 }
 
-export const getSize = (n: any) => {
+export const solToLamports = (n: any) => {
   try {
       return Math.floor(parseFloat(n) * Math.pow(10, 9));    
   } catch {
@@ -85,7 +85,7 @@ export const getSize = (n: any) => {
   }
 };
 
-export const revertSize = (n: any) => {
+export const lamportsToSol = (n: any) => {
   try {
       return n * Math.pow(10, -9);    
   } catch {
@@ -112,4 +112,8 @@ export function shuffle(array, indexArray) {
   }
 
   return [array, indexArray];
+}
+
+export function formatPrice(x){
+  return x.toFixed(3) > 0 ? x.toFixed(3) : x.toPrecision(2);
 }

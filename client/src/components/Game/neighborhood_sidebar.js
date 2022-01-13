@@ -3,10 +3,10 @@ import { Box, Button } from "@mui/material";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import { Spin } from "antd";
+import {formatPrice} from "../../utils"; 
 
 export class NeighborhoodSidebar extends React.Component {
   constructor(props) {
-    console.log(props);
     super(props);
   }
   componentDidMount() {
@@ -40,90 +40,14 @@ export class NeighborhoodSidebar extends React.Component {
             <Spin size="large" style={{ marginTop: "50px", width: "100%"}} />
             </ListItem>
         </List> : (
-        <div className="neighborhoodDashboard">
-        <h1 style={{marginTop: "20px"}}> {this.props.name} </h1>
-        <h5> {coordName} </h5>
-        <canvas id="neighborhood-canvas" width={this.props.canvasSize} height={this.props.canvasSize * 0.5}/>
-        <List id="focusSidebarPrefix">
-          <ListItem className="info" style={{ display: "block" }}>
-            <Box style={{ fontSize: "12px", color: "gray" }}>FLOOR</Box>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <Box>
-                <img
-                  src={
-                    require("../../assets/images/solana-transparent.svg").default
-                  }
-                  alt="SOL"
-                />
-                <b>
-                  <font color="#82CBC5" style={{ marginLeft: "5px" }}>
-                    {this.props.neighborhood.trades.floor.toFixed(3)}
-                  </font>
-                </b>
-              </Box>
-              <Button
-                size="small"
-                variant="contained"
-                onClick={() => {
-                    const poses = new Set(this.props.neighborhood.trades.floor_list.map( el => JSON.stringify({x : el[0], y: el[1]})));
-                    this.props.setSelecting(poses);
-                }}
-                style={{
-                marginLeft: "5px",
-                color: "#FFFFFF",
-                background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                }}
-                // disabled={!this.props.focus.owned}
-                >
-                Select
-              </Button>
-            </div>
-          </ListItem>
-          <ListItem className="info" style={{ display: "block" }}>
-            <Box style={{ fontSize: "12px", color: "gray" }}>VOLUME (LAST 24H)</Box>
-            <Box>
-              <img
-                src={
-                  require("../../assets/images/solana-transparent.svg").default
-                }
-                alt="SOL"
-              />
-              <b>
-                <font color="#82CBC5" style={{ marginLeft: "5px" }}>
-                  {this.props.neighborhood.trades.volume.toFixed(3)}
-                </font>
-              </b>
-            </Box>
-          </ListItem>
-          <ListItem className="info" style={{ display: "block" }}>
-            <Box style={{ fontSize: "12px", color: "gray" }}>AVERAGE SALE (LAST 24H)</Box>
-            <Box>
-              <img
-                src={
-                  require("../../assets/images/solana-transparent.svg").default
-                }
-                alt="SOL"
-              />
-              <b>
-                <font color="#82CBC5" style={{ marginLeft: "5px" }}>
-                  {this.props.neighborhood.trades.average.toFixed(3)}
-                </font>
-              </b>
-            </Box>
-          </ListItem>
-
-          <ListItem className="info" style={{ display: "block" }}>
-            <Box style={{ fontSize: "12px", color: "gray" }}>LISTED ITEMS</Box>
-            <Box>
-                  <b>
-                    <font color="#82CBC5" style={{ marginLeft: "5px" }}>
-                      {this.props.neighborhood.trades.listed}
-                    </font>
-                  </b>
-                </Box>
-              </ListItem>
-              <ListItem className="info" style={{ display: "block" }}>
-                <Box style={{ fontSize: "12px", color: "gray" }}>AVERAGE SALE (LAST 24H)</Box>
+          <div className="neighborhoodDashboard">
+          <h1 style={{marginTop: "20px"}}> {this.props.name} </h1>
+          <h5> {coordName} </h5>
+          <canvas id="neighborhood-canvas" width={this.props.canvasSize} height={this.props.canvasSize * 0.5}/>
+          <List id="focusSidebarPrefix">
+            <ListItem className="info" style={{ display: "block" }}>
+              <Box style={{ fontSize: "12px", color: "gray" }}>FLOOR</Box>
+              <div style={{ display: "flex", alignItems: "center" }}>
                 <Box>
                   <img
                     src={
@@ -133,87 +57,99 @@ export class NeighborhoodSidebar extends React.Component {
                   />
                   <b>
                     <font color="#82CBC5" style={{ marginLeft: "5px" }}>
-                      {this.props.neighborhood.trades.average.toFixed(3)}
+                      {this.props.neighborhood.trades.listed ? formatPrice(this.props.neighborhood.trades.floor) : "N/A"}
                     </font>
                   </b>
                 </Box>
-              </ListItem>
-
-              <ListItem className="info" style={{ display: "block" }}>
-                <Box style={{ fontSize: "12px", color: "gray" }}>LISTED ITEMS</Box>
-                <Box>
-                      <b>
-                          <font color="#82CBC5">
-                          {this.props.neighborhood.trades.listed}
-                          </font>
-                      </b>
-                      </Box>
-              </ListItem>
-              <ListItem className="info" style={{ display: "block" }}>
-                <Box style={{ fontSize: "12px", color: "gray" }}>NUMBER OF DISTINCT OWNERS</Box>
-                <Box>
-                      <b>
-                          <font color="#82CBC5">
-                          {this.props.neighborhood.trades.owners}
-                          </font>
-                      </b>
-                      </Box>
-              </ListItem>
-              <ListItem className="info" style={{ display: "block" }}>
-                  <Button
+                <Button
                   size="small"
                   variant="contained"
                   onClick={() => {
-                      this.props.addNewFrame();
+                      const poses = new Set(this.props.neighborhood.trades.floor_list.map( el => JSON.stringify({x : el[0], y: el[1]})));
+                      this.props.setSelecting(poses);
                   }}
                   style={{
-                      width: "100%",
-                      marginTop: "20px",
-                      color: "#FFFFFF",
-                      background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                  marginLeft: "5px",
+                  color: "#FFFFFF",
+                  background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                   }}
+                  disabled={!this.props.neighborhood.trades.listed}
                   >
-                  Add New Frame
-                  </Button>
-              </ListItem>
-              {/* <ListItem className="info" style={{ display: "block" }}>
-              <Box style={{ fontSize: "12px", color: "gray" }}>AVERAGE</Box>
+                  Select
+                </Button>
+              </div>
+            </ListItem>
+            <ListItem className="info" style={{ display: "block" }}>
+              <Box style={{ fontSize: "12px", color: "gray" }}>VOLUME (LAST 24H)</Box>
               <Box>
+                <img
+                  src={
+                    require("../../assets/images/solana-transparent.svg").default
+                  }
+                  alt="SOL"
+                />
                 <b>
-                  <font color="#82CBC5">
-                    {this.props.focus.neighborhood_name
-                      ? this.props.focus.neighborhood_name
-                      : "NONE"}
+                  <font color="#82CBC5" style={{ marginLeft: "5px" }}>
+                    {formatPrice(this.props.neighborhood.trades.volume)}
                   </font>
                 </b>
               </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-              <Box style={{ fontSize: "12px", color: "gray" }}>OWNERS</Box>
+              <Box style={{ fontSize: "12px", color: "gray" }}>AVERAGE SALE PRICE (LAST 24H)</Box>
               <Box>
+                <img
+                  src={
+                    require("../../assets/images/solana-transparent.svg").default
+                  }
+                  alt="SOL"
+                />
                 <b>
-                  <font color="#82CBC5">
-                    {this.props.focus.neighborhood_name
-                      ? this.props.focus.neighborhood_name
-                      : "NONE"}
+                  <font color="#82CBC5" style={{ marginLeft: "5px" }}>
+                    {this.props.neighborhood.trades.volume > 0 ? formatPrice(this.props.neighborhood.trades.average) : "N/A"}
                   </font>
                 </b>
               </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-              <Box style={{ fontSize: "12px", color: "gray" }}>NEIGHBORHOOD</Box>
+              <Box style={{ fontSize: "12px", color: "gray" }}>LISTED ITEMS</Box>
               <Box>
-                <b>
-                  <font color="#82CBC5">
-                    {this.props.focus.neighborhood_name
-                      ? this.props.focus.neighborhood_name
-                      : "NONE"}
-                  </font>
-                </b>
-              </Box>
-            </ListItem> */}
-            </List>
-          </div>
+                    <b>
+                        <font color="#82CBC5">
+                        {this.props.neighborhood.trades.listed}
+                        </font>
+                    </b>
+                    </Box>
+            </ListItem>
+            <ListItem className="info" style={{ display: "block" }}>
+              <Box style={{ fontSize: "12px", color: "gray" }}>NUMBER OF DISTINCT OWNERS</Box>
+              <Box>
+                    <b>
+                        <font color="#82CBC5">
+                        {this.props.neighborhood.trades.owners}
+                        </font>
+                    </b>
+                    </Box>
+            </ListItem>
+            <ListItem className="info" style={{ display: "block" }}>
+                <Button
+                size="small"
+                variant="contained"
+                onClick={() => {
+                    this.props.addNewFrame();
+                }}
+                style={{
+                    width: "100%",
+                    marginTop: "20px",
+                    color: "#FFFFFF",
+                    background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                }}
+                >
+                Add New Frame
+                </Button>
+            </ListItem>
+          </List>
+        </div>
       )
     );
   }

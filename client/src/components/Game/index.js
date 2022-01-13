@@ -31,7 +31,7 @@ import { Board } from './canvas.js';
 import { FocusSidebar } from './focus_sidebar.js';
 import { SelectingSidebar } from './selecting_sidebar.js';
 import { NeighborhoodSidebar } from './neighborhood_sidebar.js';
-import { getSize, revertSize } from "../../utils";
+import { solToLamports, lamportsToSol } from "../../utils";
 import {loading} from '../../utils/loading';
 import { letterSpacing } from "@mui/system";
 
@@ -609,7 +609,7 @@ export class Game extends React.Component {
             this.props.setChangePriceTrigger({
                 x: this.state.focus.x,
                 y: this.state.focus.y,
-                price: getSize(price),
+                price: solToLamports(price),
                 delist: false,
                 mint: this.state.focus.mint,
             });
@@ -633,7 +633,7 @@ export class Game extends React.Component {
         } else {
             this.props.setChangePricesTrigger({
                 spaces: this.state.selecting.poses,
-                price: getSize(price),
+                price: solToLamports(price),
                 delist: false,
             });
             notify({
@@ -709,7 +709,7 @@ export class Game extends React.Component {
             this.props.setPurchaseSpaceTrigger({
                 x: this.state.focus.x,
                 y: this.state.focus.y,
-                price: getSize(price),
+                price: solToLamports(price),
                 owner: this.state.focus.owner,
                 mint: this.state.focus.mint,
             });
@@ -778,7 +778,7 @@ export class Game extends React.Component {
                 ...this.state.selecting,
                 purchasable,
                 purchasableInfo,
-                totalPrice: revertSize(totalPrice),
+                totalPrice: lamportsToSol(totalPrice),
             },
         });
     }
@@ -823,7 +823,7 @@ export class Game extends React.Component {
                     loadingFloorStatus: 2,
                     purchasableInfo,
                     purchasable,
-                    totalPrice: revertSize(floor),
+                    totalPrice: lamportsToSol(floor),
                 },
             });
             return;
@@ -893,7 +893,7 @@ export class Game extends React.Component {
                 loadingFloorStatus: 2,
                 purchasableInfo,
                 purchasable,
-                totalPrice: revertSize(floor),
+                totalPrice: lamportsToSol(floor),
             },
         });
     }
@@ -1351,7 +1351,7 @@ export class Game extends React.Component {
             mint = space_metadata_data.mint;
             //swappable = space_metadata_data.swappable;
             if (space_metadata_data.has_price) {
-                price = revertSize(space_metadata_data.price);
+                price = lamportsToSol(space_metadata_data.price);
                 hasPrice = true;
             } else {
                 price = null;
@@ -1432,9 +1432,6 @@ export class Game extends React.Component {
             this.setState({showNav: false});
         } else {
             const owned = this.intersection(poses, this.props.spaces);
-            console.log("poses size", poses.size);
-            console.log("user spaces size", this.props.spaces.size);
-            console.log("owned size", owned.size);
             this.setState({
                 showNav: true,
                 selecting: {
