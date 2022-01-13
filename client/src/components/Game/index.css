@@ -67,6 +67,17 @@
     color: white;
 }
 
+.neighborhoodDashboard h5 {
+    font-family: "Attila Sans Sharp" !important;
+    color: gray;
+}
+
+.sidebarDivider {
+    font-family: "Attila Sans Sharp" !important;
+    font-size: small;
+    color: whitesmoke;
+}
+
 .examine .name h1:hover {
     color: white;
 }

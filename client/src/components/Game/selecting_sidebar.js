@@ -80,7 +80,7 @@ export class SelectingSidebar extends React.Component {
     render() {
         let bounds = getBounds(this.props.selecting.poses);
 
-        const sidebarHeader = <List style={{ marginTop: "25px" }}>
+        const sidebarHeader = <List style={{ marginTop: "0px" }}>
         <ListItem className="info" style={{ display: "block" }}>
           <Box style={{ fontSize: "12px", color: "gray" }}>OWNED SPACES</Box>
           <Box>
@@ -121,10 +121,7 @@ export class SelectingSidebar extends React.Component {
 
                       {/* Color stuff */}
 
-                      <Divider
-                        sx={{background: "rgba(255,255,255,0.1)", fontSize: "12px", color: "gray"}}
-                        textAlign="center"
-                      >
+                      <Divider className="sidebarDivider">
                           Modify Colors
                       </Divider>
                       <ListItem className="info" style={{ display: "block" }}>
@@ -183,7 +180,7 @@ export class SelectingSidebar extends React.Component {
                           </Button>
                         </div>
 
-                        <Box style={{ fontSize: "12px", color: "gray" }}>IMAGE</Box>
+                        <Box style={{ fontSize: "12px", color: "gray", marginTop: "10px"}}>IMAGE</Box>
               
                         <Tooltip title="Upload an image on your selected spaces">
                           <Button
@@ -222,7 +219,7 @@ export class SelectingSidebar extends React.Component {
                             color: "#FFFFFF",
                             background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                           }}
-                          disabled={!this.props.selecting.owned.size}
+                          disabled={!this.props.hasImage}
                         >
                           Upload
                         </Button>
@@ -236,10 +233,7 @@ export class SelectingSidebar extends React.Component {
                           
                       {/* Purchase info */}
 
-                      <Divider
-                        sx={{background: "rgba(255,255,255,0.1)", fontSize: "12px", color: "gray"}}
-                        textAlign="center"
-                      >
+                      <Divider className="sidebarDivider">
                           Modify Listing
                       </Divider>
                       <ListItem className="info" style={{ display: "block" }}>
@@ -305,10 +299,7 @@ export class SelectingSidebar extends React.Component {
                           Delist
                         </Button>
                       </ListItem>
-                      <Divider
-                        sx={{background: "rgba(255,255,255,0.1)", fontSize: "12px", color: "gray"}}
-                        textAlign="center"
-                      >
+                      <Divider className="sidebarDivider" style={{marginTop: "20px"}}>
                           Purchase Spaces
                       </Divider>
                       <ListItem className="info" style={{ display: "block" }}>
@@ -490,10 +481,7 @@ export class SelectingSidebar extends React.Component {
 
                         {/* Advanced */}
                         <> 
-                        <Divider
-                            sx={{background: "rgba(255,255,255,0.1)", fontSize: "12px", color: "gray"}}
-                            textAlign="center"
-                        >
+                        <Divider className="sidebarDivider">
                             Advanced
                         </Divider>
                         <ListItem className="info" style={{ display: "block" }}>

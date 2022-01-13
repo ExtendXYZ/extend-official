@@ -22,8 +22,6 @@ import {loading} from '../../utils/loading';
 window.frameKeyCache = {};
 window.neighborhoodCreatorCache = {};
 window.neighborhoodCandyMachineCache = {};
-window.myBlocks = new Set();
-window.myMints = {};
 window.myTokens = new Set();
 
 let user = null;
@@ -479,8 +477,6 @@ export class Server {
 
     refreshCache(address) { // refresh cache when a different user is connected 
         if (user !== address) {
-            window.myBlocks = new Set();
-            window.myMints = {};
             window.myTokens = new Set();
             user = address;
         }
@@ -490,23 +486,20 @@ export class Server {
     returns {spaces, mints}. Blocks is a set of stringified {x, y} of owned spaces. mints 
     is a map from spaces to the mint of the block (mint is a string)
     */
-    async getSpacesByOwner(connection, address, diffUser=false) {
+    async getSpacesByOwner(connection, address, diffUser=false, tokenCache=new Set()) {
         let infoText = diffUser ? "Getting User Spaces" : "Loading Your Spaces"; 
         try {
             loading(0, infoText, null);
             const spaces = new Set();
             const mints = {};
-            const currTokens = new Set();
             const pubkey = new PublicKey(address);
             const tokens = await connection.getTokenAccountsByOwner(pubkey, { programId: TOKEN_PROGRAM_ID });
             // FILTER out token accounts with 0 qty or inside the token cache
             const validTokens = [];
             for (let t of tokens.value) {
-                // if quantity is 1 and it is not in the token cache or it is for a different user
-                // && (!window.myTokens.has(t.pubkey.toBase58()) || diffUser)
-                if (this.convert(t.account.data.slice(64, 72)) === 1 ) {
+                // if quantity is 1 and it is not in the token cache
+                if (this.convert(t.account.data.slice(64, 72)) === 1 && !tokenCache.has(t.pubkey.toBase58())) {
                     validTokens.push(t);
-                    currTokens.add(t.pubkey.toBase58());
                 }
             }
             loading(10, infoText, null);

@@ -35,7 +35,7 @@ import { getSize, revertSize } from "../../utils";
 import {loading} from '../../utils/loading';
 import { letterSpacing } from "@mui/system";
 
-const SIDE_NAV_WIDTH = 500;
+const SIDE_NAV_WIDTH = 400;
 
 export const getBounds = (spaces) => {
     let left = Infinity;
@@ -112,6 +112,7 @@ export class Game extends React.Component {
             anims: false,
             floor: false,
             img_upl: null,
+            has_img: false,
             frame: 0,
             maxFrame: 1,
             menuOpen: false, 
@@ -415,7 +416,8 @@ export class Game extends React.Component {
     }
 
     closeSideNav = () => {
-        this.setState({ showNav: false });
+        document.getElementById("img-file-name").textContent = null;
+        this.setState({ showNav: false, has_img: false, img_upl: null });
     }
 
     changeColor = () => {
@@ -979,6 +981,10 @@ export class Game extends React.Component {
     }
 
     register = () => {
+        this.setState({
+            mySpacesOpen: false,
+            mySpacesAnchorEl: null,
+        });
         this.props.setRegisterTrigger(true);
         notify({
             message: "Registering all spaces...",
@@ -1198,7 +1204,7 @@ export class Game extends React.Component {
         let f = files[0];
         document.getElementById("img-file-name").textContent = f.name;
 
-        this.setState({ img_upl: f });
+        this.setState({ img_upl: f, has_img: true });
     }
 
     handleChangeFocusPrice = (e) => {
@@ -1674,6 +1680,7 @@ export class Game extends React.Component {
                 changeColors={this.changeColors}
                 handleChangeImg={this.handleChangeImg}
                 uploadImage={this.uploadImage}
+                hasImage={this.state.has_img}
                 handleChangeSelectingPrice={this.handleChangeSelectingPrice}
                 changePrices={this.changePrices}
                 delistSpaces={this.delistSpaces}
@@ -1864,11 +1871,14 @@ export class Game extends React.Component {
                             <Tooltip title="Click to select all your listed spaces" placement="right">
                                 <MenuItem onClick={async () => await this.handleGetMyListings()}>Show Listed Spaces</MenuItem>
                             </Tooltip>
-                            <Tooltip title="Click to refresh your spaces to match their blockchain state" placement="right">
+                            <Tooltip title="Refresh your spaces to match their blockchain state" placement="right">
                                 <MenuItem onClick={async () => await this.handleRefreshUserSpaces()}>Refresh Spaces</MenuItem>
                             </Tooltip>
+                            <Tooltip title="Register your spaces to be able to find your spaces and change their colors" placement="right">
+                                <MenuItem onClick={() => this.register()}>Register Spaces</MenuItem>
+                            </Tooltip>
                         </Menu>
-                        <Tooltip title="Register your spaces to be able to find your spaces and change their colors">
+                        {/* <Tooltip title="Register your spaces to be able to find your spaces and change their colors">
                             <Button
                                 variant="contained"
                                 onClick={() => this.register()}
@@ -1882,7 +1892,7 @@ export class Game extends React.Component {
                             >
                                 Register
                             </Button>
-                        </Tooltip>
+                        </Tooltip> */}
                         {/* <Tooltip title="Refresh your spaces to match their blockchain state">
                             <Button
                                 variant="contained"

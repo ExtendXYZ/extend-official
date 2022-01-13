@@ -28,8 +28,8 @@ export class NeighborhoodSidebar extends React.Component {
     return (
     <div className="neighborhoodDashboard">
     <canvas id="neighborhood-canvas" width={this.props.canvasSize} height={this.props.canvasSize * 0.5}/>
-    <h1> {this.props.name} </h1>
-    <h1> {coordName} </h1> {/* change to a smaller tag...*/}
+    <h1 style={{marginTop: "20px"}}> {this.props.name} </h1>
+    <h5> {coordName} </h5>
       <List id="focusSidebarPrefix">
         <ListItem className="info" style={{ display: "block" }}>
           <Box style={{ fontSize: "12px", color: "gray" }}>FLOOR</Box>

@@ -63,7 +63,7 @@ export function Settings ({
                 <b>{shortenAddress(publicKey.toBase58())}</b>
               </Button>
             )}
-            <Button
+            {/* <Button
               variant="contained"
               onClick={open}
               style={{ 
@@ -74,7 +74,7 @@ export function Settings ({
               }}
             >
               <b>Change Wallet</b>
-            </Button>
+            </Button> */}
             <Button
               variant="contained"
               onClick={() => disconnect().catch()}

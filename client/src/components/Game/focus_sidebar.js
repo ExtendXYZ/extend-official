@@ -77,13 +77,15 @@ export class FocusSidebar extends React.Component {
     };
 
     render() {
+        let priceInfoName = this.props.focus.owned ? "Listing" : "Purchase";
+
         const sidebarHeader = <>
         <List>
             <ListItem>
             <div style={{display: 'flex',  justifyContent:'center', alignItems:'center'}}>
                 <img
                     src={`https://metadata.extend.xyz/api/artwork?ext=png&x=${this.props.focus.x}&y=${this.props.focus.y}`}
-                    style={this.props.focus.infoLoaded && this.props.focus.imgLoaded ? {maxWidth: "60%"} : {display: 'none'}}
+                    style={this.props.focus.infoLoaded && this.props.focus.imgLoaded ? {maxWidth: "30%"} : {display: 'none'}}
                     class="center"
                     onLoad={() => this.props.handleOnImgLoad()}
                 ></img>
@@ -194,7 +196,7 @@ export class FocusSidebar extends React.Component {
                         aria-label="scrollable auto tabs example"
                       >
                         <Tab label="Modify" {...a11yProps(0)} />
-                        <Tab label="Price Info" {...a11yProps(1)} />
+                        <Tab label={priceInfoName} {...a11yProps(1)} />
                         <Tab label="Advanced" {...a11yProps(2)} />
                       </Tabs>
                     </AppBar>
@@ -208,10 +210,7 @@ export class FocusSidebar extends React.Component {
                             null
                             :
                             (<List>
-                                <Divider
-                                    sx={{background: "rgba(255,255,255,0.1)", fontSize: "12px", color: "gray"}}
-                                    textAlign="center"
-                                >
+                                <Divider className="sidebarDivider">
                                     Modify Color
                                 </Divider>
                                 <ListItem className="info" style={{ display: "block" }}>
@@ -286,10 +285,7 @@ export class FocusSidebar extends React.Component {
                             <>
                             {!this.props.focus.owned && this.props.focus.hasPrice ? 
                                 <>
-                                <Divider
-                                    sx={{background: "rgba(255,255,255,0.1)", fontSize: "12px", color: "gray"}}
-                                    textAlign="center"
-                                >
+                                <Divider className="sidebarDivider">
                                     Purchase Space
                                 </Divider>
                                 <ListItem className="info" style={{ display: "block" }}>
@@ -331,21 +327,15 @@ export class FocusSidebar extends React.Component {
                                 </>
                             : 
                                 (!this.props.focus.owned && !this.props.focus.hasPrice ?
-                                    (<Divider
-                                            sx={{background: "rgba(255,255,255,0.1)", fontSize: "12px", color: "gray"}}
-                                            textAlign="center"
-                                        >
-                                            Space Not Listed
+                                    (<Divider className="sidebarDivider">
+                                        Space Not Listed
                                     </Divider>) : null
                                 )
                             }
                             {this.props.focus.owned ? (
                                 // <Box sx={{ display: 'flex', color: '#173A5E', bgcolor: 'black' }}>
                                 <>
-                                <Divider
-                                    sx={{background: "rgba(255,255,255,0.1)", fontSize: "12px", color: "gray"}}
-                                    textAlign="center"
-                                >
+                                <Divider className="sidebarDivider">
                                     Modify Listing
                                 </Divider>
                                 <ListItem className="info" style={{ display: "block" }}>
@@ -420,10 +410,7 @@ export class FocusSidebar extends React.Component {
                             null
                             :   
                             <> 
-                            <Divider
-                                sx={{background: "rgba(255,255,255,0.1)", fontSize: "12px", color: "gray"}}
-                                textAlign="center"
-                            >
+                            <Divider className="sidebarDivider">
                                 Advanced
                             </Divider>
                             <ListItem className="info" style={{ display: "block" }}>

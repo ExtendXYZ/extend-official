@@ -134,7 +134,6 @@ export function Screen(props) {
                         return;
                     }
                     //await database.register(wallet.publicKey.toBase58(), data.mints); // update database for mints that have registered
-                    loading(null, 'Registering', null);
                     let ownedSpacesArray: any[] = [...data.spaces];
                     let ownedMintsDict = data.mints;
                     
