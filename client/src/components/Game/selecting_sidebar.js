@@ -151,7 +151,7 @@ export class SelectingSidebar extends React.Component {
                             control={<Radio size="small" />}
                             label={
                               <Typography
-                                className="infoText1"
+                                className="infoText2"
                               >{`Current frame (Frame ${this.props.frame})`}</Typography>
                             }
                           />
@@ -159,7 +159,7 @@ export class SelectingSidebar extends React.Component {
                             value={true}
                             control={<Radio size="small" />}
                             label={
-                              <Typography className="infoText1">
+                              <Typography className="infoText2">
                                 All frames
                               </Typography>
                             }

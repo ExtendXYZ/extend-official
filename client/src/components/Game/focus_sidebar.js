@@ -243,7 +243,7 @@ export class FocusSidebar extends React.Component {
                                         disabled={!this.state.owned}
                                         label={
                                         <Typography
-                                            className="infoText1"
+                                            className="infoText2"
                                         >{`Current frame (Frame ${this.props.frame})`}</Typography>
                                         }
                                     />
@@ -252,7 +252,7 @@ export class FocusSidebar extends React.Component {
                                         control={<Radio size="small" />}
                                         disabled={!this.state.owned}
                                         label={
-                                        <Typography className="infoText1">
+                                        <Typography className="infoText2">
                                             All frames
                                         </Typography>
                                         }
