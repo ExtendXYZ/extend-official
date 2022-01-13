@@ -231,22 +231,24 @@ export class SelectingSidebar extends React.Component {
                             </Box> 
                           }
                         </div>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          onClick={() => {
-                            this.props.uploadImage();
-                          }}
-                          style={{
-                            width: "100%",
-                            marginTop: "20px",
-                            color: "#FFFFFF",
-                            background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                          }}
-                          disabled={!this.props.hasImage}
-                        >
-                          Upload
-                        </Button>
+                        <Tooltip title={tooltipModifyColorTitle}>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={() => {
+                              this.props.uploadImage();
+                            }}
+                            style={{
+                              width: "100%",
+                              marginTop: "20px",
+                              color: "#FFFFFF",
+                              background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                            }}
+                            disabled={!this.props.hasImage}
+                          >
+                            Upload
+                          </Button>
+                        </Tooltip>
                       </ListItem>            
                   </TabPanel>
 
@@ -406,23 +408,25 @@ export class SelectingSidebar extends React.Component {
                         </Button>
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => {
-                            this.props.handleShowAllPurchasable();
-                          }}
-              
-                          disabled={this.props.selecting.loadingPricesStatus != 2}
-                          style={{
-                            width: "100%",
-                            marginLeft: "5px",
-                            color: "#FFFFFF",
-                            background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                          }}
-                        >
-                          Target All Purchasable
-                        </Button>
+                        <Tooltip title="Select all purchasable spaces in your selection to prepare to purchase them.">
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => {
+                              this.props.handleShowAllPurchasable();
+                            }}
+                
+                            disabled={this.props.selecting.loadingPricesStatus != 2}
+                            style={{
+                              width: "100%",
+                              marginLeft: "5px",
+                              color: "#FFFFFF",
+                              background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                            }}
+                          >
+                            Target All Purchasable
+                          </Button>
+                        </Tooltip>
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
                         <div style={{ display: "flex", alignItems: "center" }}>
@@ -450,24 +454,26 @@ export class SelectingSidebar extends React.Component {
                             style={{ width: "25%" }}
                             size="small"
                           />
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => {
-                              this.props.handleShowFloor();
-                            }}
-                            disabled={this.props.selecting.loadingPricesStatus != 2}
-                            style={{
-                              width: "45%",
-                              marginLeft: "10px",
-                              marginTop: "5px",
-                              marginLeft: "5px",
-                              color: "#FFFFFF",
-                              background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                            }}
-                          >
-                            Target Floor
-                          </Button>
+                          <Tooltip title="Select the cheapest rectangle in your selection of the specified width and height dimensions.">
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => {
+                                this.props.handleShowFloor();
+                              }}
+                              disabled={this.props.selecting.loadingPricesStatus != 2}
+                              style={{
+                                width: "45%",
+                                marginLeft: "10px",
+                                marginTop: "5px",
+                                marginLeft: "5px",
+                                color: "#FFFFFF",
+                                background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                              }}
+                            >
+                              Target Floor
+                            </Button>
+                          </Tooltip>
                         </div>
                         {/* <FormControl style={{alignItems: "center"}}>
                                         <FormControlLabel
@@ -516,6 +522,7 @@ export class SelectingSidebar extends React.Component {
                             Advanced
                         </Divider>
                         <ListItem className="info" style={{ display: "block" }}>
+                              <Tooltip title="Refresh information for these spaces directly from the blockchain. Refreshing may be rate-limited if performed excessively.">  
                                 <Button
                                 size="small"
                                 variant="contained"
@@ -530,9 +537,11 @@ export class SelectingSidebar extends React.Component {
                                 >
                                     Refresh Info
                                 </Button>
+                              </Tooltip>
                             </ListItem>
                         <ListItem className="info" style={{ display: "block" }}>
                             <Typography align="center">
+                              <Tooltip title="Share the rectangular box containing the selected pixels.">
                                 <Button
                                     variant="contained"
                                     onClick={() => {
@@ -557,6 +566,7 @@ export class SelectingSidebar extends React.Component {
                                         <CopyOutlined />
                                         Share Rectangular Bounding
                                 </Button>
+                              </Tooltip>
                             </Typography>
                         </ListItem>
                         </>

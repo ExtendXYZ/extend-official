@@ -431,20 +431,22 @@ export class FocusSidebar extends React.Component {
                                 Advanced
                             </Divider>
                             <ListItem className="info" style={{ display: "block" }}>
-                                <Button
-                                size="small"
-                                variant="contained"
-                                onClick={() => {
-                                    this.props.handleFocusRefresh();
-                                }}
-                                style={{
-                                    width: "100%",
-                                    color: "#FFFFFF",
-                                    background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                                }}
-                                >
-                                    Refresh Info
-                                </Button>
+                                <Tooltip title="Refresh information for this space directly from the blockchain. Refreshing may be rate-limited if performed excessively.">
+                                    <Button
+                                    size="small"
+                                    variant="contained"
+                                    onClick={() => {
+                                        this.props.handleFocusRefresh();
+                                    }}
+                                    style={{
+                                        width: "100%",
+                                        color: "#FFFFFF",
+                                        background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                                    }}
+                                    >
+                                        Refresh Info
+                                    </Button>
+                                </Tooltip>
                             </ListItem>
                             <ListItem className="info" style={{ display: "block" }}>
                                 <Typography align="center">
