@@ -105,6 +105,12 @@ export class SelectingSidebar extends React.Component {
         </ListItem>
         </List>;
 
+        let tooltipModifyColorTitle = `Estimated Cost to Change Colors:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
+        let tooltipSetPriceTitle = `Estimated Cost to List/Delist:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
+        let tooltipBuyTitle = `Batch buying is non-atomic and is available as a convenience feature. Successful purchase of every space selected is not guaranteed.
+        
+        Estimated Transaction Cost to Buy:  ${(this.props.selecting.purchasableInfo.length * 0.000005).toFixed(6)} SOL`;
+
         return (
 
                 <div>
@@ -135,10 +141,10 @@ export class SelectingSidebar extends React.Component {
                           Modify Colors
                       </Divider>
                       <ListItem className="info" style={{ display: "block" }}>
-                        <Box className="infoText2">
+                        {/* <Box className="infoText2">
                           Estimated Cost:{" "}
                           {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
-                        </Box>
+                        </Box> */}
                         <RadioGroup
                           row
                           value={this.props.colorApplyAll}
@@ -165,7 +171,9 @@ export class SelectingSidebar extends React.Component {
                             }
                           />
                         </RadioGroup>
-                        <Box className="infoHeader">COLOR</Box>
+                        <Tooltip title={tooltipModifyColorTitle}>
+                          <Box className="infoHeader">COLOR</Box>
+                        </Tooltip>
                         <div style={{ display: "flex", alignItems: "center" }}>
                           <input
                             className="newColor"
@@ -174,6 +182,7 @@ export class SelectingSidebar extends React.Component {
                             onChange={(e) => this.props.handleChangeColors(e)}
                             disabled={!this.state.ownedSelection.size}
                           ></input>
+                        <Tooltip title={tooltipModifyColorTitle}>
                           <Button
                             size="small"
                             variant="contained"
@@ -189,6 +198,7 @@ export class SelectingSidebar extends React.Component {
                           >
                             Change Color
                           </Button>
+                        </Tooltip>
                         </div>
 
                         <Box className="infoHeader" style={{marginTop: "10px"}}>IMAGE</Box>
@@ -251,11 +261,13 @@ export class SelectingSidebar extends React.Component {
                           Modify Listing
                       </Divider>
                       <ListItem className="info" style={{ display: "block" }}>
-                        <Box className="infoText2">
+                        {/* <Box className="infoText2">
                           Estimated Cost:{" "}
                           {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
-                        </Box>
-                        <Box className="infoHeader">PRICE</Box>
+                        </Box> */}
+                        <Tooltip title={tooltipSetPriceTitle}>
+                          <Box className="infoHeader">PRICE</Box>
+                        </Tooltip>
                         <TextField
                           hiddenLabel
                           id="price-textfield"
@@ -278,41 +290,45 @@ export class SelectingSidebar extends React.Component {
                             ),
                           }}
                         />
-                        <Button
-                          size="small"
-                          variant="contained"
-                          onClick={() => {
-                            this.props.changePrices();
-                          }}
-                          style={{
-                            width: "100%",
-                            marginTop: "20px",
-                            color: "#FFFFFF",
-                            background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                          }}
-                          disabled={
-                            !this.state.ownedSelection.size ||
-                            this.props.selecting.price === null
-                          }
-                        >
-                          Set Price
-                        </Button>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          onClick={() => {
-                            this.props.delistSpaces();
-                          }}
-                          style={{
-                            width: "100%",
-                            marginTop: "10px",
-                            color: "#FFFFFF",
-                            background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                          }}
-                          disabled={!this.state.ownedSelection.size}
-                        >
-                          Delist
-                        </Button>
+                        <Tooltip title={tooltipSetPriceTitle}>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={() => {
+                              this.props.changePrices();
+                            }}
+                            style={{
+                              width: "100%",
+                              marginTop: "20px",
+                              color: "#FFFFFF",
+                              background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                            }}
+                            disabled={
+                              !this.state.ownedSelection.size ||
+                              this.props.selecting.price === null
+                            }
+                          >
+                            Set Price
+                          </Button>
+                        </Tooltip>
+                        <Tooltip title={tooltipSetPriceTitle}>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={() => {
+                              this.props.delistSpaces();
+                            }}
+                            style={{
+                              width: "100%",
+                              marginTop: "10px",
+                              color: "#FFFFFF",
+                              background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                            }}
+                            disabled={!this.state.ownedSelection.size}
+                          >
+                            Delist
+                          </Button>
+                        </Tooltip>
                       </ListItem>
                       <Divider className="sidebarDivider" style={{marginTop: "20px"}}>
                           Purchase Spaces
@@ -467,7 +483,7 @@ export class SelectingSidebar extends React.Component {
                                     </FormControl> */}
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
-                        <Tooltip title="Batch buying is non-atomic and is available as a convenience feature. Successful purchase of every space selected is not guaranteed.">
+                        <Tooltip title={tooltipBuyTitle}>
                           <Button
                             size="small"
                             variant="contained"

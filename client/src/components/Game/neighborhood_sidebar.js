@@ -46,7 +46,7 @@ export class NeighborhoodSidebar extends React.Component {
           <canvas id="neighborhood-canvas" width={this.props.canvasSize} height={this.props.canvasSize * 0.5}/>
           <List id="focusSidebarPrefix">
             <ListItem className="info" style={{ display: "block" }}>
-              <Box style={{ fontSize: "12px", color: "gray" }}>FLOOR</Box>
+              <Box className="infoHeader">FLOOR</Box>
               <div style={{ display: "flex", alignItems: "center" }}>
                 <Box>
                   <img
@@ -80,7 +80,7 @@ export class NeighborhoodSidebar extends React.Component {
               </div>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-              <Box style={{ fontSize: "12px", color: "gray" }}>VOLUME (LAST 24H)</Box>
+              <Box className="infoHeader">VOLUME (LAST 24H)</Box>
               <Box>
                 <img
                   src={
@@ -96,7 +96,7 @@ export class NeighborhoodSidebar extends React.Component {
               </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-              <Box style={{ fontSize: "12px", color: "gray" }}>AVERAGE SALE PRICE (LAST 24H)</Box>
+              <Box className="infoHeader">AVERAGE SALE PRICE (LAST 24H)</Box>
               <Box>
                 <img
                   src={
@@ -112,7 +112,7 @@ export class NeighborhoodSidebar extends React.Component {
               </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-              <Box style={{ fontSize: "12px", color: "gray" }}>LISTED ITEMS</Box>
+              <Box className="infoHeader">LISTED ITEMS</Box>
               <Box>
                     <b>
                         <font color="#82CBC5">
@@ -122,7 +122,7 @@ export class NeighborhoodSidebar extends React.Component {
                     </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-              <Box style={{ fontSize: "12px", color: "gray" }}>NUMBER OF DISTINCT OWNERS</Box>
+              <Box className="infoHeader">NUMBER OF DISTINCT OWNERS</Box>
               <Box>
                     <b>
                         <font color="#82CBC5">
