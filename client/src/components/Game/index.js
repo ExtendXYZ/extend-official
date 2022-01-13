@@ -202,8 +202,6 @@ export class Game extends React.Component {
             if (account) {
                 const name = Buffer.from(account.data.slice(97, 97 + 64)).toString('utf-8');
                 this.viewport.neighborhood_names[key] = name.replaceAll("\x00", " ").trim();
-            } else {
-                this.viewport.neighborhood_names[key] = null;
             }
         }
 
@@ -217,8 +215,9 @@ export class Game extends React.Component {
         this.viewport.neighborhood_data = tmp_neighborhood_data;
         this.setState({ maxFrame: newMax });
         // loading(null, "Loading colors", "success");
-
+        console.log("neighborhood_names", this.viewport.neighborhood_names);
         return frameKeys;
+        
     }
 
     // pull all color data into viewport
@@ -295,14 +294,14 @@ export class Game extends React.Component {
             let { n_x, n_y } = neighborhoods[cntr];
             let key = JSON.stringify({ n_x, n_y });
             if (account) {
-                this.viewport.neighborhood_names[key] = Buffer.from(account.data.slice(97, 97 + 64)).toString('utf-8');
-            } else {
-                this.viewport.neighborhood_names[key] = null;
+                const name = Buffer.from(account.data.slice(97, 97 + 64)).toString('utf-8');
+                this.viewport.neighborhood_names[key] = name.replaceAll("\x00", " ").trim();
             }
         }
 
         this.setState({ maxFrame: newMax });
         loading(null, "Loading colors", "success");
+        console.log("neighborhood_names anim", this.viewport.neighborhood_names);
         return frameKeys;
     }
 
