@@ -28,7 +28,7 @@ import ListItem from "@mui/material/ListItem";
 import SearchIcon from "@mui/icons-material/Search";
 import CancelIcon from "@mui/icons-material/Cancel";
 import HelpIcon from "@mui/icons-material/Help";
-import { solToLamports, lamportsToSol, formatPrice } from "../../utils";
+import { solToLamports, lamportsToSol, formatPrice, intersection} from "../../utils";
 import {Tab, Tabs, AppBar} from "@mui/material";
 
 
@@ -69,8 +69,18 @@ function TabPanel(props) {
 export class SelectingSidebar extends React.Component {
     constructor(props) {
       super(props);
-      this.state = {value: 0};
+      this.state = {value: 0, ownedSelection: new Set()};
       this.handleTabChange = this.handleTabChange.bind(this);
+    }
+
+    componentDidMount(){
+        this.state.ownedSelection = intersection(this.props.ownedSpaces, this.props.selecting.poses);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.selecting.poses != prevProps.selecting.poses) {
+            this.state.ownedSelection = intersection(this.props.ownedSpaces, this.props.selecting.poses);
+        }
     }
 
     handleTabChange(event, newValue) {
@@ -86,7 +96,7 @@ export class SelectingSidebar extends React.Component {
           <Box>
             <b>
               <font color="#82CBC5">
-                {this.props.selecting.owned.size +
+                {this.state.ownedSelection.size +
                   "/" +
                   this.props.selecting.poses.size}
               </font>
@@ -127,7 +137,7 @@ export class SelectingSidebar extends React.Component {
                       <ListItem className="info" style={{ display: "block" }}>
                         <Box style={{ fontSize: "10px", color: "gray" }}>
                           Estimated Cost:{" "}
-                          {(this.props.selecting.owned.size * 0.000005).toFixed(6)} SOL
+                          {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
                         </Box>
                         <RadioGroup
                           row
@@ -161,7 +171,7 @@ export class SelectingSidebar extends React.Component {
                             type="color"
                             value={this.props.selecting.color}
                             onChange={(e) => this.props.handleChangeColors(e)}
-                            disabled={!this.props.selecting.owned.size}
+                            disabled={!this.state.ownedSelection.size}
                           ></input>
                           <Button
                             size="small"
@@ -174,7 +184,7 @@ export class SelectingSidebar extends React.Component {
                               color: "#FFFFFF",
                               background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                             }}
-                            disabled={!this.props.selecting.owned.size}
+                            disabled={!this.state.ownedSelection.size}
                           >
                             Change Color
                           </Button>
@@ -188,7 +198,7 @@ export class SelectingSidebar extends React.Component {
                             component="label"
                             style={{ width: "100%" }}
                             size="small"
-                            disabled={!this.props.selecting.owned.size}
+                            disabled={!this.state.ownedSelection.size}
                             style={{
                               marginLeft: "5px",
                               color: "#FFFFFF",
@@ -242,7 +252,7 @@ export class SelectingSidebar extends React.Component {
                       <ListItem className="info" style={{ display: "block" }}>
                         <Box style={{ fontSize: "10px", color: "gray" }}>
                           Estimated Cost:{" "}
-                          {(this.props.selecting.owned.size * 0.000005).toFixed(6)} SOL
+                          {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
                         </Box>
                         <TextField
                           hiddenLabel
@@ -259,7 +269,7 @@ export class SelectingSidebar extends React.Component {
                           }}
                           variant="filled"
                           size="small"
-                          disabled={!this.props.selecting.owned.size}
+                          disabled={!this.state.ownedSelection.size}
                           InputProps={{
                             endAdornment: (
                               <InputAdornment position="end">SOL</InputAdornment>
@@ -279,7 +289,7 @@ export class SelectingSidebar extends React.Component {
                             background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                           }}
                           disabled={
-                            !this.props.selecting.owned.size ||
+                            !this.state.ownedSelection.size ||
                             this.props.selecting.price === null
                           }
                         >
@@ -297,7 +307,7 @@ export class SelectingSidebar extends React.Component {
                             color: "#FFFFFF",
                             background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                           }}
-                          disabled={!this.props.selecting.owned.size}
+                          disabled={!this.state.ownedSelection.size}
                         >
                           Delist
                         </Button>

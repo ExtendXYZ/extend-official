@@ -68,16 +68,32 @@ function TabPanel(props) {
 export class FocusSidebar extends React.Component {
     constructor(props) {
       super(props);
-      this.state = {value: 0};
+      this.state = {value: 0, owned: false};
       this.handleTabChange = this.handleTabChange.bind(this);
+    }
+
+    componentDidMount(){
+        this.state.owned =
+            (this.props.ownedSpaces &&
+                this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })));
+    }
+    
+    componentDidUpdate(prevProps) {
+        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.focus.x != prevProps.focus.x || this.props.focus.y != prevProps.focus.y) {
+            this.state.owned =
+                (this.props.ownedSpaces &&
+                    this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })));
+        }
     }
 
     handleTabChange(event, newValue) {
         this.setState({value: newValue});
     };
 
+    
+
     render() {
-        let priceInfoName = this.props.focus.owned ? "Listing" : "Purchase";
+        let priceInfoName = this.state.owned ? "Listing" : "Purchase";
 
         const sidebarHeader = <>
         <List>
@@ -122,7 +138,7 @@ export class FocusSidebar extends React.Component {
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
                 <Box style={{ fontSize: "12px", color: "gray" }}>
-                {this.props.focus.owned ? "OWNER (YOU)" : "OWNER"}
+                {this.state.owned ? "OWNER (YOU)" : "OWNER"}
                 </Box>
                 <Box>
                 <Button
@@ -224,7 +240,7 @@ export class FocusSidebar extends React.Component {
                                     <FormControlLabel
                                         value={false}
                                         control={<Radio size="small" />}
-                                        disabled={!this.props.focus.owned}
+                                        disabled={!this.state.owned}
                                         label={
                                         <Typography
                                             style={{ fontSize: "12px", color: "gray" }}
@@ -234,7 +250,7 @@ export class FocusSidebar extends React.Component {
                                     <FormControlLabel
                                         value={true}
                                         control={<Radio size="small" />}
-                                        disabled={!this.props.focus.owned}
+                                        disabled={!this.state.owned}
                                         label={
                                         <Typography style={{ fontSize: "12px", color: "gray" }}>
                                             All frames
@@ -249,7 +265,7 @@ export class FocusSidebar extends React.Component {
                                         type="color"
                                         value={this.props.focus.color}
                                         onChange={(e) => this.props.handleChangeColor(e)}
-                                        disabled={!this.props.focus.owned}
+                                        disabled={!this.state.owned}
                                     ></input>
                                     <Button
                                         size="small"
@@ -262,7 +278,7 @@ export class FocusSidebar extends React.Component {
                                         color: "#FFFFFF",
                                         background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                                         }}
-                                        disabled={!this.props.focus.owned}
+                                        disabled={!this.state.owned}
                                     >
                                         Change Color
                                     </Button>
@@ -283,7 +299,7 @@ export class FocusSidebar extends React.Component {
                             null
                             :
                             <>
-                            {!this.props.focus.owned && this.props.focus.hasPrice ? 
+                            {!this.state.owned && this.props.focus.hasPrice ? 
                                 <>
                                 <Divider className="sidebarDivider">
                                     Purchase Space
@@ -326,13 +342,13 @@ export class FocusSidebar extends React.Component {
                                 </ListItem>
                                 </>
                             : 
-                                (!this.props.focus.owned && !this.props.focus.hasPrice ?
+                                (!this.state.owned && !this.props.focus.hasPrice ?
                                     (<Divider className="sidebarDivider">
                                         Space Not Listed
                                     </Divider>) : null
                                 )
                             }
-                            {this.props.focus.owned ? (
+                            {this.state.owned ? (
                                 // <Box sx={{ display: 'flex', color: '#173A5E', bgcolor: 'black' }}>
                                 <>
                                 <Divider className="sidebarDivider">

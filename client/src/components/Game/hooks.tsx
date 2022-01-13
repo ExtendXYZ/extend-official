@@ -70,6 +70,8 @@ export function Screen(props) {
     const [newFrameTrigger, setNewFrameTrigger] = useState<any>({});
     const [viewer, setViewer] = useState(0);
 
+    const game = useRef<Game>(null);
+
     useEffect(() => {
         const cleanup = async () => {
             if (document.visibilityState === "hidden") {
@@ -423,8 +425,17 @@ export function Screen(props) {
                         let ix = await acceptOfferInstruction(server, connection, wallet, BASE, change);
                         const response = await sendTransaction(connection, wallet, ix, "Buy space");
                         if (response) {
-                            setOwnedSpaces(spaces => {spaces.add(position); return spaces}); // add new space to owned spaces
-                            setOwnedMints(mints => ({...mints, [position]: spaceMint.toBase58()})); // append new mint to owned mints
+                            let newOwnedSpaces = new Set(ownedSpaces);
+                            let newOwnedMints = {...ownedMints};
+                            newOwnedSpaces.add(position);
+                            newOwnedMints[position] = spaceMint;
+                            setOwnedSpaces(newOwnedSpaces);
+                            setOwnedMints(newOwnedMints);
+                        }
+                        // refresh focus if not changed
+                        const focus = game.current?.state.focus;
+                        if (focus && focus.focus && focus.x == x && focus.y == y){
+                            game.current?.handleFocusRefresh();
                         }
                     }
                     catch (e) {
@@ -452,6 +463,8 @@ export function Screen(props) {
                         let responses = inter.responses;
                         let ixPerTx = inter.ixPerTx;
                         let ind = 0;
+                        let newOwnedSpaces = new Set(ownedSpaces);
+                        let newOwnedMints = {...ownedMints};
                         for (let i = 0; i < responses.length; i++) {
                             
                             if (i != 0) {
@@ -464,11 +477,13 @@ export function Screen(props) {
                                     let y = changes[ind+j].y;
                                     let spaceMint = changes[ind+j].mint;
                                     let position = JSON.stringify({x, y});
-                                    setOwnedSpaces(spaces => {spaces.add(position); return spaces}); // add new space to owned spaces
-                                    setOwnedMints(mints => ({...mints, [position]: spaceMint.toBase58()})); // append new mint to owned mints
+                                    newOwnedSpaces.add(position);
+                                    newOwnedMints[position] = spaceMint;
                                 }
                             }
                         }
+                        setOwnedSpaces(newOwnedSpaces);
+                        setOwnedMints(newOwnedMints);
                     }
                     catch (e) {
                         return;
@@ -820,7 +835,8 @@ export function Screen(props) {
 
     return (
         <Game
-            spaces={ownedSpaces}
+            ref={game}
+            ownedSpaces={ownedSpaces}
             loadedOwned={loadedOwned}
             user={user}
             viewer={viewer}
