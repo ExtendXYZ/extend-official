@@ -181,7 +181,7 @@ export class SelectingSidebar extends React.Component {
                         </div>
 
                         <Box style={{ fontSize: "12px", color: "gray", marginTop: "10px"}}>IMAGE</Box>
-              
+                        <div style={{ display: "flex", alignItems: "center" }}>
                         <Tooltip title="Upload an image on your selected spaces">
                           <Button
                             variant="outlined"
@@ -204,9 +204,12 @@ export class SelectingSidebar extends React.Component {
                             />
                           </Button>
                         </Tooltip>
-                        <Box style={{ width: "100%" }}>
-                          <label id="img-file-name"></label>
-                        </Box>
+                        {this.props.hasImage && 
+                          <Box style={{marginLeft: "10px"}}>
+                            {this.props.imageFilename}
+                          </Box> 
+                        }
+                        </div>
                         <Button
                           size="small"
                           variant="contained"

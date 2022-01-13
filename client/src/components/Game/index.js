@@ -68,7 +68,6 @@ export class Game extends React.Component {
         super(props);
         this.intervalId1 = 0;
         this.intervalId2 = 0;
-        this.intervalId3 = 0;
         this.state = {
             neighborhood_data: {},
             showNav: false,
@@ -410,7 +409,6 @@ export class Game extends React.Component {
     componentWillUnmount() {
         clearInterval(this.intervalId1);
         clearInterval(this.intervalId2);
-        clearInterval(this.intervalId3);
         // remove account listeners
         // const connection = this.props.connection;
         // for (const id of this.subIds) {
@@ -1204,7 +1202,6 @@ export class Game extends React.Component {
 
         // use the 1st file from the list
         let f = files[0];
-        document.getElementById("img-file-name").textContent = f.name;
 
         this.setState({ img_upl: f, has_img: true });
     }
@@ -1702,6 +1699,7 @@ export class Game extends React.Component {
                 handleChangeImg={this.handleChangeImg}
                 uploadImage={this.uploadImage}
                 hasImage={this.state.has_img}
+                imageFilename={this.state.has_img ? this.state.img_upl.name : null}
                 handleChangeSelectingPrice={this.handleChangeSelectingPrice}
                 changePrices={this.changePrices}
                 delistSpaces={this.delistSpaces}
