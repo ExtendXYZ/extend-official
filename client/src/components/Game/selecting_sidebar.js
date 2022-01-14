@@ -546,7 +546,10 @@ export class SelectingSidebar extends React.Component {
                                     size="small"
                                     variant="contained"
                                     onClick={() => {
-                                        const prefix = RPC?.includes("mainnet") ? "canvas.extend.xyz" : "localhost:3000";
+                                        let prefix = window.location.hostname;
+                                        if (window.location.port) { // for localhost
+                                            prefix += ":" + window.location.port;
+                                        }
                                         const fraction = Math.round(this.props.scale * NEIGHBORHOOD_SIZE / this.props.height * 100);
                                         navigator.clipboard.writeText(`https://${prefix}/rect/${bounds.left}/${bounds.right}/${bounds.top}/${bounds.bottom}/${fraction}`);
                                         notify({
