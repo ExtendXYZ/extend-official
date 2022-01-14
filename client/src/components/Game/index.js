@@ -1917,7 +1917,7 @@ export class Game extends React.Component {
                         }}
                     >
                     
-                        <Tooltip title="Click to get a link to share spaces with others">
+                        <Tooltip title="Copy link to share spaces with others">
                             <Button
                             variant="contained"
                             sx={{

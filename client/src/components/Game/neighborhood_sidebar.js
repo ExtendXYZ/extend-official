@@ -46,7 +46,7 @@ export class NeighborhoodSidebar extends React.Component {
           <canvas id="neighborhood-canvas" width={this.props.canvasSize} height={this.props.canvasSize * 0.5}/>
           <List id="focusSidebarPrefix">
             <ListItem className="info" style={{ display: "block" }}>
-            <Tooltip title="The cheapest space price in this neighborhood">
+            <Tooltip placement={'right'} title="The cheapest space price in this neighborhood">
               <Box className="infoHeader">FLOOR</Box>
             </Tooltip>
               <div style={{ display: "flex", alignItems: "center" }}>
@@ -152,7 +152,7 @@ export class NeighborhoodSidebar extends React.Component {
                     </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-              <Tooltip title="Add a new frame for this neighborhood">
+              <Tooltip placement={'right'} title="Add a new frame for this neighborhood">
                 <Button
                 size="small"
                 variant="contained"

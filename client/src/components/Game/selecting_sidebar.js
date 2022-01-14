@@ -30,11 +30,13 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import HelpIcon from "@mui/icons-material/Help";
 import { solToLamports, lamportsToSol, formatPrice, intersection} from "../../utils";
 import {Tab, Tabs, AppBar} from "@mui/material";
+import { withStyles } from '@mui/styles';
 
 
 import ReactDOM from "react-dom";
 
 import PropTypes from "prop-types";
+
 
 function TabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -212,7 +214,7 @@ export class SelectingSidebar extends React.Component {
                             }
                           />
                         </RadioGroup>
-                        <Tooltip title={tooltipModifyColorTitle}>
+                        <Tooltip placement={'right'} title={tooltipModifyColorTitle}>
                           <Box className="infoHeader">COLOR</Box>
                         </Tooltip>
                         <div style={{ display: "flex", alignItems: "center" }}>
@@ -223,7 +225,7 @@ export class SelectingSidebar extends React.Component {
                             onChange={(e) => this.props.handleChangeColors(e)}
                             disabled={!this.state.ownedSelection.size}
                           ></input>
-                        <Tooltip title={tooltipModifyColorTitle}>
+                        <Tooltip placement={'right'} title={tooltipModifyColorTitle}>
                           <Button
                             size="small"
                             variant="contained"
@@ -244,7 +246,7 @@ export class SelectingSidebar extends React.Component {
 
                         <Box className="infoHeader" style={{marginTop: "10px"}}>IMAGE</Box>
                         <div style={{ display: "flex", alignItems: "center" }}>
-                          <Tooltip title="Upload an image on your selected spaces">
+                          <Tooltip placement={'right'} title="Upload an image on your selected spaces">
                             <Button
                               variant="contained"
                               component="label"
@@ -275,7 +277,7 @@ export class SelectingSidebar extends React.Component {
                         {/* {this.props.hasImage &&  */}
                         <canvas id="img-render" width="320px" height="320px"/> 
                           {/* } */}
-                        <Tooltip title={tooltipModifyColorTitle}>
+                        <Tooltip placement={'right'} title={tooltipModifyColorTitle}>
                           <Button
                             size="small"
                             variant="contained"
@@ -311,7 +313,7 @@ export class SelectingSidebar extends React.Component {
                           Estimated Cost:{" "}
                           {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
                         </Box> */}
-                        <Tooltip title={tooltipSetPriceTitle}>
+                        <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
                           <Box className="infoHeader">PRICE</Box>
                         </Tooltip>
                         <TextField
@@ -336,7 +338,7 @@ export class SelectingSidebar extends React.Component {
                             ),
                           }}
                         />
-                        <Tooltip title={tooltipSetPriceTitle}>
+                        <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
                           <Button
                             size="small"
                             variant="contained"
@@ -357,7 +359,7 @@ export class SelectingSidebar extends React.Component {
                             Set Price
                           </Button>
                         </Tooltip>
-                        <Tooltip title={tooltipSetPriceTitle}>
+                        <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
                           <Button
                             size="small"
                             variant="contained"
@@ -452,7 +454,7 @@ export class SelectingSidebar extends React.Component {
                         </Button>
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
-                        <Tooltip title="Select all purchasable spaces in your selection to prepare to purchase them.">
+                        <Tooltip placement={'right'} title="Select all purchasable spaces in your selection to prepare to purchase them.">
                           <Button
                             size="small"
                             variant="contained"
@@ -498,7 +500,7 @@ export class SelectingSidebar extends React.Component {
                             style={{ width: "25%" }}
                             size="small"
                           />
-                          <Tooltip title="Select the cheapest rectangle in your selection of the specified width and height dimensions.">
+                          <Tooltip placement={'right'} title="Select the cheapest rectangle in your selection of the specified width and height dimensions.">
                             <Button
                               size="small"
                               variant="contained"
@@ -533,7 +535,7 @@ export class SelectingSidebar extends React.Component {
                                     </FormControl> */}
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
-                        <Tooltip title={tooltipBuyTitle}>
+                        <Tooltip placement={'right'} title={tooltipBuyTitle}>
                           <Button
                             size="small"
                             variant="contained"
@@ -566,7 +568,7 @@ export class SelectingSidebar extends React.Component {
                             Advanced
                         </Divider>
                         <ListItem className="info" style={{ display: "block" }}>
-                              <Tooltip title="Refresh information for these spaces directly from the blockchain. Refreshing may be rate-limited if performed excessively.">  
+                              <Tooltip placement={'right'} title="Refresh information for these spaces directly from the blockchain. Refreshing may be rate-limited if performed excessively.">  
                                 <Button
                                 size="small"
                                 variant="contained"
@@ -585,7 +587,7 @@ export class SelectingSidebar extends React.Component {
                             </ListItem>
                         <ListItem className="info" style={{ display: "block" }}>
                             <Typography align="center">
-                              <Tooltip title="Share the rectangular box containing the selected pixels.">
+                              <Tooltip placement={'right'} title="Copy link to the rectangular box containing the selected pixels.">
                                 <Button
                                     size="small"
                                     variant="contained"

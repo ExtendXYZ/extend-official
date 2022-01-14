@@ -433,7 +433,7 @@ export class FocusSidebar extends React.Component {
                                 Advanced
                             </Divider>
                             <ListItem className="info" style={{ display: "block" }}>
-                                <Tooltip title="Refresh information for this space directly from the blockchain. Refreshing may be rate-limited if performed excessively.">
+                                <Tooltip placement={'right'} title="Refresh information for this space directly from the blockchain. Refreshing may be rate-limited if performed excessively.">
                                     <Button
                                     size="small"
                                     variant="contained"
@@ -452,30 +452,32 @@ export class FocusSidebar extends React.Component {
                             </ListItem>
                             <ListItem className="info" style={{ display: "block" }}>
                                 <Typography align="center">
-                                    <Button
-                                        size="small"
-                                        variant="contained"
-                                        onClick={() => {
-                                            let prefix = window.location.hostname;
-                                            if (window.location.port) { // for localhost
-                                                prefix += ":" + window.location.port;
-                                            }
-                                            const fraction = Math.round(this.props.scale * NEIGHBORHOOD_SIZE / this.props.height * 100);
-                                            navigator.clipboard.writeText(`https://${prefix}/space/${this.props.focus.x}/${this.props.focus.y}/${fraction}`);
-                                            notify({
-                                            description: "URL copied to clipboard",
-                                            });
-                                        }}
-                                        disabled={!this.props.scale}
-                                        sx={{
-                                            width: "100%",
-                                            color: "#FFFFFF",
-                                            background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                                        }}
-                                        >
-                                            <CopyOutlined />
-                                            Share This Space
-                                    </Button>
+                                    <Tooltip placement={'right'} title="Copy link to space">
+                                        <Button
+                                            size="small"
+                                            variant="contained"
+                                            onClick={() => {
+                                                let prefix = window.location.hostname;
+                                                if (window.location.port) { // for localhost
+                                                    prefix += ":" + window.location.port;
+                                                }
+                                                const fraction = Math.round(this.props.scale * NEIGHBORHOOD_SIZE / this.props.height * 100);
+                                                navigator.clipboard.writeText(`https://${prefix}/space/${this.props.focus.x}/${this.props.focus.y}/${fraction}`);
+                                                notify({
+                                                description: "URL copied to clipboard",
+                                                });
+                                            }}
+                                            disabled={!this.props.scale}
+                                            sx={{
+                                                width: "100%",
+                                                color: "#FFFFFF",
+                                                background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                                            }}
+                                            >
+                                                <CopyOutlined />
+                                                Share This Space
+                                        </Button>
+                                    </Tooltip>
                                 </Typography>
                             </ListItem>
                             </>
