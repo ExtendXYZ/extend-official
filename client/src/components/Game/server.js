@@ -484,7 +484,7 @@ export class Server {
 
     /*
     returns {spaces, mints}. Blocks is a set of stringified {x, y} of owned spaces. mints 
-    is a map from spaces to the mint of the block (mint is a string)
+    is a map from spaces to the mint of the block (mint is a string). Ignores tokens in tokenCache
     */
     async getSpacesByOwner(connection, address, diffUser=false, tokenCache=new Set()) {
         let infoText = diffUser ? "Getting User Spaces" : "Loading Your Spaces"; 

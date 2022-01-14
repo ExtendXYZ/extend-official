@@ -483,7 +483,7 @@ export const Home = (props: HomeProps) => {
         tokenCache.add(spaceATA.toBase58());
     }
 
-    const data = await server.getSpacesByOwner(props.connection, wallet.publicKey, true, tokenCache);
+    const data = await server.getSpacesByOwner(props.connection, wallet.publicKey, false, tokenCache);
     if (!data) {
       setAlertState({
         open: true,
@@ -910,6 +910,8 @@ export const Home = (props: HomeProps) => {
           {alertState.message}
         </Alert>
       </Snackbar>
+
+      <div className="botnav" id="botnav"></div>
     </div>
   );
 };
