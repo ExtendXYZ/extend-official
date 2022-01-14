@@ -81,6 +81,47 @@ export class SelectingSidebar extends React.Component {
         if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.selecting.poses != prevProps.selecting.poses) {
             this.setState({ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses)});
         }
+
+        // draw image on sidebar
+        let reader = new FileReader();
+        reader.onload = function (e) {
+            let bfile = e.target.result;
+
+            let image = new Image();
+
+            // draw image in sidebar
+            const img = document.getElementById("img-render");
+
+            let bounds = getBounds(this.props.selecting.poses);
+            const height = bounds.bottom - bounds.top + 1;
+            const width = bounds.right - bounds.left + 1;
+
+            let imgwidth;
+            let imgheight;
+
+            if (width >= height) {
+                imgwidth = 0.8*this.props.canvasSize;
+                imgheight = (height/width) * imgwidth;
+            }
+            else {
+                imgheight = 0.6*this.props.canvasSize;
+                imgwidth = (width/height) * imgheight;
+            }
+
+            image.onload = function () {
+                const context = img.getContext("2d", {
+                    alpha: false,
+                    desynchronized: true,
+                });
+                context.clearRect(0, 0, img.width, img.height);
+                context.drawImage(image, 0, 0, imgwidth, imgheight);
+            }.bind(this);
+            image.setAttribute("src",bfile);
+        }.bind(this);
+
+        if (this.props.img_upl !== null) {
+          reader.readAsDataURL(this.props.img_upl);
+        }
     }
 
     handleTabChange(event, newValue) {
@@ -110,7 +151,7 @@ export class SelectingSidebar extends React.Component {
         let tooltipBuyTitle = `Batch buying is non-atomic and is available as a convenience feature. Successful purchase of every space selected is not guaranteed.
         
         Estimated Transaction Cost to Buy:  ${(this.props.selecting.purchasableInfo.length * 0.000005).toFixed(6)} SOL`;
-
+        
         return (
 
                 <div>
@@ -231,6 +272,9 @@ export class SelectingSidebar extends React.Component {
                             </Box> 
                           }
                         </div>
+                        {/* {this.props.hasImage &&  */}
+                        <canvas id="img-render" width="320px" height="320px"/> 
+                          {/* } */}
                         <Tooltip title={tooltipModifyColorTitle}>
                           <Button
                             size="small"
@@ -546,7 +590,10 @@ export class SelectingSidebar extends React.Component {
                                     size="small"
                                     variant="contained"
                                     onClick={() => {
-                                        const prefix = RPC?.includes("mainnet") ? "canvas.extend.xyz" : "localhost:3000";
+                                        let prefix = window.location.hostname;
+                                        if (window.location.port) { // for localhost
+                                            prefix += ":" + window.location.port;
+                                        }
                                         const fraction = Math.round(this.props.scale * NEIGHBORHOOD_SIZE / this.props.height * 100);
                                         navigator.clipboard.writeText(`https://${prefix}/rect/${bounds.left}/${bounds.right}/${bounds.top}/${bounds.bottom}/${fraction}`);
                                         notify({

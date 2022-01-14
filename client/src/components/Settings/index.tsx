@@ -23,15 +23,15 @@ export function Settings ({
     setVisible(true);
   }, [setModal, setVisible]);
   
-  return (<Box sx={{ display: "flex", minWidth: "100%" }}>
+  return (<Box sx={{ display: "flex", minWidth: "100%"}}>
         {!connected && (
           <>
             <Button
               variant="contained"
               onClick={handleConnect}
-              style={{
+              sx={{
                 color: "#FFFFFF", 
-                background: 'linear-gradient(to right bottom, #36EAEF, #6B0AC9)', 
+                background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                 borderRadius: '40px'
               }}
             >
@@ -41,6 +41,7 @@ export function Settings ({
         )}
         {connected && (
           <>
+            <div>
             {publicKey && (
               <Button
                 variant="contained"
@@ -53,16 +54,18 @@ export function Settings ({
                     });
                   }
                 }}
-                style={{
+                sx={{
                   color: "#FFFFFF", 
-                  background: 'linear-gradient(to right bottom, #36EAEF, #6B0AC9)',
-                  borderRadius: '40px'
+                  background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                  borderRadius: "40px",
+                  marginRight: "10px",
                 }}
               >
                 <CopyOutlined />
                 <b>{shortenAddress(publicKey.toBase58())}</b>
               </Button>
             )}
+            </div>
             {/* <Button
               variant="contained"
               onClick={open}
@@ -75,19 +78,20 @@ export function Settings ({
             >
               <b>Change Wallet</b>
             </Button> */}
+            <div>
             <Button
               variant="contained"
               onClick={() => disconnect().catch()}
-              style={{ 
-                color: "#FFFFFF", 
-                marginLeft: "10px", 
-                background: 'linear-gradient(to right bottom, #FF0000, #FE7801)',
-                borderRadius: '40px'
+              sx={{ 
+                color: "#FFFFFF",  
+                background: 'linear-gradient(to right bottom, #FF000090, #FE780190)',
+                borderRadius: "40px"
               }}
             >
               {/* <b>Disconnect ({env})</b> */}
               <b>Disconnect</b>
             </Button>
+            </div>
           </>
         )}
         {additionalSettings}

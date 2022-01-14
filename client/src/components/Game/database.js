@@ -128,12 +128,13 @@ export class Database {
         const results = await axios.get(this.mysql + "/stats/" + x + "/" + y);
         const data = results.data;
         return {
-          floor: Number(data.from_listed_for_sale[0][0]) / LAMPORTS_PER_SOL,
-          listed: data.from_listed_for_sale[0][1],
-          volume: Number(data.from_trades[0][0]) / LAMPORTS_PER_SOL,
-          average: Number(data.from_trades[0][1]) / LAMPORTS_PER_SOL,
-          owners: data.from_listed[0][0],
-          floor_list : data.floor,
+          floor_price: Number(data.listed_stats[0][0]) / LAMPORTS_PER_SOL,
+          listed_count: data.listed_stats[0][1],
+          volume: Number(data.trade_stats[0][0]) / LAMPORTS_PER_SOL,
+          average: Number(data.trade_stats[0][1]) / LAMPORTS_PER_SOL,
+          owners: data.owner_stats[0][0],
+          floor: data.floor.map( el => JSON.stringify({x : el[0], y: el[1]})),
+          listed: data.listed.map( el => JSON.stringify({x : el[0], y: el[1]})),
         };
     } 
 }
