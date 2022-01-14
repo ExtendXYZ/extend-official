@@ -278,7 +278,7 @@ export class SelectingSidebar extends React.Component {
                           }
                         </div>
                         {/* {this.props.hasImage &&  */}
-                        <canvas id="img-render" width="320px" height="320px"/> 
+                        <canvas id="img-render" style={{marginTop: "20px"}} width={this.props.canvasSize + "px"} height={this.props.canvasSize + "px"}/> 
                           {/* } */}
                         <Tooltip placement={'right'} title={tooltipModifyColorTitle}>
                           <Button
