@@ -51,7 +51,7 @@ export function Screen(props) {
     const server = new Server();
     const database = new Database();
 
-    const mounted = useRef(true);
+    const mounted = useRef(true); 
     const [ownedSpaces, setOwnedSpaces] = useState(new Set<string>());
     const [ownedMints, setOwnedMints] = useState({});
     const [loadedOwned, setLoadedOwned] = useState(false);

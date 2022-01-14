@@ -72,15 +72,19 @@ export class SelectingSidebar extends React.Component {
       super(props);
       this.state = {value: 0, ownedSelection: new Set()};
       this.handleTabChange = this.handleTabChange.bind(this);
+      this.selectionSize = 0;
     }
 
     componentDidMount(){
         this.setState({ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses)});
+        this.selectionSize = this.props.selecting.poses.size;
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.selecting.poses != prevProps.selecting.poses) {
-            this.setState({ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses)});
+        if (this.props.ownedSpaces != prevProps.ownedSpaces || this.props.selecting.poses != prevProps.selecting.poses
+            || this.props.selecting.poses.size != this.selectionSize) {
+                this.setState({ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses)});
+                this.selectionSize = this.props.selecting.poses.size;
         }
 
         // draw image on sidebar
