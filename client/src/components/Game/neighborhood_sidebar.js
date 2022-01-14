@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button } from "@mui/material";
+import { Box, Button, Tooltip } from "@mui/material";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import { Spin } from "antd";
@@ -46,7 +46,9 @@ export class NeighborhoodSidebar extends React.Component {
           <canvas id="neighborhood-canvas" width={this.props.canvasSize} height={this.props.canvasSize * 0.5}/>
           <List id="focusSidebarPrefix">
             <ListItem className="info" style={{ display: "block" }}>
-              <Box style={{ fontSize: "12px", color: "gray" }}>FLOOR</Box>
+            <Tooltip title="The cheapest space price in this neighborhood">
+              <Box className="infoHeader">FLOOR</Box>
+            </Tooltip>
               <div style={{ display: "flex", alignItems: "center" }}>
                 <Box>
                   <img
@@ -80,7 +82,7 @@ export class NeighborhoodSidebar extends React.Component {
               </div>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-              <Box style={{ fontSize: "12px", color: "gray" }}>VOLUME (LAST 24H)</Box>
+              <Box className="infoHeader">VOLUME (LAST 24H)</Box>
               <Box>
                 <img
                   src={
@@ -96,7 +98,7 @@ export class NeighborhoodSidebar extends React.Component {
               </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-              <Box style={{ fontSize: "12px", color: "gray" }}>AVERAGE SALE PRICE (LAST 24H)</Box>
+              <Box className="infoHeader">AVERAGE SALE PRICE (LAST 24H)</Box>
               <Box>
                 <img
                   src={
@@ -112,7 +114,7 @@ export class NeighborhoodSidebar extends React.Component {
               </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-              <Box style={{ fontSize: "12px", color: "gray" }}>LISTED ITEMS</Box>
+              <Box className="infoHeader">LISTED ITEMS</Box>
               <Box>
                     <b>
                         <font color="#82CBC5">
@@ -122,7 +124,7 @@ export class NeighborhoodSidebar extends React.Component {
                     </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-              <Box style={{ fontSize: "12px", color: "gray" }}>NUMBER OF DISTINCT OWNERS</Box>
+              <Box className="infoHeader">NUMBER OF DISTINCT OWNERS</Box>
               <Box>
                     <b>
                         <font color="#82CBC5">
@@ -132,6 +134,7 @@ export class NeighborhoodSidebar extends React.Component {
                     </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
+              <Tooltip title="Add a new frame for this neighborhood">
                 <Button
                 size="small"
                 variant="contained"
@@ -147,6 +150,7 @@ export class NeighborhoodSidebar extends React.Component {
                 >
                 Add New Frame
                 </Button>
+              </Tooltip>
             </ListItem>
           </List>
         </div>

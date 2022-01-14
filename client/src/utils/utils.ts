@@ -117,3 +117,36 @@ export function shuffle(array, indexArray) {
 export function formatPrice(x){
   return x.toFixed(3) > 0 ? x.toFixed(3) : x.toPrecision(2);
 }
+
+// warning: One of the input sets is modified and returned!
+export function union(setA, setB){
+  if (setA.size > setB.size) {
+      [setA, setB] = [setB, setA];
+  }
+  let _union = setB;
+  for (let elem of setA) {
+      _union.add(elem);
+  }
+  return _union;
+}
+export function intersection(setA, setB){
+  if (setA.size > setB.size) {
+      [setA, setB] = [setB, setA];
+  }
+  let _intersection = new Set();
+  for (let elem of setA) {
+      if (setB.has(elem)) {
+          _intersection.add(elem);
+      }
+  }
+  return _intersection;
+}
+// warning: One of the input sets is modified and returned!
+export function xor(setA, setB){
+  let _intersection = intersection(setA, setB);
+  let _union = union(setA, setB);
+  for (let elem of _intersection) {
+      _union.delete(elem);
+  }
+  return _union;
+}

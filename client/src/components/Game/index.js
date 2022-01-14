@@ -31,7 +31,7 @@ import { Board } from './canvas.js';
 import { FocusSidebar } from './focus_sidebar.js';
 import { SelectingSidebar } from './selecting_sidebar.js';
 import { NeighborhoodSidebar } from './neighborhood_sidebar.js';
-import { solToLamports, lamportsToSol } from "../../utils";
+import { solToLamports, lamportsToSol, xor} from "../../utils";
 import {loading} from '../../utils/loading';
 import { letterSpacing } from "@mui/system";
 
@@ -89,15 +89,15 @@ export class Game extends React.Component {
             selecting: {
                 selecting: false,
                 poses: new Set(),
-                owned: new Set(),
                 color: "#000000",
                 price: null,
                 loadingPricesStatus: 0,
                 loadingFloorStatus: 0,
+                purchasableInfoAll: new Array(),
+                purchasableInfo: new Array(),
                 purchasable: new Set(),
                 totalPrice: NaN,
                 floorPrice: NaN,
-                purchasableInfo: new Array(),
                 floorM: 1,
                 floorN: 1,
             },
@@ -695,7 +695,7 @@ export class Game extends React.Component {
         // })
     }
 
-    purchaseSpace = () => {
+    purchaseSpace = async () => {
         let price = this.state.focus.price;
         if (!price) {
             notify({
@@ -703,6 +703,19 @@ export class Game extends React.Component {
                 description: "Not for sale",
             });
         } else {
+            let x = this.state.focus.x;
+            let y = this.state.focus.y;
+            notify({
+                message: "Buying...",
+            });
+            this.setState({
+                selecting: {
+                    ...this.state.selecting,
+                    purchasable: new Set(),
+                    purchasableInfo: [],
+                    totalPrice: 0,
+                },
+            });
             this.props.setPurchaseSpaceTrigger({
                 x: this.state.focus.x,
                 y: this.state.focus.y,
@@ -710,9 +723,8 @@ export class Game extends React.Component {
                 owner: this.state.focus.owner,
                 mint: this.state.focus.mint,
             });
-            notify({
-                message: "Buying...",
-            });
+
+            
         }
     }
 
@@ -720,6 +732,14 @@ export class Game extends React.Component {
         this.props.setPurchaseSpacesTrigger({ purchasableInfo: this.state.selecting.purchasableInfo });
         notify({
             message: "Buying...",
+        });
+        this.setState({
+            selecting: {
+                ...this.state.selecting,
+                purchasable: new Set(),
+                purchasableInfo: [],
+                totalPrice: 0,
+            },
         });
     }
 
@@ -896,6 +916,9 @@ export class Game extends React.Component {
     }
 
     handleGetMySpaces = async () => {
+        if (!this.props.user){
+            return;
+        }
         this.setState({
             mySpacesOpen: false,
             mySpacesAnchorEl: null,
@@ -1075,7 +1098,7 @@ export class Game extends React.Component {
     }
 
     isOwn = (x, y) => {
-        return this.props.spaces.has(JSON.stringify({ x, y }));
+        return this.props.ownedSpaces.has(JSON.stringify({ x, y }));
     }
 
     rgbatoString = (rgb) => {
@@ -1203,6 +1226,28 @@ export class Game extends React.Component {
         let f = files[0];
 
         this.setState({ img_upl: f, has_img: true });
+
+        // // draw image on sidebar
+        // let reader = new FileReader();
+
+        // reader.onload = function (e) {
+        //     let bfile = e.target.result;
+
+        //     let image = new Image();
+
+        //     // draw image in sidebar
+        //     const img = document.getElementById("image-uploaded");
+        //     const context = img.getContext("2d", {
+        //         alpha: false,
+        //         desynchronized: true,
+        //     });
+        //     context.drawImage(image, 0, 0);
+        //     image.setAttribute("src",bfile);
+        // }.bind(this);
+
+        // console.log(f)
+
+        // reader.readAsDataURL(f);
     }
 
     handleChangeFocusPrice = (e) => {
@@ -1222,39 +1267,6 @@ export class Game extends React.Component {
                 price: e.target.value,
             },
         });
-    }
-
-    // warning: One of the input sets is modified and returned!
-    union = (setA, setB) => {
-        if (setA.size > setB.size) {
-            [setA, setB] = [setB, setA];
-        }
-        let _union = setB;
-        for (let elem of setA) {
-            _union.add(elem);
-        }
-        return _union;
-    }
-    intersection = (setA, setB) => {
-        if (setA.size > setB.size) {
-            [setA, setB] = [setB, setA];
-        }
-        let _intersection = new Set();
-        for (let elem of setA) {
-            if (setB.has(elem)) {
-                _intersection.add(elem);
-            }
-        }
-        return _intersection;
-    }
-    // warning: One of the input sets is modified and returned!
-    xor = (setA, setB) => {
-        let _intersection = this.intersection(setA, setB);
-        let _union = this.union(setA, setB);
-        for (let elem of _intersection) {
-            _union.delete(elem);
-        }
-        return _union;
     }
 
     resetFocus = () => {
@@ -1293,11 +1305,11 @@ export class Game extends React.Component {
             selecting: {
                 selecting: false,
                 poses: new Set(),
-                owned: new Set(),
                 color: "#000000",
                 price: null,
                 loadingPricesStatus: 0,
                 loadingFloorSTatus: 0,
+                purchasableInfoAll: new Array(),
                 purchasableInfo: new Array(),
                 purchasable: new Set(),
                 totalPrice: NaN,
@@ -1354,8 +1366,8 @@ export class Game extends React.Component {
                 hasPrice = false;
             }
             owned =
-                (this.props.spaces &&
-                    this.props.spaces.has(JSON.stringify({ x, y }))) ||
+                (this.props.ownedSpaces &&
+                    this.props.ownedSpaces.has(JSON.stringify({ x, y }))) ||
                 (this.props.user && this.props.user === owner);
         }
         const n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
@@ -1367,8 +1379,7 @@ export class Game extends React.Component {
         if (key in this.viewport.neighborhood_names) {
             neighborhood_name = this.viewport.neighborhood_names[key];
         }
-        if (this.state.focus.x !== x || this.state.focus.y !== y) {
-            // new focus occurred
+        if (!this.state.focus.focus || this.state.focus.x !== x || this.state.focus.y !== y) { // sidebar changed
             return;
         }
         this.setState({
@@ -1427,14 +1438,12 @@ export class Game extends React.Component {
             this.resetSelecting();
             this.setState({showNav: false});
         } else {
-            const owned = this.intersection(poses, this.props.spaces);
             this.setState({
                 showNav: true,
                 selecting: {
                     ...this.state.selecting,
                     selecting: true,
                     poses,
-                    owned,
                     loadingPricesStatus: 0,
                     loadingFloorStatus: 0,
                     purchasableInfo: new Array(),
@@ -1449,7 +1458,7 @@ export class Game extends React.Component {
     }
 
     getSelectOwnedBlocks = () => {
-        var options = this.props.spaces;
+        var options = this.props.ownedSpaces;
         let keys = [];
         for (const p of options) {
             var opt = JSON.parse(p);
@@ -1490,11 +1499,11 @@ export class Game extends React.Component {
         const mints = data.mints;
 
         // let changed = false;
-        // if (spaces.size != this.props.spaces.size){
+        // if (spaces.size != this.props.ownedSpaces.size){
         //     changed = true;
         // }
         // for (let space of spaces){
-        //     if (!this.props.spaces.has(space)){
+        //     if (!this.props.ownedSpaces.has(space)){
         //         changed = true;
         //         break;
         //     }
@@ -1553,8 +1562,10 @@ export class Game extends React.Component {
         this.props.setOwnedSpaces(data.spaces); // set spaces and mints on hooks side
         this.props.setOwnedMints(data.mints);
 
-        // set focus
-        this.setFocus(this.state.focus.x, this.state.focus.y);
+        // set focus, if focus hasn't changed
+        if (x == this.state.focus.x && y == this.state.focus.y){
+            this.setFocus(this.state.focus.x, this.state.focus.y);
+        }
     }
 
     handleSelectingRefresh = async () => {
@@ -1670,6 +1681,7 @@ export class Game extends React.Component {
 
     render() {
         let info = <FocusSidebar
+            ownedSpaces={this.props.ownedSpaces}
             focus={this.state.focus}
             user={this.props.user}
             colorApplyAll={this.state.colorApplyAll}
@@ -1688,6 +1700,7 @@ export class Game extends React.Component {
             />;
         if (this.state.selecting.selecting) {
             info = <SelectingSidebar
+                ownedSpaces={this.props.ownedSpaces}
                 selecting={this.state.selecting}
                 user={this.props.user}
                 colorApplyAll={this.state.colorApplyAll}
@@ -1728,6 +1741,7 @@ export class Game extends React.Component {
         return (
             <div className="game">
                 <Board
+                    ownedSpaces={this.props.ownedSpaces}
                     ref={this.board}
                     getMap={() => this.viewport.neighborhood_data}
                     getNeighborhoodNames={() => this.viewport.neighborhood_names}
@@ -1743,7 +1757,7 @@ export class Game extends React.Component {
                     reset={this.resetSelecting}
                     shiftClick={async (x) =>
                         this.setSelecting(
-                            this.xor(this.state.selecting.poses || new Set(), x)
+                            xor(this.state.selecting.poses || new Set(), x)
                         )
                     }
                     clicked={this.state.focus.focus}
@@ -1858,7 +1872,7 @@ export class Game extends React.Component {
                         <Tooltip title="Click for your spaces">
                             <Button
                                 variant="contained"
-                                disabled={!this.props.loadedOwned || this.state.refreshingUserSpaces}
+                                disabled={!this.props.user || !this.props.loadedOwned || this.state.refreshingUserSpaces}
                                 sx={{
                                     marginRight: "10px",
                                     borderRadius: "40px",

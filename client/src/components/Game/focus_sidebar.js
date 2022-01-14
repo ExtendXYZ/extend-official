@@ -68,16 +68,32 @@ function TabPanel(props) {
 export class FocusSidebar extends React.Component {
     constructor(props) {
       super(props);
-      this.state = {value: 0};
+      this.state = {value: 0, owned: false};
       this.handleTabChange = this.handleTabChange.bind(this);
+    }
+
+    componentDidMount(){
+        this.state.owned =
+            (this.props.ownedSpaces &&
+                this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })));
+    }
+    
+    componentDidUpdate(prevProps) {
+        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.focus.x != prevProps.focus.x || this.props.focus.y != prevProps.focus.y) {
+            this.state.owned =
+                (this.props.ownedSpaces &&
+                    this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })));
+        }
     }
 
     handleTabChange(event, newValue) {
         this.setState({value: newValue});
     };
 
+    
+
     render() {
-        let priceInfoName = this.props.focus.owned ? "Listing" : "Purchase";
+        let priceInfoName = this.state.owned ? "Listing" : "Purchase";
 
         const sidebarHeader = <>
         <List>
@@ -101,7 +117,7 @@ export class FocusSidebar extends React.Component {
         <>
         <List id="focusSidebarPrefix">
             <ListItem className="info" style={{ display: "block" }}>
-                <Box style={{ fontSize: "12px", color: "gray" }}>POSITION</Box>
+                <Box className="infoHeader">POSITION</Box>
                 <Box>
                 <b>
                     <font color="#82CBC5">
@@ -111,7 +127,7 @@ export class FocusSidebar extends React.Component {
                 </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-                <Box style={{ fontSize: "12px", color: "gray" }}>NEIGHBORHOOD</Box>
+                <Box className="infoHeader">NEIGHBORHOOD</Box>
                 <Box>
                 <b>
                     <font color="#82CBC5">
@@ -121,8 +137,8 @@ export class FocusSidebar extends React.Component {
                 </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-                <Box style={{ fontSize: "12px", color: "gray" }}>
-                {this.props.focus.owned ? "OWNER (YOU)" : "OWNER"}
+                <Box className="infoHeader">
+                    {this.state.owned ? "OWNER (YOU)" : "OWNER"}
                 </Box>
                 <Box>
                 <Button
@@ -151,7 +167,7 @@ export class FocusSidebar extends React.Component {
                 </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
-                <Box style={{ fontSize: "12px", color: "gray" }}>
+                <Box className="infoHeader">
                     MINT
                 </Box>
                 <Box>
@@ -224,32 +240,32 @@ export class FocusSidebar extends React.Component {
                                     <FormControlLabel
                                         value={false}
                                         control={<Radio size="small" />}
-                                        disabled={!this.props.focus.owned}
+                                        disabled={!this.state.owned}
                                         label={
                                         <Typography
-                                            style={{ fontSize: "12px", color: "gray" }}
+                                            className="infoText2"
                                         >{`Current frame (Frame ${this.props.frame})`}</Typography>
                                         }
                                     />
                                     <FormControlLabel
                                         value={true}
                                         control={<Radio size="small" />}
-                                        disabled={!this.props.focus.owned}
+                                        disabled={!this.state.owned}
                                         label={
-                                        <Typography style={{ fontSize: "12px", color: "gray" }}>
+                                        <Typography className="infoText2">
                                             All frames
                                         </Typography>
                                         }
                                     />
                                     </RadioGroup>
-                                    <Box style={{ fontSize: "12px", color: "gray" }}>COLOR</Box>
+                                    <Box className="infoHeader">COLOR</Box>
                                     <div style={{ display: "flex", alignItems: "center" }}>
                                     <input
                                         className="newColor"
                                         type="color"
                                         value={this.props.focus.color}
                                         onChange={(e) => this.props.handleChangeColor(e)}
-                                        disabled={!this.props.focus.owned}
+                                        disabled={!this.state.owned}
                                     ></input>
                                     <Button
                                         size="small"
@@ -262,7 +278,7 @@ export class FocusSidebar extends React.Component {
                                         color: "#FFFFFF",
                                         background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                                         }}
-                                        disabled={!this.props.focus.owned}
+                                        disabled={!this.state.owned}
                                     >
                                         Change Color
                                     </Button>
@@ -283,13 +299,13 @@ export class FocusSidebar extends React.Component {
                             null
                             :
                             <>
-                            {!this.props.focus.owned && this.props.focus.hasPrice ? 
+                            {!this.state.owned && this.props.focus.hasPrice ? 
                                 <>
                                 <Divider className="sidebarDivider">
                                     Purchase Space
                                 </Divider>
                                 <ListItem className="info" style={{ display: "block" }}>
-                                    <Box style={{ fontSize: "12px", color: "gray" }}>PRICE</Box>
+                                    <Box className="infoHeader">PRICE</Box>
                                     <Box>
                                     <img
                                         src={
@@ -326,19 +342,20 @@ export class FocusSidebar extends React.Component {
                                 </ListItem>
                                 </>
                             : 
-                                (!this.props.focus.owned && !this.props.focus.hasPrice ?
+                                (!this.state.owned && !this.props.focus.hasPrice ?
                                     (<Divider className="sidebarDivider">
                                         Space Not Listed
                                     </Divider>) : null
                                 )
                             }
-                            {this.props.focus.owned ? (
+                            {this.state.owned ? (
                                 // <Box sx={{ display: 'flex', color: '#173A5E', bgcolor: 'black' }}>
                                 <>
                                 <Divider className="sidebarDivider">
                                     Modify Listing
                                 </Divider>
                                 <ListItem className="info" style={{ display: "block" }}>
+                                    <Box className="infoHeader">PRICE</Box>
                                     <TextField
                                     hiddenLabel
                                     id="price-textfield"
@@ -414,20 +431,22 @@ export class FocusSidebar extends React.Component {
                                 Advanced
                             </Divider>
                             <ListItem className="info" style={{ display: "block" }}>
-                                <Button
-                                size="small"
-                                variant="contained"
-                                onClick={() => {
-                                    this.props.handleFocusRefresh();
-                                }}
-                                style={{
-                                    width: "100%",
-                                    color: "#FFFFFF",
-                                    background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                                }}
-                                >
-                                    Refresh Info
-                                </Button>
+                                <Tooltip title="Refresh information for this space directly from the blockchain. Refreshing may be rate-limited if performed excessively.">
+                                    <Button
+                                    size="small"
+                                    variant="contained"
+                                    onClick={() => {
+                                        this.props.handleFocusRefresh();
+                                    }}
+                                    style={{
+                                        width: "100%",
+                                        color: "#FFFFFF",
+                                        background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                                    }}
+                                    >
+                                        Refresh Info
+                                    </Button>
+                                </Tooltip>
                             </ListItem>
                             <ListItem className="info" style={{ display: "block" }}>
                                 <Typography align="center">

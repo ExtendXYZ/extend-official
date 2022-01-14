@@ -71,12 +71,12 @@
 
 .neighborhoodDashboard h5 {
     font-family: "Attila Sans Sharp" !important;
-    color: gray;
+    color: azure;
 }
 
 .sidebarDivider {
     font-family: "Attila Sans Sharp" !important;
-    font-size: small;
+    font-size: 16px;
     color: whitesmoke;
 }
 
@@ -138,6 +138,24 @@
 .sidenav .info .price, textarea{
     color: black;
     background-color: white;
+}
+
+.sidenav .infoHeader {
+    color: azure;
+    font-size: 14px;
+    font-family: "Open Sans";
+}
+
+.sidenav .infoText1 {
+    color: azure;
+    font-size: 12px;
+    font-family: "Open Sans";
+}
+
+.sidenav .infoText2 {
+    color: azure;
+    font-size: 10px;
+    font-family: "Open Sans";
 }
 
 .sidenav .close {

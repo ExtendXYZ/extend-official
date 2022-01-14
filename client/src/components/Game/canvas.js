@@ -533,7 +533,10 @@ export class Board extends React.Component {
     drawSelected() {
         const scale = this.scale;
         if (this.props.selecting.selecting) {
-            this.props.selecting.owned.forEach((pos) => {
+            this.props.ownedSpaces.forEach((pos) => {
+                if (!this.props.selecting.poses.has(pos)){
+                    return;
+                }
                 // owned spaces
                 const p = JSON.parse(pos);
                 const x = p.x;
@@ -564,7 +567,7 @@ export class Board extends React.Component {
             this.props.selecting.poses.forEach((pos) => {
                 // remaining selected spaces
                 if (
-                    this.props.selecting.owned.has(pos) ||
+                    this.props.ownedSpaces.has(pos) ||
                     this.props.selecting.purchasable.has(pos)
                 ) {
                     return;
@@ -783,7 +786,10 @@ export class Board extends React.Component {
         if (this.props.selecting.selecting) {
             boxTracker = [];
             boxTracker.push(
-                Array.from(this.props.selecting.owned).map((pos) => {
+                Array.from(this.props.ownedSpaces).map((pos) => {
+                    if (!this.props.selecting.poses.has(pos)){
+                        return;
+                    }
                     // draw owned spaces
                     const p = JSON.parse(pos);
                     const x = p.x;
@@ -844,7 +850,7 @@ export class Board extends React.Component {
                 Array.from(this.props.selecting.poses)
                     .map((pos) => {
                         if (
-                            this.props.selecting.owned.has(pos) ||
+                            this.props.ownedSpaces.has(pos) ||
                             this.props.selecting.purchasable.has(pos)
                         ) {
                             return null;
