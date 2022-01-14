@@ -74,13 +74,13 @@ export class SelectingSidebar extends React.Component {
     }
 
     componentDidMount(){
-        this.state.ownedSelection = intersection(this.props.ownedSpaces, this.props.selecting.poses);
+      this.setState({ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses)});
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.selecting.poses != prevProps.selecting.poses) {
-            this.state.ownedSelection = intersection(this.props.ownedSpaces, this.props.selecting.poses);
-        }
+      if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.selecting.poses != prevProps.selecting.poses) {
+        this.setState({ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses)});
+      }
     }
 
     handleTabChange(event, newValue) {

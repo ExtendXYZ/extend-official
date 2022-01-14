@@ -73,16 +73,18 @@ export class FocusSidebar extends React.Component {
     }
 
     componentDidMount(){
-        this.state.owned =
-            (this.props.ownedSpaces &&
-                this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })));
+        this.setState({
+            owned: (this.props.ownedSpaces &&
+                this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })))
+        });
     }
     
     componentDidUpdate(prevProps) {
-        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.focus.x != prevProps.focus.x || this.props.focus.y != prevProps.focus.y) {
-            this.state.owned =
-                (this.props.ownedSpaces &&
-                    this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })));
+        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.focus.x != prevProps.focus.x || this.props.focus.y != prevProps.focus.y) {  
+            this.setState({
+                owned: (this.props.ownedSpaces &&
+                    this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })))
+            });
         }
     }
 
