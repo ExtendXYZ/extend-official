@@ -30,7 +30,6 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import HelpIcon from "@mui/icons-material/Help";
 import { solToLamports, lamportsToSol, formatPrice, intersection} from "../../utils";
 import {Tab, Tabs, AppBar} from "@mui/material";
-import { withStyles } from '@mui/styles';
 
 
 import ReactDOM from "react-dom";
