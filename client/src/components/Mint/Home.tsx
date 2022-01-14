@@ -118,9 +118,9 @@ export const Home = (props: HomeProps) => {
 
   const captchaRef = useRef<Reaptcha>(null);
 
-  const getVoucherMint = async () => {
-    const n_x = twoscomplement_i2u(neighborhoodX);
-    const n_y = twoscomplement_i2u(neighborhoodY);
+  const getVoucherMint = async (x, y) => {
+    const n_x = twoscomplement_i2u(x);
+    const n_y = twoscomplement_i2u(y);
     return (await anchor.web3.PublicKey.findProgramAddress(
       [
         BASE.toBuffer(),
@@ -132,9 +132,9 @@ export const Home = (props: HomeProps) => {
     )[0];
   }
 
-  const getVoucherSink = async () => {
-    const n_x = twoscomplement_i2u(neighborhoodX);
-    const n_y = twoscomplement_i2u(neighborhoodY);
+  const getVoucherSink = async (x, y) => {
+    const n_x = twoscomplement_i2u(x);
+    const n_y = twoscomplement_i2u(y);
     return (await anchor.web3.PublicKey.findProgramAddress(
       [
         BASE.toBuffer(),
@@ -146,9 +146,9 @@ export const Home = (props: HomeProps) => {
     )[0];
   }
 
-  const getNeighborhoodMetadata = async () => {
-    const n_x = twoscomplement_i2u(neighborhoodX);
-    const n_y = twoscomplement_i2u(neighborhoodY);
+  const getNeighborhoodMetadata = async (x, y) => {
+    const n_x = twoscomplement_i2u(x);
+    const n_y = twoscomplement_i2u(y);
     return (await anchor.web3.PublicKey.findProgramAddress(
       [
         BASE.toBuffer(),
@@ -228,7 +228,7 @@ export const Home = (props: HomeProps) => {
       setCandyMachine(candyMachine);
 
       // global tokens
-      const voucherMint = await getVoucherMint();
+      const voucherMint = await getVoucherMint(neighborhoodX, neighborhoodY);
       const totalTokenBalance = await getTokenBalance(VOUCHER_MINT_AUTH, voucherMint);
       setTokensRedeemed(itemsAvailable - totalTokenBalance);
       setTokensSoldOut(totalTokenBalance === 0);
@@ -248,7 +248,7 @@ export const Home = (props: HomeProps) => {
       return;
     }
 
-    const voucherMint = await getVoucherMint();
+    const voucherMint = await getVoucherMint(neighborhoodX, neighborhoodY);
     // token balance 
     const tokenBalance = await getTokenBalance(wallet.publicKey, voucherMint);
 
@@ -272,7 +272,7 @@ export const Home = (props: HomeProps) => {
       const rent = await props.connection.getMinimumBalanceForRentExemption(
         MintLayout.span
       );
-      const voucherSink = await getVoucherSink();
+      const voucherSink = await getVoucherSink(neighborhoodX, neighborhoodY);
       console.log("Getting mint instructions")
       for (let i = 0; i < numRedeeming; i++) {
         let mint = anchor.web3.Keypair.generate();
@@ -412,14 +412,14 @@ export const Home = (props: HomeProps) => {
     }
 
     // create unsigned transaction
-    const voucherMint = await getVoucherMint();
+    const voucherMint = await getVoucherMint(neighborhoodX, neighborhoodY);
     if (wallet) {
       const connection = props.connection;
       let commitment: Commitment = "singleGossip";
 
       const price = getPrice(numTokens) * Math.pow(10, 9);
 
-      let nbd = await getNeighborhoodMetadata();
+      let nbd = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
       let account = await props.connection.getAccountInfo(nbd);
       if (!account) {
         return;
@@ -613,23 +613,7 @@ export const Home = (props: HomeProps) => {
     setNeighborhoodY(parseInt(split[1]));
     setCurrNeighborhood(n);
   }
-
-  const getNeighborhoodMetadataAcc = async(x, y) => {
-    const n_x = twoscomplement_i2u(x);
-    const n_y = twoscomplement_i2u(y);
-    const nhoodAcc = (await anchor.web3.PublicKey.findProgramAddress(
-      [
-        BASE.toBuffer(),
-        Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-        Buffer.from(n_x),
-        Buffer.from(n_y),
-      ],
-      SPACE_PROGRAM_ID
-    ))[0];
-    const account = await props.connection.getAccountInfo(nhoodAcc);
-    return account;
-  }
-
+  
   // USE EFFECTS
 
   useEffect(() => {
@@ -689,26 +673,9 @@ export const Home = (props: HomeProps) => {
         const split = n.split(',');
         const x = split[0];
         const y = split[1];
-        const n_x = twoscomplement_i2u(x);
-        const n_y = twoscomplement_i2u(y);
-        const nhoodAcc = (await anchor.web3.PublicKey.findProgramAddress(
-          [
-            BASE.toBuffer(),
-            Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-            Buffer.from(n_x),
-            Buffer.from(n_y),
-          ],
-          SPACE_PROGRAM_ID
-        ))[0];
+        const nhoodAcc = await getNeighborhoodMetadata(x, y);
         nhoods.push(nhoodAcc)
-        const voucherMint = (await anchor.web3.PublicKey.findProgramAddress(
-          [
-            BASE.toBuffer(),
-            Buffer.from(VOUCHER_MINT_SEED),
-            Buffer.from(n_x),
-            Buffer.from(n_y)],
-          SPACE_PROGRAM_ID
-        ))[0];
+        const voucherMint = await getVoucherMint(x, y);
         const ata = await getTokenWallet(VOUCHER_MINT_AUTH, voucherMint);
         atas.push(ata);
       }
@@ -751,7 +718,8 @@ export const Home = (props: HomeProps) => {
       setNoMint(false);
       setClicked(false);
       if (neighborhoodX != null && neighborhoodY != null) {
-        const account = await getNeighborhoodMetadataAcc(neighborhoodX, neighborhoodY);
+        const nhoodAcc = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
+        const account = await props.connection.getAccountInfo(nhoodAcc);
         if (account) {
           setCandyConfig(new anchor.web3.PublicKey(account.data.slice(33, 65)));
           setCandyId(new anchor.web3.PublicKey(account.data.slice(65, 97)));
