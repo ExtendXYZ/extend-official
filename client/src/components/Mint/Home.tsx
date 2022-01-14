@@ -106,6 +106,7 @@ export const Home = (props: HomeProps) => {
   const [neighborhoodY, setNeighborhoodY] = useState<Number>();
   const [currNeighborhood, setCurrNeighborhood] = useState<String>();
   const [neighborhoods, setNeighborhoods] = useState<string[]>();
+  const [nhoodNames, setNhoodNames] = useState<string[]>();
   const [doneFetching, setDoneFetching] = useState(false);
   const [noMint, setNoMint] = useState(false);
   const [disableMint, setDisableMint] = useState(false); // disable buttons while changing neighborhoods
@@ -162,9 +163,10 @@ export const Home = (props: HomeProps) => {
 
   const getPossibleNeighborhoods = () => {
     let keys: any[] = [];
-    if (neighborhoods) {
-      for (let n of neighborhoods) {
-        keys.push(<MenuItem value={n}>{"Neighborhood (" + n + ")"}</MenuItem>);
+    if (nhoodNames && neighborhoods) {
+      for (let i = 0; i < neighborhoods.length; i++) {
+        const n = neighborhoods[i];
+        keys.push(<MenuItem value={n}>{"Neighborhood (" + n + "): " + nhoodNames[i]}</MenuItem>);
       }
     }
     return keys;
@@ -172,10 +174,14 @@ export const Home = (props: HomeProps) => {
 
   const getPossibleNeighborhoodsWithStatuses = () => {
     let keys: any[] = [];
-    if (neighborhoods && statuses) {
+    if (neighborhoods && statuses && nhoodNames) {
       for (let i = 0; i < neighborhoods.length; i++) {
         const n = neighborhoods[i];
-        keys.push(<MenuItem value={n}>{"Neighborhood (" + n + ") " + statuses[i]}</MenuItem>);
+        if (statuses[i] !== "") {
+          keys.push(<MenuItem value={n} sx={{color: "#E0714F"}}>{"Neighborhood (" + n + "): " + nhoodNames[i] + statuses[i]}</MenuItem>);
+        } else {
+          keys.push(<MenuItem value={n}>{"Neighborhood (" + n + "): " + nhoodNames[i] + statuses[i]}</MenuItem>);
+        }
       }
     }
     return keys;
@@ -682,6 +688,13 @@ export const Home = (props: HomeProps) => {
       const nhoodInfos = await server.batchGetMultipleAccountsInfo(props.connection, nhoods);
       const ataInfos = await server.batchGetMultipleAccountsInfo(props.connection, atas);
 
+      // update neighborhood names
+      const names: string[] = [];
+      for(let i = 0; i < neighborhoods.length; i++) {
+        names.push(Buffer.from(nhoodInfos[i].data.slice(97, 97 + 64)).toString('utf-8'));
+      }
+      setNhoodNames(names);
+
       const currStatuses: string[] = [];
       for(let i = 0; i < neighborhoods.length; i++) { // update statuses
         const id = new anchor.web3.PublicKey(nhoodInfos[i].data.slice(65, 97));
@@ -742,7 +755,7 @@ export const Home = (props: HomeProps) => {
     <div id="home" className="centered-full">
       <div >
         <Divider/>
-      <FormControl sx={{marginLeft: "27%", minWidth: 300, maxWidth: 300 }}>
+      <FormControl sx={{marginLeft: "20%", minWidth: "60%", maxWidth: "60%" }}>
         <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
         <Select
           labelId="demo-simple-select-label"
