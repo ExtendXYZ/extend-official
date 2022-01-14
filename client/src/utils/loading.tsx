@@ -47,21 +47,21 @@ export function loading(percent, task, status) {
         for (let t in taskCache) {
             if (taskCache[t]) {
                 tasks.push(
-                    <>
-                    <Box className="description"> {t} </Box>
+                    <div key={t}>
+                    <div className="description" > {t} </div>
                     <Progress 
                         size="small" 
                         type="circle" 
                         percent={taskCache[t]} 
                         className="red-text" />
-                    </>
+                    </div>
                 );
             } else {
                 tasks.push(
-                    <>
-                    <Box className="description"> {t} </Box>
+                    <div key={t}>
+                    <div className="description"> {t} </div>
                     <Spin size="large"/>
-                    </>
+                    </div>
                 )
             }
         }

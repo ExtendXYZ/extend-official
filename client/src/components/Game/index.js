@@ -1829,7 +1829,7 @@ export class Game extends React.Component {
                                 sx={{ marginRight: "10px", borderRadius: "40px" }}
                             >
                                 {Array.from({ length: this.state.maxFrame }, (x, i) => (
-                                    <MenuItem value={i} key={i}>
+                                    <MenuItem value={i} key={"frame" + i}>
                                         {" "}
                                         {`${i}`}{" "}
                                     </MenuItem>
