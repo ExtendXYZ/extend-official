@@ -108,6 +108,9 @@ export const Home = (props: HomeProps) => {
   const [neighborhoods, setNeighborhoods] = useState<string[]>();
   const [doneFetching, setDoneFetching] = useState(false);
   const [noMint, setNoMint] = useState(false);
+  const [disableMint, setDisableMint] = useState(false); // disable buttons while changing neighborhoods
+  const [disableToken, setDisableToken] = useState(false);
+  const [statuses, setStatuses] = useState<string[]>();
 
   const [isRegistering, setIsRegistering] = useState(false); // for register
   const server = new Server();
@@ -115,9 +118,9 @@ export const Home = (props: HomeProps) => {
 
   const captchaRef = useRef<Reaptcha>(null);
 
-  const getVoucherMint = async () => {
-    const n_x = twoscomplement_i2u(neighborhoodX);
-    const n_y = twoscomplement_i2u(neighborhoodY);
+  const getVoucherMint = async (x, y) => {
+    const n_x = twoscomplement_i2u(x);
+    const n_y = twoscomplement_i2u(y);
     return (await anchor.web3.PublicKey.findProgramAddress(
       [
         BASE.toBuffer(),
@@ -129,9 +132,9 @@ export const Home = (props: HomeProps) => {
     )[0];
   }
 
-  const getVoucherSink = async () => {
-    const n_x = twoscomplement_i2u(neighborhoodX);
-    const n_y = twoscomplement_i2u(neighborhoodY);
+  const getVoucherSink = async (x, y) => {
+    const n_x = twoscomplement_i2u(x);
+    const n_y = twoscomplement_i2u(y);
     return (await anchor.web3.PublicKey.findProgramAddress(
       [
         BASE.toBuffer(),
@@ -143,9 +146,9 @@ export const Home = (props: HomeProps) => {
     )[0];
   }
 
-  const getNeighborhoodMetadata = async () => {
-    const n_x = twoscomplement_i2u(neighborhoodX);
-    const n_y = twoscomplement_i2u(neighborhoodY);
+  const getNeighborhoodMetadata = async (x, y) => {
+    const n_x = twoscomplement_i2u(x);
+    const n_y = twoscomplement_i2u(y);
     return (await anchor.web3.PublicKey.findProgramAddress(
       [
         BASE.toBuffer(),
@@ -162,6 +165,17 @@ export const Home = (props: HomeProps) => {
     if (neighborhoods) {
       for (let n of neighborhoods) {
         keys.push(<MenuItem value={n}>{"Neighborhood (" + n + ")"}</MenuItem>);
+      }
+    }
+    return keys;
+  }
+
+  const getPossibleNeighborhoodsWithStatuses = () => {
+    let keys: any[] = [];
+    if (neighborhoods && statuses) {
+      for (let i = 0; i < neighborhoods.length; i++) {
+        const n = neighborhoods[i];
+        keys.push(<MenuItem value={n}>{"Neighborhood (" + n + ") " + statuses[i]}</MenuItem>);
       }
     }
     return keys;
@@ -214,7 +228,7 @@ export const Home = (props: HomeProps) => {
       setCandyMachine(candyMachine);
 
       // global tokens
-      const voucherMint = await getVoucherMint();
+      const voucherMint = await getVoucherMint(neighborhoodX, neighborhoodY);
       const totalTokenBalance = await getTokenBalance(VOUCHER_MINT_AUTH, voucherMint);
       setTokensRedeemed(itemsAvailable - totalTokenBalance);
       setTokensSoldOut(totalTokenBalance === 0);
@@ -223,6 +237,9 @@ export const Home = (props: HomeProps) => {
       const tokenBalance = await getTokenBalance(wallet.publicKey, voucherMint);
       //console.log(tokenBalance)
       setTotalTokens(tokenBalance);
+
+      setDisableMint(false); // reset disable
+      setDisableToken(false);
     })();
   };
 
@@ -231,7 +248,7 @@ export const Home = (props: HomeProps) => {
       return;
     }
 
-    const voucherMint = await getVoucherMint();
+    const voucherMint = await getVoucherMint(neighborhoodX, neighborhoodY);
     // token balance 
     const tokenBalance = await getTokenBalance(wallet.publicKey, voucherMint);
 
@@ -255,7 +272,7 @@ export const Home = (props: HomeProps) => {
       const rent = await props.connection.getMinimumBalanceForRentExemption(
         MintLayout.span
       );
-      const voucherSink = await getVoucherSink();
+      const voucherSink = await getVoucherSink(neighborhoodX, neighborhoodY);
       console.log("Getting mint instructions")
       for (let i = 0; i < numRedeeming; i++) {
         let mint = anchor.web3.Keypair.generate();
@@ -395,14 +412,14 @@ export const Home = (props: HomeProps) => {
     }
 
     // create unsigned transaction
-    const voucherMint = await getVoucherMint();
+    const voucherMint = await getVoucherMint(neighborhoodX, neighborhoodY);
     if (wallet) {
       const connection = props.connection;
       let commitment: Commitment = "singleGossip";
 
       const price = getPrice(numTokens) * Math.pow(10, 9);
 
-      let nbd = await getNeighborhoodMetadata();
+      let nbd = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
       let account = await props.connection.getAccountInfo(nbd);
       if (!account) {
         return;
@@ -588,12 +605,16 @@ export const Home = (props: HomeProps) => {
   };
 
   const changeNeighborhood = (e) => {
+    setDisableMint(true);
+    setDisableToken(true);
     const n: String = e.target.value;
     const split = n.split(',');
     setNeighborhoodX(parseInt(split[0]));
     setNeighborhoodY(parseInt(split[1]));
     setCurrNeighborhood(n);
   }
+  
+  // USE EFFECTS
 
   useEffect(() => {
     (async () => {
@@ -633,7 +654,7 @@ export const Home = (props: HomeProps) => {
           return;
         }
         if (x != null && y != null) {
-          goodNeighborhoods.push(x.toString() + "," + y.toString());
+            goodNeighborhoods.push(x.toString() + "," + y.toString());
         }
       }
       setNeighborhoods(goodNeighborhoods);
@@ -642,21 +663,62 @@ export const Home = (props: HomeProps) => {
   }, []);
 
   useEffect(() => {
+    const getNeighborhoodStatuses = async() => {
+      if (!neighborhoods) {
+        return;
+      }
+      const nhoods: anchor.web3.PublicKey[] = [];
+      const atas: anchor.web3.PublicKey[] = [];
+      for (let n of neighborhoods) { // get all accounts necessary
+        const split = n.split(',');
+        const x = split[0];
+        const y = split[1];
+        const nhoodAcc = await getNeighborhoodMetadata(x, y);
+        nhoods.push(nhoodAcc)
+        const voucherMint = await getVoucherMint(x, y);
+        const ata = await getTokenWallet(VOUCHER_MINT_AUTH, voucherMint);
+        atas.push(ata);
+      }
+      const nhoodInfos = await server.batchGetMultipleAccountsInfo(props.connection, nhoods);
+      const ataInfos = await server.batchGetMultipleAccountsInfo(props.connection, atas);
+
+      const currStatuses: string[] = [];
+      for(let i = 0; i < neighborhoods.length; i++) { // update statuses
+        const id = new anchor.web3.PublicKey(nhoodInfos[i].data.slice(65, 97));
+        let res = await getCandyMachineState(
+          wallet as anchor.Wallet,
+          id,
+          props.connection
+        );
+        const itemsRemaining = res.itemsRemaining;
+        if (itemsRemaining === 0) {
+          currStatuses.push("[MINTED OUT]"); // minted out
+          continue;
+        } 
+        if (!ataInfos[i]) {
+          currStatuses.push("[SOLD OUT]"); // sold out
+          continue;
+        }
+        const b = (await props.connection.getTokenAccountBalance(atas[i])).value.amount;
+        const balance = Number(b);
+        if (balance === 0) {
+          currStatuses.push("[SOLD OUT]"); // sold out
+        } else {
+          currStatuses.push(""); // active
+        }
+      }
+      setStatuses(currStatuses);
+    }
+    getNeighborhoodStatuses();
+  }, [neighborhoods]);
+
+  useEffect(() => {
     // with every change of neighborhood x and y, update the neigborhood info
     const updateNeighborhoodInfo = async () => {
       setNoMint(false);
+      setClicked(false);
       if (neighborhoodX != null && neighborhoodY != null) {
-        const n_x = twoscomplement_i2u(neighborhoodX);
-        const n_y = twoscomplement_i2u(neighborhoodY);
-        const nhoodAcc = (await anchor.web3.PublicKey.findProgramAddress(
-          [
-            BASE.toBuffer(),
-            Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-            Buffer.from(n_x),
-            Buffer.from(n_y),
-          ],
-          SPACE_PROGRAM_ID
-        ))[0];
+        const nhoodAcc = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
         const account = await props.connection.getAccountInfo(nhoodAcc);
         if (account) {
           setCandyConfig(new anchor.web3.PublicKey(account.data.slice(33, 65)));
@@ -679,13 +741,9 @@ export const Home = (props: HomeProps) => {
   return (
     <div id="home" className="centered-full">
       <div >
-        <img src={require("../../assets/images/space.gif").default} style={{ height: window.innerHeight - 63 + "px" }}></img>
-      </div>
-
-      {wallet ? (
-        <div>
-          <p>Your balance: {(balance || 0).toLocaleString()} SOL</p>
-          <FormControl sx={{ minWidth: 300, maxWidth: 300 }}>
+        <Divider/>
+      <p style={{textAlign: "center"}}>Your balance: {(balance || 0).toLocaleString()} SOL</p>
+          <FormControl sx={{marginLeft: "27%", minWidth: 300, maxWidth: 300 }}>
             <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
             <Select
               labelId="demo-simple-select-label"
@@ -694,17 +752,21 @@ export const Home = (props: HomeProps) => {
               label="Select Neighborhood"
               onChange={changeNeighborhood}
             >
-              {getPossibleNeighborhoods()}
+              {statuses ? getPossibleNeighborhoodsWithStatuses() : getPossibleNeighborhoods()}
             </Select>
           </FormControl>
+          <Divider/>
+        <img src={require("../../assets/images/space.gif").default} style={{ float: "left", height: window.innerHeight - 200 + "px" }}></img>
+      </div>
 
-          <Divider />
+      {wallet ? (
+        <div>
 
           {neighborhoodX != null && neighborhoodY != null && !noMint ? (
             <div>
-              {wallet && <p><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></p>}
+              {wallet && <h3 style={{color: "#82CBC5"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>}
 
-              {/* {wallet && <p>Receive space vouchers to mint your spaces </p>} */}
+              {wallet && <p>Receive space vouchers to mint your spaces </p>}
               <MintContainer>
                 <div>
                   <TextField
@@ -723,7 +785,7 @@ export const Home = (props: HomeProps) => {
                     id="outlined-disabled"
                     value={getPrice(numTokens).toFixed(4)} />
                   <Button
-                    disabled={tokensSoldOut}
+                    disabled={tokensSoldOut || disableToken}
                     variant="contained"
                     onClick={(e) => { setClicked(true) }}
                     sx={{ marginLeft: "10px", marginTop: "10px" }}>
@@ -751,9 +813,9 @@ export const Home = (props: HomeProps) => {
                     : null
                   }
                   <Divider />
-                  {wallet && <p><b>2. Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></p>}
+                  {wallet && <h3 style={{color: "#82CBC5"}}><b>2. Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></h3>}
 
-                  {/* {wallet && <p>Use your space vouchers from Step 1 to mint spaces </p>}  */}
+                  {wallet && <p>Use your space vouchers to mint spaces </p>} 
                   {wallet && <p>Your Space vouchers: {totalTokens} </p>}
 
                   {wallet && <p>Estimated cost to mint and register Spaces: {Math.round(totalTokens * (MINT_PRICE) * 1000) / 1000} SOL</p>}
@@ -767,7 +829,7 @@ export const Home = (props: HomeProps) => {
                     value={numRedeeming}
                     onChange={changeNumMint} />
                   <MintButton
-                    disabled={isSoldOut || isMinting || !isActive}
+                    disabled={isSoldOut || isMinting || !isActive || disableMint}
                     onClick={onMint}
                     variant="contained"
                     sx={{ marginLeft: "10px", marginTop: "10px" }}
@@ -792,8 +854,8 @@ export const Home = (props: HomeProps) => {
                   <Divider/>
                   {wallet ? (
                   <div>
-                    <b>3. Register your Spaces </b>
-                    {/* <p> Register your spaces in order to see them on the canvas and change their colors </p> */}
+                    <h3 style={{color: "#82CBC5"}}><b>3. Register your Spaces </b></h3>
+                    <p> After minting, register your spaces in order to see them on the canvas and change their colors </p>
                   <Button
                     disabled={isRegistering || isMinting}
                     onClick={onRegister}

@@ -73,16 +73,18 @@ export class FocusSidebar extends React.Component {
     }
 
     componentDidMount(){
-        this.state.owned =
-            (this.props.ownedSpaces &&
-                this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })));
+        this.setState({
+            owned: (this.props.ownedSpaces &&
+                this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })))
+        });
     }
     
     componentDidUpdate(prevProps) {
-        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.focus.x != prevProps.focus.x || this.props.focus.y != prevProps.focus.y) {
-            this.state.owned =
-                (this.props.ownedSpaces &&
-                    this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })));
+        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.focus.x != prevProps.focus.x || this.props.focus.y != prevProps.focus.y) {  
+            this.setState({
+                owned: (this.props.ownedSpaces &&
+                    this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })))
+            });
         }
     }
 
@@ -451,6 +453,7 @@ export class FocusSidebar extends React.Component {
                             <ListItem className="info" style={{ display: "block" }}>
                                 <Typography align="center">
                                     <Button
+                                        size="small"
                                         variant="contained"
                                         onClick={() => {
                                             const prefix = RPC?.includes("mainnet") ? "canvas.extend.xyz" : "localhost:3000";
@@ -462,13 +465,9 @@ export class FocusSidebar extends React.Component {
                                         }}
                                         disabled={!this.props.scale}
                                         sx={{
-                                            marginRight: "10px",
-                                            borderRadius: "40px",
+                                            width: "100%",
                                             color: "#FFFFFF",
                                             background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                                        }}
-                                        style={{
-                                            width: "100%",
                                         }}
                                         >
                                             <CopyOutlined />

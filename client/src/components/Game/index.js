@@ -789,6 +789,9 @@ export class Game extends React.Component {
 
         if (purchasable.size === 0) {
             totalPrice = NaN;
+            notify({
+                message: "No spaces available to buy",
+            });
         }
         this.setState({
             selecting: {
@@ -979,7 +982,6 @@ export class Game extends React.Component {
             return;
         }
         const spaces = data.spaces;
-        console.log(spaces.size)
 
         if (spaces.size > 0) {
             this.resetSelecting();
