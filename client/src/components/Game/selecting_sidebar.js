@@ -268,7 +268,7 @@ export class SelectingSidebar extends React.Component {
                           </Tooltip>
                           {this.props.hasImage && 
                             <Box className="infoText1" style={{marginLeft: "10px"}}>
-                              {this.props.imageFilename}
+                              {this.props.img_upl.name}
                             </Box> 
                           }
                         </div>

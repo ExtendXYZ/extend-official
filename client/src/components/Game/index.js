@@ -1683,7 +1683,6 @@ export class Game extends React.Component {
                 handleChangeImg={this.handleChangeImg}
                 uploadImage={this.uploadImage}
                 hasImage={this.state.has_img}
-                imageFilename={this.state.has_img ? this.state.img_upl.name : null}
                 handleChangeSelectingPrice={this.handleChangeSelectingPrice}
                 changePrices={this.changePrices}
                 delistSpaces={this.delistSpaces}
