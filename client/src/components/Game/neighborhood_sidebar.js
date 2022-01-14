@@ -59,7 +59,7 @@ export class NeighborhoodSidebar extends React.Component {
                   />
                   <b>
                     <font color="#82CBC5" style={{ marginLeft: "5px" }}>
-                      {this.props.neighborhood.trades.listed ? formatPrice(this.props.neighborhood.trades.floor) : "N/A"}
+                      {this.props.neighborhood.trades.listed_count ? formatPrice(this.props.neighborhood.trades.floor_price) : "N/A"}
                     </font>
                   </b>
                 </Box>
@@ -67,7 +67,7 @@ export class NeighborhoodSidebar extends React.Component {
                   size="small"
                   variant="contained"
                   onClick={() => {
-                      const poses = new Set(this.props.neighborhood.trades.floor_list.map( el => JSON.stringify({x : el[0], y: el[1]})));
+                      const poses = new Set(this.props.neighborhood.trades.floor);
                       this.props.setSelecting(poses);
                   }}
                   style={{
@@ -75,7 +75,7 @@ export class NeighborhoodSidebar extends React.Component {
                   color: "#FFFFFF",
                   background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                   }}
-                  disabled={!this.props.neighborhood.trades.listed}
+                  disabled={!this.props.neighborhood.trades.listed_count}
                   >
                   Select
                 </Button>
@@ -115,13 +115,31 @@ export class NeighborhoodSidebar extends React.Component {
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
               <Box className="infoHeader">LISTED ITEMS</Box>
-              <Box>
-                    <b>
-                        <font color="#82CBC5">
-                        {this.props.neighborhood.trades.listed}
-                        </font>
-                    </b>
-                    </Box>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <Box>
+                  <b>
+                      <font color="#82CBC5">
+                      {this.props.neighborhood.trades.listed_count}
+                      </font>
+                  </b>
+                </Box>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => {
+                      const poses = new Set(this.props.neighborhood.trades.listed);
+                      this.props.setSelecting(poses);
+                  }}
+                  style={{
+                  marginLeft: "5px",
+                  color: "#FFFFFF",
+                  background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                  }}
+                  disabled={!this.props.neighborhood.trades.listed_count}
+                  >
+                  Select
+                </Button>
+              </div>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
               <Box className="infoHeader">NUMBER OF DISTINCT OWNERS</Box>
