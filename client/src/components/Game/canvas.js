@@ -628,6 +628,7 @@ export class Board extends React.Component {
         const endx = Math.ceil((-this.x + width) / neighborhood_scale);
         const endy = Math.ceil((-this.y + height) / neighborhood_scale);
         const currentMap = this.props.getMap();
+        console.log("currentMap", currentMap);
         this.map = currentMap;
         for (let n_x = startx; n_x < endx; ++n_x) {
             for (let n_y = starty; n_y < endy; ++n_y) {

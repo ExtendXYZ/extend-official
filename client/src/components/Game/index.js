@@ -215,7 +215,6 @@ export class Game extends React.Component {
         this.viewport.neighborhood_data = tmp_neighborhood_data;
         this.setState({ maxFrame: newMax });
         // loading(null, "Loading colors", "success");
-        console.log("neighborhood_names", this.viewport.neighborhood_names);
         return frameKeys;
         
     }
@@ -301,7 +300,6 @@ export class Game extends React.Component {
 
         this.setState({ maxFrame: newMax });
         loading(null, "Loading colors", "success");
-        console.log("neighborhood_names anim", this.viewport.neighborhood_names);
         return frameKeys;
     }
 
@@ -394,7 +392,6 @@ export class Game extends React.Component {
                         spaces.add(JSON.stringify({x, y}));
                     }
                 }
-                console.log(spaces)
                 this.setSelecting(spaces);
             } catch (e) {
                 console.log(e)
