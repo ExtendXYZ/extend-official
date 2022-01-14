@@ -743,6 +743,7 @@ export const Home = (props: HomeProps) => {
       <div >
         <Divider/>
       <p style={{textAlign: "center"}}>Your balance: {(balance || 0).toLocaleString()} SOL</p>
+      {wallet && <p style={{textAlign: "center"}}>Your Space vouchers: {totalTokens} </p>}
           <FormControl sx={{marginLeft: "27%", minWidth: 300, maxWidth: 300 }}>
             <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
             <Select
@@ -766,7 +767,7 @@ export const Home = (props: HomeProps) => {
             <div>
               {wallet && <h3 style={{color: "#82CBC5"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>}
 
-              {wallet && <p>Receive space vouchers to mint your spaces </p>}
+              {wallet && <p>Get space vouchers to mint your spaces </p>}
               <MintContainer>
                 <div>
                   <TextField
@@ -816,7 +817,6 @@ export const Home = (props: HomeProps) => {
                   {wallet && <h3 style={{color: "#82CBC5"}}><b>2. Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></h3>}
 
                   {wallet && <p>Use your space vouchers to mint spaces </p>} 
-                  {wallet && <p>Your Space vouchers: {totalTokens} </p>}
 
                   {wallet && <p>Estimated cost to mint and register Spaces: {Math.round(totalTokens * (MINT_PRICE) * 1000) / 1000} SOL</p>}
 
