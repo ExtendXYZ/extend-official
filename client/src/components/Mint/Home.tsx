@@ -742,22 +742,24 @@ export const Home = (props: HomeProps) => {
     <div id="home" className="centered-full">
       <div >
         <Divider/>
-      <p style={{textAlign: "center"}}>Your balance: {(balance || 0).toLocaleString()} SOL</p>
-      {wallet && <p style={{textAlign: "center"}}>Your Space vouchers: {totalTokens} </p>}
-          <FormControl sx={{marginLeft: "27%", minWidth: 300, maxWidth: 300 }}>
-            <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
-            <Select
-              labelId="demo-simple-select-label"
-              id="demo-simple-select"
-              value={currNeighborhood}
-              label="Select Neighborhood"
-              onChange={changeNeighborhood}
-            >
-              {statuses ? getPossibleNeighborhoodsWithStatuses() : getPossibleNeighborhoods()}
-            </Select>
-          </FormControl>
-          <Divider/>
+      <FormControl sx={{marginLeft: "27%", minWidth: 300, maxWidth: 300 }}>
+        <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
+        <Select
+          labelId="demo-simple-select-label"
+          id="demo-simple-select"
+          value={currNeighborhood}
+          label="Select Neighborhood"
+          onChange={changeNeighborhood}
+        >
+          {statuses ? getPossibleNeighborhoodsWithStatuses() : getPossibleNeighborhoods()}
+        </Select>
+      </FormControl>
+        <Divider/>
+      {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your balance: {(balance || 0).toLocaleString()} SOL</b></p>}
+      {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your Space Vouchers: {totalTokens} </b></p>}
+      <div>
         <img src={require("../../assets/images/space.gif").default} style={{ float: "left", height: window.innerHeight - 200 + "px" }}></img>
+      </div>
       </div>
 
       {wallet ? (
@@ -765,9 +767,9 @@ export const Home = (props: HomeProps) => {
 
           {neighborhoodX != null && neighborhoodY != null && !noMint ? (
             <div>
-              {wallet && <h3 style={{color: "#82CBC5"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>}
+              {wallet && <h3 style={{color: "#B687D8"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>}
 
-              {wallet && <p>Get space vouchers to mint your spaces </p>}
+              {wallet && <p>Get Space Vouchers to mint your Spaces </p>}
               <MintContainer>
                 <div>
                   <TextField
@@ -814,11 +816,11 @@ export const Home = (props: HomeProps) => {
                     : null
                   }
                   <Divider />
-                  {wallet && <h3 style={{color: "#82CBC5"}}><b>2. Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></h3>}
+                  {wallet && <h3 style={{color: "#B687D8"}}><b>2. Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></h3>}
 
-                  {wallet && <p>Use your space vouchers to mint spaces </p>} 
+                  {wallet && <p>Use your Space Vouchers to mint Spaces </p>} 
 
-                  {wallet && <p>Estimated cost to mint and register Spaces: {Math.round(totalTokens * (MINT_PRICE) * 1000) / 1000} SOL</p>}
+                  {wallet && <p>Estimated cost to mint and register all of your Spaces: {Math.round(totalTokens * (MINT_PRICE) * 1000) / 1000} SOL</p>}
 
                   <TextField
                     required
@@ -854,8 +856,8 @@ export const Home = (props: HomeProps) => {
                   <Divider/>
                   {wallet ? (
                   <div>
-                    <h3 style={{color: "#82CBC5"}}><b>3. Register your Spaces </b></h3>
-                    <p> After minting, register your spaces in order to see them on the canvas and change their colors </p>
+                    <h3 style={{color: "#B687D8"}}><b>3. Register your Spaces </b></h3>
+                    <p> After minting, register your Spaces in order to see them on the canvas and change their colors </p>
                   <Button
                     disabled={isRegistering || isMinting}
                     onClick={onRegister}
