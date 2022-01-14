@@ -80,11 +80,12 @@ export class FocusSidebar extends React.Component {
     }
     
     componentDidUpdate(prevProps) {
-        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.focus.x != prevProps.focus.x || this.props.focus.y != prevProps.focus.y) {  
-            this.setState({
-                owned: (this.props.ownedSpaces &&
-                    this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })))
-            });
+        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.ownedSpaces.size !== prevProps.ownedSpaces.size
+            || this.props.focus.x != prevProps.focus.x || this.props.focus.y != prevProps.focus.y) {  
+                this.setState({
+                    owned: (this.props.ownedSpaces &&
+                        this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })))
+                });
         }
     }
 
