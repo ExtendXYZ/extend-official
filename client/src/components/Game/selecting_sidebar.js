@@ -205,7 +205,7 @@ export class SelectingSidebar extends React.Component {
                         <div style={{ display: "flex", alignItems: "center" }}>
                           <Tooltip title="Upload an image on your selected spaces">
                             <Button
-                              variant="outlined"
+                              variant="contained"
                               component="label"
                               style={{ width: "100%" }}
                               size="small"
@@ -393,7 +393,7 @@ export class SelectingSidebar extends React.Component {
                       <ListItem className="info" style={{ display: "block" }}>
                         <Button
                           size="small"
-                          variant="outlined"
+                          variant="contained"
                           onClick={() => {
                             this.props.loadPrice();
                           }}
@@ -411,7 +411,7 @@ export class SelectingSidebar extends React.Component {
                         <Tooltip title="Select all purchasable spaces in your selection to prepare to purchase them.">
                           <Button
                             size="small"
-                            variant="outlined"
+                            variant="contained"
                             onClick={() => {
                               this.props.handleShowAllPurchasable();
                             }}
@@ -457,7 +457,7 @@ export class SelectingSidebar extends React.Component {
                           <Tooltip title="Select the cheapest rectangle in your selection of the specified width and height dimensions.">
                             <Button
                               size="small"
-                              variant="outlined"
+                              variant="contained"
                               onClick={() => {
                                 this.props.handleShowFloor();
                               }}
@@ -543,6 +543,7 @@ export class SelectingSidebar extends React.Component {
                             <Typography align="center">
                               <Tooltip title="Share the rectangular box containing the selected pixels.">
                                 <Button
+                                    size="small"
                                     variant="contained"
                                     onClick={() => {
                                         const prefix = RPC?.includes("mainnet") ? "canvas.extend.xyz" : "localhost:3000";
@@ -553,14 +554,10 @@ export class SelectingSidebar extends React.Component {
                                         });
                                     }}
                                     disabled={!this.props.scale}
-                                    sx={{
-                                        marginRight: "10px",
-                                        borderRadius: "40px",
-                                        color: "#FFFFFF",
-                                        background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                                    }}
                                     style={{
                                         width: "100%",
+                                        color: "#FFFFFF",
+                                        background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                                     }}
                                     >
                                         <CopyOutlined />
