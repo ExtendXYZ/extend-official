@@ -110,6 +110,7 @@ export const Home = (props: HomeProps) => {
   const [noMint, setNoMint] = useState(false);
   const [disableMint, setDisableMint] = useState(false); // disable buttons while changing neighborhoods
   const [disableToken, setDisableToken] = useState(false);
+  const [statuses, setStatuses] = useState<string[]>();
 
   const [isRegistering, setIsRegistering] = useState(false); // for register
   const server = new Server();
@@ -164,6 +165,17 @@ export const Home = (props: HomeProps) => {
     if (neighborhoods) {
       for (let n of neighborhoods) {
         keys.push(<MenuItem value={n}>{"Neighborhood (" + n + ")"}</MenuItem>);
+      }
+    }
+    return keys;
+  }
+
+  const getPossibleNeighborhoodsWithStatuses = () => {
+    let keys: any[] = [];
+    if (neighborhoods && statuses) {
+      for (let i = 0; i < neighborhoods.length; i++) {
+        const n = neighborhoods[i];
+        keys.push(<MenuItem value={n}>{"Neighborhood (" + n + ") " + statuses[i]}</MenuItem>);
       }
     }
     return keys;
@@ -602,6 +614,24 @@ export const Home = (props: HomeProps) => {
     setCurrNeighborhood(n);
   }
 
+  const getNeighborhoodMetadataAcc = async(x, y) => {
+    const n_x = twoscomplement_i2u(x);
+    const n_y = twoscomplement_i2u(y);
+    const nhoodAcc = (await anchor.web3.PublicKey.findProgramAddress(
+      [
+        BASE.toBuffer(),
+        Buffer.from(NEIGHBORHOOD_METADATA_SEED),
+        Buffer.from(n_x),
+        Buffer.from(n_y),
+      ],
+      SPACE_PROGRAM_ID
+    ))[0];
+    const account = await props.connection.getAccountInfo(nhoodAcc);
+    return account;
+  }
+
+  // USE EFFECTS
+
   useEffect(() => {
     (async () => {
       if (wallet) {
@@ -640,7 +670,7 @@ export const Home = (props: HomeProps) => {
           return;
         }
         if (x != null && y != null) {
-          goodNeighborhoods.push(x.toString() + "," + y.toString());
+            goodNeighborhoods.push(x.toString() + "," + y.toString());
         }
       }
       setNeighborhoods(goodNeighborhoods);
@@ -649,13 +679,18 @@ export const Home = (props: HomeProps) => {
   }, []);
 
   useEffect(() => {
-    // with every change of neighborhood x and y, update the neigborhood info
-    const updateNeighborhoodInfo = async () => {
-      setNoMint(false);
-      setClicked(false);
-      if (neighborhoodX != null && neighborhoodY != null) {
-        const n_x = twoscomplement_i2u(neighborhoodX);
-        const n_y = twoscomplement_i2u(neighborhoodY);
+    const getNeighborhoodStatuses = async() => {
+      if (!neighborhoods) {
+        return;
+      }
+      const nhoods: anchor.web3.PublicKey[] = [];
+      const atas: anchor.web3.PublicKey[] = [];
+      for (let n of neighborhoods) { // get all accounts necessary
+        const split = n.split(',');
+        const x = split[0];
+        const y = split[1];
+        const n_x = twoscomplement_i2u(x);
+        const n_y = twoscomplement_i2u(y);
         const nhoodAcc = (await anchor.web3.PublicKey.findProgramAddress(
           [
             BASE.toBuffer(),
@@ -665,7 +700,58 @@ export const Home = (props: HomeProps) => {
           ],
           SPACE_PROGRAM_ID
         ))[0];
-        const account = await props.connection.getAccountInfo(nhoodAcc);
+        nhoods.push(nhoodAcc)
+        const voucherMint = (await anchor.web3.PublicKey.findProgramAddress(
+          [
+            BASE.toBuffer(),
+            Buffer.from(VOUCHER_MINT_SEED),
+            Buffer.from(n_x),
+            Buffer.from(n_y)],
+          SPACE_PROGRAM_ID
+        ))[0];
+        const ata = await getTokenWallet(VOUCHER_MINT_AUTH, voucherMint);
+        atas.push(ata);
+      }
+      const nhoodInfos = await server.batchGetMultipleAccountsInfo(props.connection, nhoods);
+      const ataInfos = await server.batchGetMultipleAccountsInfo(props.connection, atas);
+
+      const currStatuses: string[] = [];
+      for(let i = 0; i < neighborhoods.length; i++) { // update statuses
+        const id = new anchor.web3.PublicKey(nhoodInfos[i].data.slice(65, 97));
+        let res = await getCandyMachineState(
+          wallet as anchor.Wallet,
+          id,
+          props.connection
+        );
+        const itemsRemaining = res.itemsRemaining;
+        if (itemsRemaining === 0) {
+          currStatuses.push("[MINTED OUT]"); // minted out
+          continue;
+        } 
+        if (!ataInfos[i]) {
+          currStatuses.push("[SOLD OUT]"); // sold out
+          continue;
+        }
+        const b = (await props.connection.getTokenAccountBalance(atas[i])).value.amount;
+        const balance = Number(b);
+        if (balance === 0) {
+          currStatuses.push("[SOLD OUT]"); // sold out
+        } else {
+          currStatuses.push(""); // active
+        }
+      }
+      setStatuses(currStatuses);
+    }
+    getNeighborhoodStatuses();
+  }, [neighborhoods]);
+
+  useEffect(() => {
+    // with every change of neighborhood x and y, update the neigborhood info
+    const updateNeighborhoodInfo = async () => {
+      setNoMint(false);
+      setClicked(false);
+      if (neighborhoodX != null && neighborhoodY != null) {
+        const account = await getNeighborhoodMetadataAcc(neighborhoodX, neighborhoodY);
         if (account) {
           setCandyConfig(new anchor.web3.PublicKey(account.data.slice(33, 65)));
           setCandyId(new anchor.web3.PublicKey(account.data.slice(65, 97)));
@@ -698,7 +784,7 @@ export const Home = (props: HomeProps) => {
               label="Select Neighborhood"
               onChange={changeNeighborhood}
             >
-              {getPossibleNeighborhoods()}
+              {statuses ? getPossibleNeighborhoodsWithStatuses() : getPossibleNeighborhoods()}
             </Select>
           </FormControl>
           <Divider/>
