@@ -111,6 +111,7 @@ export class Game extends React.Component {
             refreshingUserSpaces: false,
             colorApplyAll: false,
             anims: false,
+            animsInfoLoaded: true,
             floor: false,
             img_upl: null,
             has_img: false,
@@ -1121,6 +1122,7 @@ export class Game extends React.Component {
 
         this.setState({
             anims: anims,
+            animsInfoLoaded: false
         });
 
         let k = this.state.frame;
@@ -1153,18 +1155,7 @@ export class Game extends React.Component {
             }, 300);
         } else {
             clearInterval(this.intervalId1);
-            const start = this.viewport.neighborhood_start;
-            const end = this.viewport.neighborhood_end;
-
-            for (let n_x = start[0]; n_x < end[0]; n_x++) {
-                for (let n_y = start[1]; n_y < end[1]; n_y++) {
-                    let key = JSON.stringify({ n_x, n_y });
-                    if (key in this.viewport.neighborhood_data_all_frames) {
-                        this.viewport.neighborhood_data[key] =
-                            this.viewport.neighborhood_data_all_frames[key][k];
-                    }
-                }
-            }
+            await this.fetch_neighborhoods(this.state.frame);
             requestAnimationFrame(() => {
                 this.board.current.drawCanvas();
             });
@@ -1172,6 +1163,10 @@ export class Game extends React.Component {
                 await this.fetch_neighborhoods(this.state.frame);
             }, 10000);
         }
+        this.setState({
+            anims: anims,
+            animsInfoLoaded: true
+        });
     }
 
     handleChangeColor = (e) => {
@@ -1808,6 +1803,7 @@ export class Game extends React.Component {
                     >
                         <FormControl>
                             <FormControlLabel
+                                disabled={!this.state.animsInfoLoaded}
                                 control={
                                     <Switch
                                         onChange={(e) => this.handleChangeAnims(e)}
