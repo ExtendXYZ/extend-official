@@ -1868,26 +1868,6 @@ export class Game extends React.Component {
                                 My Listings
                             </Button>
                         </Tooltip> */}
-                        <Tooltip title="Click for your spaces">
-                            <Button
-                                variant="contained"
-                                disabled={!this.props.user || !this.props.loadedOwned || this.state.refreshingUserSpaces}
-                                sx={{
-                                    marginRight: "10px",
-                                    borderRadius: "40px",
-                                    color: "#FFFFFF",
-                                    background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                                }}
-                                id="myspaces-button"
-                                aria-controls={this.state.mySpacesOpen ? 'myspaces-menu' : undefined}
-                                aria-haspopup="true"
-                                aria-expanded={this.state.mySpacesOpen ? 'true' : undefined}
-                                onClick={(e) => this.handleMySpacesOpen(e)}
-                                endIcon={<KeyboardArrowDownIcon />}
-                            >
-                                My Spaces
-                            </Button>
-                        </Tooltip>
                         <Menu
                             id="myspaces-menu"
                             aria-labelledby="myspaces-button"
@@ -1899,7 +1879,7 @@ export class Game extends React.Component {
                                 <MenuItem onClick={async () => await this.handleGetMySpaces()}>Show Spaces</MenuItem>
                             </Tooltip>
                             <Tooltip title="Click to select all your listed spaces" placement="right">
-                                <MenuItem onClick={async () => await this.handleGetMyListings()}>Show Listed Spaces</MenuItem>
+                                <MenuItem onClick={async () => await this.handleGetMyListings()}>Show my Listed Spaces</MenuItem>
                             </Tooltip>
                             <Tooltip title="Refresh your spaces to match their blockchain state" placement="right">
                                 <MenuItem onClick={async () => await this.handleRefreshUserSpaces()}>Refresh Spaces</MenuItem>
@@ -1987,9 +1967,13 @@ export class Game extends React.Component {
                             <MenuItem onClick={(e) => this.copyCurrentView()}>Current View</MenuItem>
                             <MenuItem onClick={(e) => this.copyMyView()}>My Spaces</MenuItem>
                         </Menu>
-
+                        <Tooltip title="Enter a user's wallet address to select their spaces or a location in the form of x,y and press ENTER">
                         <TextField
                             id="address-textfield"
+                            onKeyPress={(ev) => {
+                                if (ev.key === 'Enter') {
+                                    this.handleFindSpaces();
+                                }}}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
@@ -2000,19 +1984,27 @@ export class Game extends React.Component {
                             // placeholder="SPCE5rvxKQJRn2uubgNRAD9KrP8RMXmkucy9TuCXD6e"
                             variant="standard"
                         />
-                        <Tooltip title="Enter a user's wallet address to select their spaces or enter a location in the form of x,y">
+                        </Tooltip>
+                        
+
+                        <Tooltip title="Click for your spaces">
                             <Button
                                 variant="contained"
-                                onClick={() => this.handleFindSpaces()}
-                                disabled={this.state.findingSpaces}
+                                disabled={!this.props.user || !this.props.loadedOwned || this.state.refreshingUserSpaces}
                                 sx={{
-                                    marginLeft: "10px",
+                                    marginRight: "10px",
                                     borderRadius: "40px",
                                     color: "#FFFFFF",
                                     background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                                 }}
+                                id="myspaces-button"
+                                aria-controls={this.state.mySpacesOpen ? 'myspaces-menu' : undefined}
+                                aria-haspopup="true"
+                                aria-expanded={this.state.mySpacesOpen ? 'true' : undefined}
+                                onClick={(e) => this.handleMySpacesOpen(e)}
+                                endIcon={<KeyboardArrowDownIcon />}
                             >
-                                Find Spaces
+                                My Spaces
                             </Button>
                         </Tooltip>
                     </Box>}

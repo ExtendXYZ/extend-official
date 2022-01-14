@@ -58,7 +58,14 @@ export const Header: React.FC = () => {
           justifyContent: "flex-start",
           alignItems: "center",
         }}
-      >
+      > 
+         <img
+          src={
+            require("../../assets/images/logo_small.svg")
+            .default
+            }
+            alt="EXTEND"
+         />
          <Tabs value={tabState} 
           onChange={handleTab} 
           indicatorColor="secondary"
