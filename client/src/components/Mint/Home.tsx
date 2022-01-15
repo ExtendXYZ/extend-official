@@ -2,8 +2,9 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import * as React from 'react';
 import styled from "styled-components";
 import Countdown from "react-countdown";
-import { Alert, Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select } from "@mui/material";
+import { Alert, Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select, Tooltip } from "@mui/material";
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import InfoIcon from '@mui/icons-material/Info';
 
 import * as anchor from "@project-serum/anchor";
 
@@ -839,7 +840,14 @@ export const Home = (props: HomeProps) => {
                     : null
                   }
                   <Divider />
-                  {wallet && <h3 style={{color: "#B687D8"}}><b>2. Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></h3>}
+                  {wallet && 
+                    <div>
+                      <h3 style={{color: "#B687D8", display: "inline-block"}}><b>2. Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></h3>
+                      <Tooltip title="Tip: Redeeming multiple space vouchers at once is more likely to result in contiguous Spaces on the canvas" placement="right">
+                        <InfoIcon sx={{marginLeft: "10px"}}/>
+                      </Tooltip>
+                    </div>
+                  }
 
                   {wallet && <p>Use your Space Vouchers to mint Spaces </p>} 
 
@@ -879,7 +887,12 @@ export const Home = (props: HomeProps) => {
                   <Divider/>
                   {wallet ? (
                   <div>
-                    <h3 style={{color: "#B687D8"}}><b>3. Register your Spaces </b></h3>
+                    <div>
+                      <h3 style={{color: "#B687D8", display: "inline-block"}}><b>3. Register your Spaces </b></h3>
+                      <Tooltip title="Tip: Registering will take around 30 seconds, and it will take longer depending on the number of Spaces you own" placement="right">
+                        <InfoIcon sx={{marginLeft: "10px"}}/>
+                      </Tooltip>
+                    </div>
                     <p> After minting, register your Spaces in order to see them on the canvas and change their colors </p>
                   <Button
                     disabled={isRegistering || isMinting}
