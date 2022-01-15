@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import * as React from 'react';
 import styled from "styled-components";
 import Countdown from "react-countdown";
 import { Alert, Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select } from "@mui/material";
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
 
 import * as anchor from "@project-serum/anchor";
 
@@ -70,6 +72,14 @@ export const Home = (props: HomeProps) => {
     setModal(ModalEnum.WALLET);
     setVisible(true);
   }, [setModal, setVisible]);
+
+  const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
+    props,
+    ref,
+  ) {
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+  });
+  
 
   const [balance, setBalance] = useState<number>();
   const [isActive, setIsActive] = useState(false); // true when countdown completes
@@ -915,7 +925,7 @@ export const Home = (props: HomeProps) => {
 
       <Snackbar
         open={alertState.open}
-        autoHideDuration={6000}
+        autoHideDuration={20000}
         onClose={() => setAlertState({ ...alertState, open: false })}
       >
         <Alert
