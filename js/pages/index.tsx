@@ -51,6 +51,28 @@ const Home: NextPage = () => {
                         <div />
                     </Col>
                     <Col className={styles.titleImageContainer} xs={24} sm={24} md={12} lg={12} xl={13}>
+                        <Row className={styles.socialMediaBar}>
+                        {/* <img src={"/images/twitter.svg"} className={styles.socialMediaButton}/> */}
+                        <a href="https://t.me/ExtendOfficial" className={styles.socialMediaButton}>
+                        <img src={"/images/social/telegram.svg"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://discord.gg/sjdNRwtJDy" className={styles.socialMediaButton}>
+                        <img src={"/images/social/discord.svg"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://twitter.com/ExtendXYZ" className={styles.socialMediaButton}>
+                        <img src={"/images/social/twitter.svg"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://www.instagram.com/extendxyz/" className={styles.socialMediaButton}>
+                        <img src={"/images/social/instagram.png"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://medium.com/@Extend" className={styles.socialMediaButton}>
+                        <img src={"/images/social/medium.svg"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://github.com/ExtendXYZ/extend-official" className={styles.socialMediaButton}>
+                        <img src={"/images/social/github.png"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://canvas.extend.xyz/"><Button className={styles.launchAppButton}>App</Button></a>
+                        </Row>
                     </Col>
                 </Row>
             </section>

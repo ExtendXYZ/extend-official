@@ -158,6 +158,33 @@
     font-size: 18px !important;
 }
 
+.launchAppButton{
+    color: #FFFFFF;
+    background: linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F);
+    border-radius: 40px;
+    padding : 10px;
+    min-width : 100px;
+    text-align: center;
+    position : center;
+}
+
+.socialMediaBar {
+    padding : 50px;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.socialMediaButton {
+    padding : 10px
+}
+
+.socialMediaLogo{
+    width: 48px;
+}
+
+
+
 @media (max-width: 1200px) {
     .sectionMain {
         padding-right: 20px;
