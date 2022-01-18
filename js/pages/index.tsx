@@ -72,7 +72,7 @@ const Home: NextPage = () => {
                     <video autoPlay muted loop className={styles.myVideo}>
                     <source src="/images/asset.mp4" type="video/mp4" /> 
                     </video>
-                    <svg className={styles.nftText} xmlns="http://www.w3.org/2000/svg" viewBox="0 -0.5 960 960" shape-rendering="crispEdges">
+                    <svg className={styles.nftText} xmlns="http://www.w3.org/2000/svg" viewBox="0 -0.5 960 960" shapeRendering="crispEdges">
                     <text 
                         x="480" y="900">020,622</text>
                     </svg>
