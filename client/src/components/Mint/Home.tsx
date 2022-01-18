@@ -177,7 +177,7 @@ export const Home = (props: HomeProps) => {
     if (nhoodNames && neighborhoods) {
       for (let i = 0; i < neighborhoods.length; i++) {
         const n = neighborhoods[i];
-        keys.push(<MenuItem value={n}>{"Neighborhood (" + n + "): " + nhoodNames[i]}</MenuItem>);
+        keys.push(<MenuItem value={n} key={n}>{"Neighborhood (" + n + "): " + nhoodNames[i]}</MenuItem>);
       }
     }
     return keys;
@@ -189,9 +189,9 @@ export const Home = (props: HomeProps) => {
       for (let i = 0; i < neighborhoods.length; i++) {
         const n = neighborhoods[i];
         if (statuses[i] !== "") {
-          keys.push(<MenuItem value={n} sx={{color: "#E0714F"}}>{"Neighborhood (" + n + "): " + nhoodNames[i] + statuses[i]}</MenuItem>);
+          keys.push(<MenuItem value={n} key={n} sx={{color: "#E0714F"}}>{"Neighborhood (" + n + "): " + nhoodNames[i] + statuses[i]}</MenuItem>);
         } else {
-          keys.push(<MenuItem value={n}>{"Neighborhood (" + n + "): " + nhoodNames[i] + statuses[i]}</MenuItem>);
+          keys.push(<MenuItem value={n} key={n}>{"Neighborhood (" + n + "): " + nhoodNames[i] + statuses[i]}</MenuItem>);
         }
       }
     }
@@ -762,6 +762,31 @@ export const Home = (props: HomeProps) => {
     }
   }, [doneFetching]);
 
+  // useEffect(() => {
+  //   const getColors = async () => {
+  //     const frameKeysMap = await server.getFrameKeys(props.connection, neighborhoods?.map(x => {
+  //       const split = x.split(",");
+  //       return {n_x: parseInt(split[0]), n_y: parseInt(split[1])}
+  //     }), 0);
+  //     const frameInfos = Object.keys(frameKeysMap).map(x => JSON.parse(x));
+  //     const frameKeys = Object.values(frameKeysMap);
+  //     const frameDatas = await server.batchGetMultipleAccountsInfo(
+  //       props.connection,
+  //       frameKeys
+  //     );
+  //     const colorMap = {};
+  //     await Promise.all(
+  //       frameInfos.map(async (value, i) => {
+  //         const { n_x, n_y, frame } = value;
+  //         const key = JSON.stringify({ n_x, n_y });
+  //         colorMap[key] = await server.getFrameData(frameDatas[i]);
+  //       })
+  //     );
+  //     const canvas = document.getElementById("preview")
+  //   }
+  //   getColors();
+  // }, [neighborhoods]);
+
   return (
     <div id="home" className="centered-full">
       <div >
@@ -781,9 +806,7 @@ export const Home = (props: HomeProps) => {
         <Divider/>
       {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your balance: {(balance || 0).toLocaleString()} SOL</b></p>}
       {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your Space Vouchers: {totalTokens} </b></p>}
-      <div>
-        <img src={require("../../assets/images/space.gif").default} style={{ float: "left", height: window.innerHeight - 200 + "px" }}></img>
-      </div>
+      {/* <canvas id="preview" width="1000px" height="1000px"/> */}
       </div>
 
       {wallet ? (
@@ -949,7 +972,17 @@ export const Home = (props: HomeProps) => {
         </Alert>
       </Snackbar>
 
-      <div className="botnav" id="botnav"></div>
+      <div className="botnav" id="botnav" style={{
+        position: "fixed",
+        zIndex: 1,
+        bottom: "50px",
+        right: "50px",
+        width: "100px",
+        display: "flex",
+        flexDirection: "column-reverse",
+        alignItems: "center"
+      }
+      }></div>
     </div>
   );
 };
