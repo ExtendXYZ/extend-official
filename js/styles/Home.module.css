@@ -1,3 +1,23 @@
+.nftText{
+    font-family: Attila Sans Sharp;
+    text-anchor: middle;
+    text-align: center;
+    fill: #E9D9EA; 
+    font-size: 144px;
+    position: absolute;
+    top:0;
+    left:0;
+    z-index: 3;
+}
+
+.myVideo{
+    width: 100%; 
+    border-style:solid;
+    border-color:#FFFFFF;
+    border-radius:8%;
+    z-index: 1;
+}
+
 .container {
     width: 100%;
     display: flex;
@@ -9,10 +29,9 @@
     font-size: 24px;
 }
 
-.titleImageContainer, .extendsImageContainer, .spaceImageContainer {
+.titleImageContainer, .extendsImageContainer, .spaceImageContainer, .arrowImageContainer {
     min-height: 35rem;
     background-size: cover;
-
 }
 
 .borderRadiusButton{
@@ -31,8 +50,11 @@
     margin-bottom: 20px;
 }
 
-.titleImageContainer {
+.arrowImageContainer {
     background-image: url("/images/top_header.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 .extendsImageContainer {
@@ -168,10 +190,16 @@
     position : center;
 }
 
+.launchAppContainer{
+    flex-direction: row;
+    align-items: center;   
+    justify-content: flex-end;
+}
+
 .socialMediaBar {
     flex-direction: row;
-    justify-content: flex-end;
     align-items: center;   
+    justify-content: center;
 }
 
 .socialMediaButton {
@@ -270,7 +298,7 @@
         justify-content: initial;
     }
 
-    .titleImageContainer, .extendsImageContainer, .spaceImageContainer {
+    .titleImageContainer, .extendsImageContainer, .spaceImageContainer, .arrowImageContainer {
         background-position: center;
     }
 
@@ -366,7 +394,7 @@
         justify-content: initial;
     }
 
-    .titleImageContainer, .extendsImageContainer, .spaceImageContainer {
+    .titleImageContainer, .extendsImageContainer, .spaceImageContainer, .arrowImageContainer {
         background-position: center;
     }
 
@@ -385,7 +413,7 @@
 
 
 @media (min-width: 1200px) {
-    .titleImageContainer, .extendsImageContainer, .spaceImageContainer {
+    .titleImageContainer, .extendsImageContainer, .spaceImageContainer, .arrowImageContainer {
         min-height: 50rem;
         background-position-x: center;
     }
