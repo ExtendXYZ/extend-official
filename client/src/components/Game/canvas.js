@@ -80,7 +80,8 @@ export class Board extends React.Component {
         this.resizeHandler = this.resizeHandler.bind(this);
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
-        this.preventDefault = this.preventDefault.bind(this);
+        this.onTouchMove = this.onTouchMove.bind(this);
+        this.onWheel = this.onWheel.bind(this);
         this.map = null;
         this.neighborhood_name = null;
         this.pinchCanche = null;
@@ -414,8 +415,14 @@ export class Board extends React.Component {
         requestAnimationFrame(() => this.drawCanvasCache());
     }
 
-    preventDefault(event) {
+    onTouchMove(event) {
         if (event.target.className.slice(0, 3) !== "Mui") {
+            event.preventDefault();
+        }
+    }
+
+    onWheel(event) {
+        if (event.ctrlKey) {
             event.preventDefault();
         }
     }
@@ -448,7 +455,8 @@ export class Board extends React.Component {
         window.addEventListener("focus", this.onFocus);
         window.addEventListener("blur", this.onBlur);
         // document.addEventListener("touchstart", this.preventDefault, {passive: false});
-        document.addEventListener("touchmove", this.preventDefault, {passive: false});
+        document.addEventListener("touchmove", this.onTouchMove, {passive: false});
+        document.addEventListener("wheel", this.onWheel, {passive: false});
         // document.addEventListener("touchend", this.preventDefault, {passive: false});
         // document.addEventListener("touchcancel", this.preventDefault, {passive: false});
         await this.props.prepare();
@@ -461,7 +469,8 @@ export class Board extends React.Component {
         window.removeEventListener("focus", this.onFocus);
         window.removeEventListener("blur", this.onBlur);
         // document.removeEventListener("touchstart", this.preventDefault);
-        document.removeEventListener("touchmove", this.preventDefault);
+        document.removeEventListener("touchmove", this.onTouchMove);
+        document.removeEventListener("wheel", this.onWheel);
         // document.removeEventListener("touchend", this.preventDefault);
         // document.removeEventListener("touchcancel", this.preventDefault);
     }
