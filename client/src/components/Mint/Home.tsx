@@ -325,7 +325,7 @@ export const Home = (props: HomeProps) => {
         });
       } else {
         notify({
-          message: `Congratulations! ${response.numSucceed} out of ${response.total} mints succeeded!`,
+          message: `${response.numSucceed} out of ${response.total} mints succeeded!`,
           type: "success",
           duration: 0,
         });
@@ -388,7 +388,7 @@ export const Home = (props: HomeProps) => {
 
       if (status && !status?.err) {
         notify({
-          message: "Congratulations! Received Space Voucher!",
+          message: "Received Space Voucher!",
           type: "success",
           duration: 0,
         });
