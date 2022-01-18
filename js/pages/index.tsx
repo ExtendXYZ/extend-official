@@ -33,28 +33,10 @@ const Home: NextPage = () => {
             <Col  xs={24} sm={24} md={12} lg={12} xl={11}>
                                 <img src={"/images/logo.svg"} className={styles.logoImage} height={48}/>
             </Col >
-            <Col  xs={24} sm={24} md={12} lg={12} xl={11}>
-            <Row className={styles.socialMediaBar}>
+            <Col  xs={24} sm={24} md={12} lg={12} xl={13}>
+            <Row className={styles.launchAppContainer}>
                         {/* <img src={"/images/twitter.svg"} className={styles.socialMediaButton}/> */}
-                        <a href="https://t.me/ExtendOfficial" className={styles.socialMediaButton}>
-                        <img src={"/images/social/telegram.svg"} className={styles.socialMediaLogo}/>
-                        </a>
-                        <a href="https://discord.gg/sjdNRwtJDy" className={styles.socialMediaButton}>
-                        <img src={"/images/social/discord.svg"} className={styles.socialMediaLogo}/>
-                        </a>
-                        <a href="https://twitter.com/ExtendXYZ" className={styles.socialMediaButton}>
-                        <img src={"/images/social/twitter.svg"} className={styles.socialMediaLogo}/>
-                        </a>
-                        <a href="https://www.instagram.com/extendxyz/" className={styles.socialMediaButton}>
-                        <img src={"/images/social/instagram.png"} className={styles.socialMediaLogo}/>
-                        </a>
-                        <a href="https://medium.com/@Extend" className={styles.socialMediaButton}>
-                        <img src={"/images/social/medium.svg"} className={styles.socialMediaLogo}/>
-                        </a>
-                        <a href="https://github.com/ExtendXYZ/extend-official" className={styles.socialMediaButton}>
-                        <img src={"/images/social/github.png"} className={styles.socialMediaLogo}/>
-                        </a>
-                        <a href="https://canvas.extend.xyz/"><Button className={styles.launchAppButton}>App</Button></a>
+                        <a href="https://canvas.extend.xyz/"><Button className={styles.launchAppButton}>Launch app</Button></a>
                         </Row>
             </Col>
             </Row>
@@ -72,7 +54,10 @@ const Home: NextPage = () => {
                         <div>
                             <h1 className={`main-title ${styles.mainTitle}`}>The ultimate customizable NFT</h1>
                             <p className={styles.headerText}>
-                            A million Spaces will be minted for free on the blazing fast Solana network, the largest NFT mint
+                                Extend is the groundbreaking utility NFT project that crypto deserves!
+                            </p>   
+                            <p className={styles.headerText}>
+                            A million Spaces will be minted for FREE on the blazing fast Solana network, the largest NFT mint
                             to date. Mint a single Space or collect a whole neighborhood right from the canvas.
                                 {/* Extend NFTs into a new dimension.
                                 Extend evokes that shift from static jpg to dynamic utility...
@@ -84,19 +69,27 @@ const Home: NextPage = () => {
                         <div />
                     </Col>
                     <Col className={styles.titleImageContainer} xs={24} sm={24} md={12} lg={12} xl={13}>
+                    <video autoPlay muted loop className={styles.myVideo}>
+                    <source src="/images/asset.mp4" type="video/mp4" /> 
+                    </video>
+                    <svg className={styles.nftText} xmlns="http://www.w3.org/2000/svg" viewBox="0 -0.5 960 960" shape-rendering="crispEdges">
+                    <text 
+                        x="480" y="900">020,622</text>
+                    </svg>
                     </Col>
                 </Row>
             </section>
             <section className={`${styles.sectionMain} `}>
                 <Row className={styles.sectionReverse}>
                     <Col className={styles.spaceImageContainer} sm={24} md={11} lg={11} xl={10}>
+
                     </Col>
                     <Col sm={24} md={13} lg={13} xl={11} className={`${styles.sectionContent} ${styles.spaceContent}`}>
                         <h1>Become a neighbor</h1>
                         <p>
                         Spaces are programmable. To start 
                             each Space gives the Space owner the ability to modify the color of a single pixel on our 1000 x 1000 Canvas.
-                            Imagine what’s possible with a little coordination!
+                            Imagine what’s possible with a little coordination! 
                         </p>
                         <div>
                             <a href="https://canvas.extend.xyz"><Button className={styles.borderRadiusButton} size={'middle'}>Browse the canvas</Button></a>
@@ -104,10 +97,32 @@ const Home: NextPage = () => {
                     </Col>
                 </Row>
             </section>
+
             <section className={`${styles.sectionHeader}`}>
                 <Row>
                     <Col sm={24} xs={24} md={15} lg={14} xl={11} className={styles.sectionContent}>
-                        <h1>Extend your Spaces</h1>
+                        <h1>Trade your way to the top</h1>
+                        <p>
+                            {/* Spaces are programmable. To start, each Space can be registered on our 1000 x 1000 Canvas
+                            and gives the Space owner the ability to modify the color of a single pixel.
+                            Imagine what’s possible with a little coordination!
+                            <br/>
+                            <br/> */}
+                            Buy and Sell pixels on our canvas. Look for opportunities to expand your territory!
+                        </p>
+                    </Col>
+                    <Col sm={24}  xs={24} md={9} lg={10} xl={13} className={styles.extendsImageContainer}>
+                    </Col>
+                </Row>
+            </section>
+
+            <section className={`${styles.sectionMain} `}>
+                <Row className={styles.sectionReverse}>
+                    <Col className={styles.arrowImageContainer} sm={24} md={11} lg={11} xl={10}>
+
+                    </Col>
+                    <Col sm={24} md={13} lg={13} xl={11} className={`${styles.sectionContent} ${styles.spaceContent}`}>
+                    <h1>Extend your Spaces</h1>
                         <p>
                             {/* Spaces are programmable. To start, each Space can be registered on our 1000 x 1000 Canvas
                             and gives the Space owner the ability to modify the color of a single pixel.
@@ -117,8 +132,9 @@ const Home: NextPage = () => {
                             Extend is open to developers and new experiences will continue to be added.
                             Each Space is minted with an X and Y coordinate. The Z is left to you, the creators.
                         </p>
-                    </Col>
-                    <Col sm={24}  xs={24} md={9} lg={10} xl={13} className={styles.extendsImageContainer}>
+                        <div>
+                            <a href="https://canvas.extend.xyz"><Button className={styles.borderRadiusButton} size={'middle'}>Browse the canvas</Button></a>
+                        </div>
                     </Col>
                 </Row>
             </section>
@@ -314,6 +330,34 @@ const Home: NextPage = () => {
                         </Accordion>
                     </Col>
                 </Row>
+            </section>
+
+            <section className={`${styles.sectionMain}`}>
+            
+                <Row>
+                <h1>Stay tuned</h1>
+                </Row>   
+                        <Row className={styles.socialMediaBar}>
+                        {/* <img src={"/images/twitter.svg"} className={styles.socialMediaButton}/> */}
+                        <a href="https://t.me/ExtendOfficial" className={styles.socialMediaButton}>
+                        <img src={"/images/social/telegram.svg"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://discord.gg/sjdNRwtJDy" className={styles.socialMediaButton}>
+                        <img src={"/images/social/discord.svg"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://twitter.com/ExtendXYZ" className={styles.socialMediaButton}>
+                        <img src={"/images/social/twitter.svg"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://www.instagram.com/extendxyz/" className={styles.socialMediaButton}>
+                        <img src={"/images/social/instagram.png"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://medium.com/@Extend" className={styles.socialMediaButton}>
+                        <img src={"/images/social/medium.svg"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://github.com/ExtendXYZ/extend-official" className={styles.socialMediaButton}>
+                        <img src={"/images/social/github.png"} className={styles.socialMediaLogo}/>
+                        </a>
+                        </Row>
             </section>
         </div>
 
