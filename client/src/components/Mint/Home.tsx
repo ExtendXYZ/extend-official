@@ -40,6 +40,7 @@ import {
   MINT_PRICE,
   SPACE_METADATA_SEED,
   MAX_REGISTER_ACCS,
+  NEIGHBORHOOD_SIZE,
 } from "../../constants";
 import { Divider } from "antd";
 
@@ -626,9 +627,16 @@ export const Home = (props: HomeProps) => {
     setDisableToken(true);
     const n: String = e.target.value;
     const split = n.split(',');
-    setNeighborhoodX(parseInt(split[0]));
-    setNeighborhoodY(parseInt(split[1]));
+    const n_x = parseInt(split[0]);
+    const n_y = parseInt(split[1]);
+    setNeighborhoodX(n_x);
+    setNeighborhoodY(n_y);
     setCurrNeighborhood(n);
+    const selector = document.getElementById("selector");
+    if (selector) {
+      selector.style.left = (n_x + 2) * NEIGHBORHOOD_SIZE - border + "px";
+      selector.style.top = (n_y + 2) * NEIGHBORHOOD_SIZE - border + "px";
+    }
   }
   
   // USE EFFECTS
@@ -762,30 +770,60 @@ export const Home = (props: HomeProps) => {
     }
   }, [doneFetching]);
 
-  // useEffect(() => {
-  //   const getColors = async () => {
-  //     const frameKeysMap = await server.getFrameKeys(props.connection, neighborhoods?.map(x => {
-  //       const split = x.split(",");
-  //       return {n_x: parseInt(split[0]), n_y: parseInt(split[1])}
-  //     }), 0);
-  //     const frameInfos = Object.keys(frameKeysMap).map(x => JSON.parse(x));
-  //     const frameKeys = Object.values(frameKeysMap);
-  //     const frameDatas = await server.batchGetMultipleAccountsInfo(
-  //       props.connection,
-  //       frameKeys
-  //     );
-  //     const colorMap = {};
-  //     await Promise.all(
-  //       frameInfos.map(async (value, i) => {
-  //         const { n_x, n_y, frame } = value;
-  //         const key = JSON.stringify({ n_x, n_y });
-  //         colorMap[key] = await server.getFrameData(frameDatas[i]);
-  //       })
-  //     );
-  //     const canvas = document.getElementById("preview")
-  //   }
-  //   getColors();
-  // }, [neighborhoods]);
+  useEffect(() => {
+    if (neighborhoods) {
+      const getColors = async () => {
+        const frameKeysMap = await server.getFrameKeys(props.connection, neighborhoods.map(x => {
+          const split = x.split(",");
+          return {n_x: parseInt(split[0]), n_y: parseInt(split[1])}
+        }), 0);
+        const frameInfos = Object.keys(frameKeysMap).map(x => JSON.parse(x));
+        const frameKeys = Object.values(frameKeysMap);
+        const frameDatas = await server.batchGetMultipleAccountsInfo(
+          props.connection,
+          frameKeys
+        );
+        const colorMap = {};
+        await Promise.all(
+          frameInfos.map(async (value, i) => {
+            const { n_x, n_y, frame } = value;
+            const key = JSON.stringify({ n_x, n_y });
+            colorMap[key] = await server.getFrameData(frameDatas[i]);
+          })
+        );
+        console.log(colorMap);
+        const canvas = document.getElementById("preview") as HTMLCanvasElement;
+        if (canvas) {
+          const context = canvas.getContext("2d", {
+            alpha: false,
+            desynchronized: true,
+          });
+          if (context) {
+            for (let n_x = -2; n_x < 3; ++n_x) {
+              for (let n_y = -2; n_y < 3; ++n_y) {
+                const key = JSON.stringify({n_x, n_y});
+                if (key in colorMap) {
+                  const map = colorMap[key];
+                  for (let x = 0; x < NEIGHBORHOOD_SIZE; ++x) {
+                    for (let y = 0; y < NEIGHBORHOOD_SIZE; ++y) {
+                      context.fillStyle = map[y][x];
+                      context.fillRect(x + (n_x + 2) * NEIGHBORHOOD_SIZE, y + (n_y + 2) * NEIGHBORHOOD_SIZE, 1, 1);
+                    }
+                  }
+                } else {
+                  context.fillStyle = "#000000";
+                  context.fillRect((n_x + 2) * NEIGHBORHOOD_SIZE, (n_y + 2) * NEIGHBORHOOD_SIZE, NEIGHBORHOOD_SIZE, NEIGHBORHOOD_SIZE);
+                }
+              }
+            }
+          }
+        }
+      }
+      getColors();
+    }
+  }, [neighborhoods]);
+
+  const border = 5;
 
   return (
     <div id="home" className="centered-full">
@@ -806,7 +844,10 @@ export const Home = (props: HomeProps) => {
         <Divider/>
       {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your balance: {(balance || 0).toLocaleString()} SOL</b></p>}
       {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your Space Vouchers: {totalTokens} </b></p>}
-      {/* <canvas id="preview" width="1000px" height="1000px"/> */}
+      <div style={{width: "1000px", height: "1000px", position: "relative"}}>
+        <canvas id="preview" width="1000px" height="1000px"/>
+        <div id="selector" style={{position: "absolute", top: 400 - border + "px", left: 400 - border + "px", width: 200 + 2 * border + "px", height: 200 + 2 * border + "px", border: border + "px dashed white"}}/>
+      </div>
       </div>
 
       {wallet ? (
