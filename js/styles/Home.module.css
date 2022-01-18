@@ -8,6 +8,7 @@
     top:0;
     left:0;
     z-index: 3;
+    padding:10%;
 }
 
 .myVideo{
@@ -248,6 +249,10 @@
 }
 
 @media (max-width: 768px) {
+
+    .titleImageContainer {
+        padding: 10%;
+    }
     .sectionReverse {
         flex-direction: column-reverse;
     }
@@ -405,9 +410,7 @@
         background-position: center;
     }
 
-    .titleImageContainer {
-        background-position: 90% 0px;
-    }
+
 
     .spaceImageContainer {
         min-height: 37rem;
