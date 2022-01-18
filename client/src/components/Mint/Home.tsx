@@ -764,7 +764,7 @@ export const Home = (props: HomeProps) => {
 
   return (
     <div id="home" className="centered-full">
-      <div >
+      <div style={{minWidth: "50%", maxWidth: "50%"}}>
         <Divider/>
       <FormControl sx={{marginLeft: "20%", minWidth: "60%", maxWidth: "60%" }}>
         <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
@@ -782,9 +782,40 @@ export const Home = (props: HomeProps) => {
       {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your balance: {(balance || 0).toLocaleString()} SOL</b></p>}
       {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your Space Vouchers: {totalTokens} </b></p>}
       <div>
-        <img src={require("../../assets/images/space.gif").default} style={{ float: "left", height: window.innerHeight - 200 + "px" }}></img>
+        <img src={require("../../assets/images/space.gif").default} style={{ marginLeft: "20%", minWidth: "60%", maxWidth: "60%", height: window.innerHeight - 200 + "px" }}></img>
       </div>
       </div>
+
+
+      {!wallet || (neighborhoodX === undefined && neighborhoodY === undefined) ? (
+      <div style={{marginRight: "10%"}}>
+      {!wallet || (neighborhoodX === undefined && neighborhoodY === undefined) ? (
+        <div>
+        <p style={{textAlign: "center"}}>One million Spaces are divided into a 5 x 5 grid of neighborhoods. Each neighborhood contains 200 x 200 (40,000) Spaces and neighborhoods will be minted sequentially over a period of time. Welcome, future Neighbor, have a look around the Canvas and feel free to join the neighborhood by minting your very own Spaces.</p>
+        <Divider/>
+        </div>
+      ) : null
+      }
+      {!wallet ? (
+      <Button
+        size="large"
+        variant="contained"
+        onClick={handleConnect}
+        style={{
+          color: "#FFFFFF",
+          background: 'linear-gradient(to right bottom, #36EAEF80, #6B0AC980)',
+          borderRadius: '40px',
+          marginLeft: "20%",
+          minWidth: "60%", 
+          maxWidth: "60%",
+        }}
+      >
+        <b>Connect Your Wallet</b>
+      </Button>) : null
+      }
+      </div>
+      ) : null
+      }
 
       {wallet ? (
         <div>
@@ -922,18 +953,7 @@ export const Home = (props: HomeProps) => {
           }
         </div>
       ) :
-        (<Button
-          size="large"
-          variant="contained"
-          onClick={handleConnect}
-          style={{
-            color: "#FFFFFF",
-            background: 'linear-gradient(to right bottom, #36EAEF80, #6B0AC980)',
-            borderRadius: '40px'
-          }}
-        >
-          <b>Connect Your Wallet</b>
-        </Button>)
+        null
       }
 
       <Snackbar
