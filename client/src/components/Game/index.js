@@ -1980,7 +1980,11 @@ export class Game extends React.Component {
                                 onClick={(e) => this.handleMySpacesOpen(e)}
                                 endIcon={<KeyboardArrowDownIcon />}
                             >
+<<<<<<< HEAD
                                 My Spaces ({nspaces})
+=======
+                                My Spaces
+>>>>>>> 87d287d9b5982bd2b54a00c1f734ba101b9adb23
                             </Button>
                         </Tooltip>
                     </Box>}
