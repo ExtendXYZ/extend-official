@@ -696,7 +696,7 @@ export class Board extends React.Component {
                 Math.min(100, height / center.height, (width - LEFT) / center.width),
                 1
             );
-            dest.scale = Math.round(dest.scale);
+            dest.scale = Math.floor(dest.scale);
             const center_x = center.x + 0.5 * center.width;
             const center_y = center.y + 0.5 * center.height;
             dest.x = -center_x * dest.scale + 0.5 * width + 0.5 * LEFT;
