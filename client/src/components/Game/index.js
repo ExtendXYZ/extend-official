@@ -151,18 +151,14 @@ export class Game extends React.Component {
             }
         }
 
-        let frameKeysMap = await this.props.server.getFrameKeys(
+        const frameKeysMap = await this.props.server.getFrameKeys(
             connection,
             neighborhoods,
             frame
         );
-        let frameInfos = [];
-        let frameKeys = [];
-        for (let info in frameKeysMap) {
-            const { n_x, n_y, frame } = JSON.parse(info);
-            frameInfos.push({ n_x, n_y, frame });
-            frameKeys.push(frameKeysMap[info]);
-        }
+        const frameInfos = Object.keys(frameKeysMap).map(x => JSON.parse(x));
+        const frameKeys = Object.values(frameKeysMap);
+
         const frameDatas = await this.props.server.batchGetMultipleAccountsInfo(
             this.props.connection,
             frameKeys
@@ -238,13 +234,9 @@ export class Game extends React.Component {
             connection,
             neighborhoods
         );
-        let frameInfos = [];
-        let frameKeys = [];
-        for (let info in frameKeysMap) {
-            const { n_x, n_y, frame } = JSON.parse(info);
-            frameInfos.push({ n_x, n_y, frame });
-            frameKeys.push(frameKeysMap[info]);
-        }
+        const frameInfos = Object.keys(frameKeysMap).map(x => JSON.parse(x));
+        const frameKeys = Object.values(frameKeysMap);
+        
         const frameDatas = await this.props.server.batchGetMultipleAccountsInfo(
             this.props.connection,
             frameKeys
