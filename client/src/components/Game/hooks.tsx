@@ -156,7 +156,7 @@ export function Screen(props) {
                     }
                     console.log("Accounts", accs.length)
                     const accInfos = await server.batchGetMultipleAccountsInfoLoading(connection, accs, 'Registering');
-                    loading(null, 'Registering', null);
+                    loading(null, 'Registering', "success");
 
                     for (let i = 0; i < accInfos.length; i++) {
                         if (accInfos[i] === null) { // pass the accounts we want to initialize

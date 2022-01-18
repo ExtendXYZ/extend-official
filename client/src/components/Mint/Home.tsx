@@ -500,7 +500,7 @@ export const Home = (props: HomeProps) => {
         );
         tokenCache.add(spaceATA.toBase58());
     }
-
+    
     const data = await server.getSpacesByOwner(props.connection, wallet.publicKey, false, tokenCache);
     if (!data) {
       setAlertState({
@@ -531,7 +531,7 @@ export const Home = (props: HomeProps) => {
     }
     console.log("Accounts", accs.length)
     const accInfos = await server.batchGetMultipleAccountsInfoLoading(props.connection, accs, 'Registering');
-    loading(null, 'Registering', null);
+    loading(null, 'Registering', "success");
 
     // pass the accounts and mints we want to initialize
     let numAccountsToRegister = 0;
@@ -557,7 +557,8 @@ export const Home = (props: HomeProps) => {
     } else {
       try {
         let ixs = await initSpaceMetadataInstructions(wallet, BASE, currSpaceAccs, currMints);
-        let res = await sendInstructionsGreedyBatch(props.connection, wallet, ixs, "Register", false);
+        let res = await sendInstructionsGreedyBatch(props.connection, wallet, ixs, "Register", false);                    loading(null, 'Registering', null);
+        loading(null, 'Registering', null);
 
         // update mints that have been registered
         let responses = res.responses;
@@ -827,7 +828,7 @@ export const Home = (props: HomeProps) => {
 
   return (
     <div id="home" className="centered-full">
-      <div >
+      <div style={{minWidth: "50%", maxWidth: "50%"}}>
         <Divider/>
       <FormControl sx={{marginLeft: "20%", minWidth: "60%", maxWidth: "60%" }}>
         <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
@@ -849,6 +850,37 @@ export const Home = (props: HomeProps) => {
         <div id="selector" style={{position: "absolute", top: 400 - border + "px", left: 400 - border + "px", width: 200 + 2 * border + "px", height: 200 + 2 * border + "px", border: border + "px dashed white"}}/>
       </div>
       </div>
+
+
+      {!wallet || (neighborhoodX === undefined && neighborhoodY === undefined) ? (
+      <div style={{marginRight: "10%"}}>
+      {!wallet || (neighborhoodX === undefined && neighborhoodY === undefined) ? (
+        <div>
+        <p style={{textAlign: "center"}}>One million Spaces are divided into a 5 x 5 grid of neighborhoods. Each neighborhood contains 200 x 200 (40,000) Spaces and neighborhoods will be minted sequentially over a period of time. Welcome, future Neighbor, have a look around the Canvas and feel free to join the neighborhood by minting your very own Spaces.</p>
+        <Divider/>
+        </div>
+      ) : null
+      }
+      {!wallet ? (
+      <Button
+        size="large"
+        variant="contained"
+        onClick={handleConnect}
+        style={{
+          color: "#FFFFFF",
+          background: 'linear-gradient(to right bottom, #36EAEF80, #6B0AC980)',
+          borderRadius: '40px',
+          marginLeft: "20%",
+          minWidth: "60%", 
+          maxWidth: "60%",
+        }}
+      >
+        <b>Connect Your Wallet</b>
+      </Button>) : null
+      }
+      </div>
+      ) : null
+      }
 
       {wallet ? (
         <div>
@@ -986,18 +1018,7 @@ export const Home = (props: HomeProps) => {
           }
         </div>
       ) :
-        (<Button
-          size="large"
-          variant="contained"
-          onClick={handleConnect}
-          style={{
-            color: "#FFFFFF",
-            background: 'linear-gradient(to right bottom, #36EAEF80, #6B0AC980)',
-            borderRadius: '40px'
-          }}
-        >
-          <b>Connect Your Wallet</b>
-        </Button>)
+        null
       }
 
       <Snackbar
