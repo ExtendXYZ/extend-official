@@ -104,6 +104,32 @@ const Home: NextPage = () => {
                         </a>
                         <a href="https://canvas.extend.xyz/"><Button className={styles.launchAppButton}>App</Button></a>
                         </Row>
+            </Col>
+            </Row>
+            </section>
+            <section className={`${styles.sectionHeader}`}>
+                <Row>
+                    <Col xs={24} sm={24} md={12} lg={12} xl={11} className={styles.headerSectionContent}>
+                        {/* <div className={`${styles.logoContainer} ${styles.logo}`}> */}
+                        {/* <Row>
+                            <Col xs={24} sm={24} md={12}>
+                                <img src={"/images/logo.svg"} className={styles.logoImage} height={48}/>
+                            </Col>
+                        </Row> */}
+                        {/* </div> */}
+                        <div>
+                            <h1 className={`main-title ${styles.mainTitle}`}>Extend your world with Spaces</h1>
+                            <p className={styles.headerText}>
+                                Extend NFTs into a new dimension.
+                                Extend evokes that shift from static jpg to dynamic utility...
+                                from a profile picture flex to a living artifact of culture and community.
+                                You are in charge of where the future takes us.
+                            </p>
+                            <a href="https://canvas.extend.xyz/mint"><Button  className={`big-button ${styles.borderRadiusButton}`}  size={'middle'}>Mint your Space now</Button><br /></a>
+                        </div>
+                        <div />
+                    </Col>
+                    <Col className={styles.titleImageContainer} xs={24} sm={24} md={12} lg={12} xl={13}>
                     </Col>
                 </Row>
             </section>
