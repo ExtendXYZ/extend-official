@@ -8,7 +8,6 @@
     top:0;
     left:0;
     z-index: 3;
-    padding:10%;
 }
 
 .myVideo{
@@ -219,11 +218,6 @@
 
 
 @media (max-width: 1200px) {
-
-        .mainTitle{
-       font-size:40px;
-    }
-    
     .logoAndSocial{
         padding-left: 0px;
         padding-bottom : 20px;
@@ -250,8 +244,12 @@
 
 @media (max-width: 768px) {
 
-    .titleImageContainer {
-        padding: 10%;
+    .nftText{
+        padding:10%;
+    }
+
+    .titleImageContainer{
+        padding:10%;
     }
     .sectionReverse {
         flex-direction: column-reverse;
@@ -323,8 +321,6 @@
 }
 
 @media (max-width: 550px) {
-
-
 
     .socialMediaButton {
         padding-left : 5px;
@@ -410,7 +406,9 @@
         background-position: center;
     }
 
-
+    .titleImageContainer {
+        background-position: 90% 0px;
+    }
 
     .spaceImageContainer {
         min-height: 37rem;
