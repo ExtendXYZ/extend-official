@@ -856,7 +856,7 @@ export const Home = (props: HomeProps) => {
       <div style={{marginRight: "10%"}}>
       {!wallet || (neighborhoodX === undefined && neighborhoodY === undefined) ? (
         <div>
-        <p style={{textAlign: "center"}}>One million Spaces are divided into a 5 x 5 grid of neighborhoods. Each neighborhood contains 200 x 200 (40,000) Spaces and neighborhoods will be minted sequentially over a period of time. Welcome, future Neighbor, have a look around the Canvas and feel free to join the neighborhood by minting your very own Spaces.</p>
+        <p style={{textAlign: "center", fontSize: "40px"}}>One million Spaces are divided into a 5 x 5 grid of neighborhoods. Each neighborhood contains 200 x 200 (40,000) Spaces and neighborhoods will be minted sequentially over a period of time. Welcome, future Neighbor, have a look around the Canvas and feel free to join the neighborhood by minting your very own Spaces.</p>
         <Divider/>
         </div>
       ) : null
