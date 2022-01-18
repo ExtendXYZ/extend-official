@@ -104,7 +104,7 @@ export class FocusSidebar extends React.Component {
                 <img
                     src={`https://metadata.extend.xyz/api/artwork?ext=png&x=${this.props.focus.x}&y=${this.props.focus.y}`}
                     style={this.props.focus.infoLoaded && this.props.focus.imgLoaded ? {maxWidth: "30%"} : {display: 'none'}}
-                    class="center"
+                    className="center"
                     onLoad={() => this.props.handleOnImgLoad()}
                 ></img>
             </div>
