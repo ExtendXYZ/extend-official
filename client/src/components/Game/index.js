@@ -1717,6 +1717,7 @@ export class Game extends React.Component {
                 setSelecting={this.setSelecting}
             />;
         }
+        let nspaces = this.props.ownedSpaces.size;
         return (
             <div className="game">
                 <Board
@@ -1984,7 +1985,7 @@ export class Game extends React.Component {
                                 onClick={(e) => this.handleMySpacesOpen(e)}
                                 endIcon={<KeyboardArrowDownIcon />}
                             >
-                                My Spaces
+                                My Spaces ({nspaces})
                             </Button>
                         </Tooltip>
                     </Box>}
