@@ -45,7 +45,7 @@ import {
 import { Divider } from "antd";
 
 import { ModalEnum, useModal, useWalletModal } from "../../contexts";
-import { sleep, twoscomplement_i2u, twoscomplement_u2i, convertToInt, loading } from "../../utils";
+import { sleep, twoscomplement_i2u, twoscomplement_u2i, convertToInt, loading, notify, register_succeed_notify } from "../../utils";
 import { Server } from "../Game/server.js";
 import { Database } from "../Game/database.js";
 import { initSpaceMetadataInstructions, sendInstructionsGreedyBatch } from "../../actions";
@@ -272,10 +272,10 @@ export const Home = (props: HomeProps) => {
 
     // check if user has the appropriate balance of tokens in beginning
     if (numRedeeming > tokenBalance) {
-      setAlertState({
-        open: true,
+      notify({
         message: "Not enough tokens!",
-        severity: "error",
+        type: "error",
+        duration: 0,
       });
       return;
     }
@@ -318,24 +318,24 @@ export const Home = (props: HomeProps) => {
       )
 
       if (response.numSucceed === 0) {
-        setAlertState({
-          open: true,
+        notify({
           message: "Mint failed! Please try again!",
-          severity: "error",
+          type: "error",
+          duration: 0,
         });
       } else {
-        setAlertState({
-          open: true,
+        notify({
           message: `Congratulations! ${response.numSucceed} out of ${response.total} mints succeeded!`,
-          severity: "success",
+          type: "success",
+          duration: 0,
         });
       }
     } catch (e) {
-      console.log(e)
-      setAlertState({
-        open: true,
+      console.log(e);
+      notify({
         message: "Mint failed! Please try again!",
-        severity: "error",
+        type: "error",
+        duration: 0,
       });
     } finally {
       if (wallet) {
@@ -369,10 +369,10 @@ export const Home = (props: HomeProps) => {
         });
 
       } catch (error) {
-        setAlertState({
-          open: true,
+        notify({
           message: "Failed to receive Space Voucher! Please try again!",
-          severity: "error",
+          type: "error",
+          duration: 0,
         });
         console.error(error);
         return
@@ -387,25 +387,25 @@ export const Home = (props: HomeProps) => {
       );
 
       if (status && !status?.err) {
-        setAlertState({
-          open: true,
+        notify({
           message: "Congratulations! Received Space Voucher!",
-          severity: "success",
+          type: "success",
+          duration: 0,
         });
       } else {
-        setAlertState({
-          open: true,
+        notify({
           message: "Failed to receive Space Voucher! Please try again!",
-          severity: "error",
+          type: "error",
+          duration: 0,
         });
       }
     } catch (error: any) {
       // TODO: blech:
       let message = error.msg || "Failed to receive Space Voucher! Please try again!";
-      setAlertState({
-        open: true,
+      notify({
         message: "Failed to receive Space Voucher! Please try again!",
-        severity: "error",
+        type: "error",
+        duration: 0,
       });
     } finally {
       if (wallet) {
@@ -503,10 +503,10 @@ export const Home = (props: HomeProps) => {
     
     const data = await server.getSpacesByOwner(props.connection, wallet.publicKey, false, tokenCache);
     if (!data) {
-      setAlertState({
-        open: true,
+      notify({
         message: "No spaces owned or minted",
-        severity: "info",
+        type: "info",
+        duration: 0,
       });
       setIsRegistering(false);
       return;
@@ -549,10 +549,10 @@ export const Home = (props: HomeProps) => {
     console.log("Need to register", numRegistering)
 
     if (numRegistering === 0) { // if there are no spaces to register
-      setAlertState({
-        open: true,
+      notify({
         message: "Already registered all spaces",
-        severity: "info",
+        type: "info",
+        duration: 0,
       });
     } else {
       try {
@@ -582,25 +582,23 @@ export const Home = (props: HomeProps) => {
         // notify if need to reclick register
         let numSucceed = res.spacesSucceed;
         if (numAccountsToRegister > numRegistering) {
-          setAlertState({
-            open: true,
+          notify({
             message: `Registered succeeded for ${numSucceed} out of ${numRegistering} spaces, need to register ${numAccountsToRegister - numSucceed} more spaces, reclick register!`,
-            severity: "success",
+            type: "success",
+            duration: 0,
           });
         } else {
-          setAlertState({
-            open: true,
-            message: `Register succeeded for ${numSucceed} out of ${numRegistering} spaces`,
-            severity: "success",
+          register_succeed_notify({
+            wallet, numSucceed, numRegistering, duration: 0,
           });
         }
       }
       catch (e) {
         console.log(e);
-        setAlertState({
-          open: true,
+        notify({
           message: `Registered failed, please try again`,
-          severity: "error",
+          type: "error",
+          duration: 0,
         });
       }
     }
