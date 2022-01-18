@@ -334,7 +334,7 @@ const Home: NextPage = () => {
 
             <section className={`${styles.sectionMain}`}>
             
-                <Row>
+                <Row className={styles.roadMapContent}>
                 <h1>Stay tuned</h1>
                 </Row>   
                         <Row className={styles.socialMediaBar}>
