@@ -28,16 +28,47 @@ const Home: NextPage = () => {
                 <meta name="description" content="Extend your world with Spaces" />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             </Head>
+            <section className={`${styles.logoAndSocial}`}>
+            <Row>
+            <Col  xs={24} sm={24} md={12} lg={12} xl={11}>
+                                <img src={"/images/logo.svg"} className={styles.logoImage} height={48}/>
+            </Col >
+            <Col  xs={24} sm={24} md={12} lg={12} xl={11}>
+            <Row className={styles.socialMediaBar}>
+                        {/* <img src={"/images/twitter.svg"} className={styles.socialMediaButton}/> */}
+                        <a href="https://t.me/ExtendOfficial" className={styles.socialMediaButton}>
+                        <img src={"/images/social/telegram.svg"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://discord.gg/sjdNRwtJDy" className={styles.socialMediaButton}>
+                        <img src={"/images/social/discord.svg"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://twitter.com/ExtendXYZ" className={styles.socialMediaButton}>
+                        <img src={"/images/social/twitter.svg"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://www.instagram.com/extendxyz/" className={styles.socialMediaButton}>
+                        <img src={"/images/social/instagram.png"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://medium.com/@Extend" className={styles.socialMediaButton}>
+                        <img src={"/images/social/medium.svg"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://github.com/ExtendXYZ/extend-official" className={styles.socialMediaButton}>
+                        <img src={"/images/social/github.png"} className={styles.socialMediaLogo}/>
+                        </a>
+                        <a href="https://canvas.extend.xyz/"><Button className={styles.launchAppButton}>App</Button></a>
+                        </Row>
+            </Col>
+            </Row>
+            </section>
             <section className={`${styles.sectionHeader}`}>
                 <Row>
                     <Col xs={24} sm={24} md={12} lg={12} xl={11} className={styles.headerSectionContent}>
-                        <div className={`${styles.logoContainer} ${styles.logo}`}>
-                        <Row>
+                        {/* <div className={`${styles.logoContainer} ${styles.logo}`}> */}
+                        {/* <Row>
                             <Col xs={24} sm={24} md={12}>
                                 <img src={"/images/logo.svg"} className={styles.logoImage} height={48}/>
                             </Col>
-                        </Row>
-                        </div>
+                        </Row> */}
+                        {/* </div> */}
                         <div>
                             <h1 className={`main-title ${styles.mainTitle}`}>Extend your world with Spaces</h1>
                             <p className={styles.headerText}>
