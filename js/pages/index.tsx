@@ -70,12 +70,14 @@ const Home: NextPage = () => {
                         </Row> */}
                         {/* </div> */}
                         <div>
-                            <h1 className={`main-title ${styles.mainTitle}`}>Extend your world with Spaces</h1>
+                            <h1 className={`main-title ${styles.mainTitle}`}>The ultimate customizable NFT</h1>
                             <p className={styles.headerText}>
-                                Extend NFTs into a new dimension.
+                            A million Spaces will be minted for free on the blazing fast Solana network, the largest NFT mint
+                            to date. Mint a single Space or collect a whole neighborhood right from the canvas.
+                                {/* Extend NFTs into a new dimension.
                                 Extend evokes that shift from static jpg to dynamic utility...
                                 from a profile picture flex to a living artifact of culture and community.
-                                You are in charge of where the future takes us.
+                                You are in charge of where the future takes us. */}
                             </p>
                             <a href="https://canvas.extend.xyz/mint"><Button  className={`big-button ${styles.borderRadiusButton}`}  size={'middle'}>Mint your Space now</Button><br /></a>
                         </div>
@@ -138,13 +140,14 @@ const Home: NextPage = () => {
                     <Col className={styles.spaceImageContainer} sm={24} md={11} lg={11} xl={10}>
                     </Col>
                     <Col sm={24} md={13} lg={13} xl={11} className={`${styles.sectionContent} ${styles.spaceContent}`}>
-                        <h1>Collect Spaces</h1>
+                        <h1>Become a neighbor</h1>
                         <p>
-                            A million Spaces will be minted on the blazing fast Solana network, the largest NFT mint
-                            to date. Mint a single Space or collect a whole neighborhood right from the canvas.
+                        Spaces are programmable. To start 
+                            each Space gives the Space owner the ability to modify the color of a single pixel on our 1000 x 1000 Canvas.
+                            Imagine what’s possible with a little coordination!
                         </p>
                         <div>
-                            <a href="https://canvas.extend.xyz"><Button className={styles.borderRadiusButton} size={'middle'}>Collect yours now</Button></a>
+                            <a href="https://canvas.extend.xyz"><Button className={styles.borderRadiusButton} size={'middle'}>Browse the canvas</Button></a>
                         </div>
                     </Col>
                 </Row>
@@ -154,11 +157,11 @@ const Home: NextPage = () => {
                     <Col sm={24} xs={24} md={15} lg={14} xl={11} className={styles.sectionContent}>
                         <h1>Extend your Spaces</h1>
                         <p>
-                            Spaces are programmable. To start, each Space can be registered on our 1000 x 1000 Canvas
+                            {/* Spaces are programmable. To start, each Space can be registered on our 1000 x 1000 Canvas
                             and gives the Space owner the ability to modify the color of a single pixel.
                             Imagine what’s possible with a little coordination!
                             <br/>
-                            <br/>
+                            <br/> */}
                             Extend is open to developers and new experiences will continue to be added.
                             Each Space is minted with an X and Y coordinate. The Z is left to you, the creators.
                         </p>
