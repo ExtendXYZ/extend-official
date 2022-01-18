@@ -79,6 +79,7 @@
 .sectionHeader {
     margin-top: 0 !important;
     padding-left: 80px;
+    padding-right:80px;
 }
 
 .sectionContent {
@@ -210,14 +211,24 @@
 
 .logoAndSocial{
     padding-left: 80px;
+    padding-right: 80px;
 }
 .socialMediaLogo{
     width: 50px;
 }
 
 
-
+@media (max-width: 1400px) {
+    .mainTitle{
+        font-size: 55px;
+    }
+}
 @media (max-width: 1200px) {
+
+    .mainTitle{
+        font-size: 50px;
+    }
+
     .logoAndSocial{
         padding-left: 0px;
         padding-bottom : 20px;
@@ -240,11 +251,26 @@
     .roadMapBackground {
         min-height: 400px;
     }
+
+    .nftText{
+        top:50%;
+    }
+
+    .myVideo{
+        position:absolute;
+        top:50%;
+    }
 }
 
 @media (max-width: 768px) {
 
+    .myVideo{
+        position:relative;
+        top:0%;
+    }
+
     .nftText{
+        top:0%;
         padding:10%;
     }
 
