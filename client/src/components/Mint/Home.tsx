@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import * as React from 'react';
 import styled from "styled-components";
 import Countdown from "react-countdown";
-import { Alert, Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select } from "@mui/material";
+import { Alert, Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select, Tooltip } from "@mui/material";
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import InfoIcon from '@mui/icons-material/Info';
 
 import * as anchor from "@project-serum/anchor";
 
@@ -71,6 +74,14 @@ export const Home = (props: HomeProps) => {
     setVisible(true);
   }, [setModal, setVisible]);
 
+  const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
+    props,
+    ref,
+  ) {
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+  });
+  
+
   const [balance, setBalance] = useState<number>();
   const [isActive, setIsActive] = useState(false); // true when countdown completes
   const [isSoldOut, setIsSoldOut] = useState(false); // true when items remaining is zero
@@ -106,6 +117,7 @@ export const Home = (props: HomeProps) => {
   const [neighborhoodY, setNeighborhoodY] = useState<Number>();
   const [currNeighborhood, setCurrNeighborhood] = useState<String>();
   const [neighborhoods, setNeighborhoods] = useState<string[]>();
+  const [nhoodNames, setNhoodNames] = useState<string[]>();
   const [doneFetching, setDoneFetching] = useState(false);
   const [noMint, setNoMint] = useState(false);
   const [disableMint, setDisableMint] = useState(false); // disable buttons while changing neighborhoods
@@ -162,9 +174,10 @@ export const Home = (props: HomeProps) => {
 
   const getPossibleNeighborhoods = () => {
     let keys: any[] = [];
-    if (neighborhoods) {
-      for (let n of neighborhoods) {
-        keys.push(<MenuItem value={n}>{"Neighborhood (" + n + ")"}</MenuItem>);
+    if (nhoodNames && neighborhoods) {
+      for (let i = 0; i < neighborhoods.length; i++) {
+        const n = neighborhoods[i];
+        keys.push(<MenuItem value={n}>{"Neighborhood (" + n + "): " + nhoodNames[i]}</MenuItem>);
       }
     }
     return keys;
@@ -172,10 +185,14 @@ export const Home = (props: HomeProps) => {
 
   const getPossibleNeighborhoodsWithStatuses = () => {
     let keys: any[] = [];
-    if (neighborhoods && statuses) {
+    if (neighborhoods && statuses && nhoodNames) {
       for (let i = 0; i < neighborhoods.length; i++) {
         const n = neighborhoods[i];
-        keys.push(<MenuItem value={n}>{"Neighborhood (" + n + ") " + statuses[i]}</MenuItem>);
+        if (statuses[i] !== "") {
+          keys.push(<MenuItem value={n} sx={{color: "#E0714F"}}>{"Neighborhood (" + n + "): " + nhoodNames[i] + statuses[i]}</MenuItem>);
+        } else {
+          keys.push(<MenuItem value={n}>{"Neighborhood (" + n + "): " + nhoodNames[i] + statuses[i]}</MenuItem>);
+        }
       }
     }
     return keys;
@@ -682,6 +699,13 @@ export const Home = (props: HomeProps) => {
       const nhoodInfos = await server.batchGetMultipleAccountsInfo(props.connection, nhoods);
       const ataInfos = await server.batchGetMultipleAccountsInfo(props.connection, atas);
 
+      // update neighborhood names
+      const names: string[] = [];
+      for(let i = 0; i < neighborhoods.length; i++) {
+        names.push(Buffer.from(nhoodInfos[i].data.slice(97, 97 + 64)).toString('utf-8'));
+      }
+      setNhoodNames(names);
+
       const currStatuses: string[] = [];
       for(let i = 0; i < neighborhoods.length; i++) { // update statuses
         const id = new anchor.web3.PublicKey(nhoodInfos[i].data.slice(65, 97));
@@ -742,21 +766,24 @@ export const Home = (props: HomeProps) => {
     <div id="home" className="centered-full">
       <div >
         <Divider/>
-      <p style={{textAlign: "center"}}>Your balance: {(balance || 0).toLocaleString()} SOL</p>
-          <FormControl sx={{marginLeft: "27%", minWidth: 300, maxWidth: 300 }}>
-            <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
-            <Select
-              labelId="demo-simple-select-label"
-              id="demo-simple-select"
-              value={currNeighborhood}
-              label="Select Neighborhood"
-              onChange={changeNeighborhood}
-            >
-              {statuses ? getPossibleNeighborhoodsWithStatuses() : getPossibleNeighborhoods()}
-            </Select>
-          </FormControl>
-          <Divider/>
+      <FormControl sx={{marginLeft: "20%", minWidth: "60%", maxWidth: "60%" }}>
+        <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
+        <Select
+          labelId="demo-simple-select-label"
+          id="demo-simple-select"
+          value={currNeighborhood}
+          label="Select Neighborhood"
+          onChange={changeNeighborhood}
+        >
+          {statuses ? getPossibleNeighborhoodsWithStatuses() : getPossibleNeighborhoods()}
+        </Select>
+      </FormControl>
+        <Divider/>
+      {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your balance: {(balance || 0).toLocaleString()} SOL</b></p>}
+      {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your Space Vouchers: {totalTokens} </b></p>}
+      <div>
         <img src={require("../../assets/images/space.gif").default} style={{ float: "left", height: window.innerHeight - 200 + "px" }}></img>
+      </div>
       </div>
 
       {wallet ? (
@@ -764,9 +791,9 @@ export const Home = (props: HomeProps) => {
 
           {neighborhoodX != null && neighborhoodY != null && !noMint ? (
             <div>
-              {wallet && <h3 style={{color: "#82CBC5"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>}
+              {wallet && <h3 style={{color: "#B687D8"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>}
 
-              {wallet && <p>Receive space vouchers to mint your spaces </p>}
+              {wallet && <p>Get Space Vouchers to mint your Spaces </p>}
               <MintContainer>
                 <div>
                   <TextField
@@ -813,12 +840,18 @@ export const Home = (props: HomeProps) => {
                     : null
                   }
                   <Divider />
-                  {wallet && <h3 style={{color: "#82CBC5"}}><b>2. Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></h3>}
+                  {wallet && 
+                    <div>
+                      <h3 style={{color: "#B687D8", display: "inline-block"}}><b>2. Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></h3>
+                      <Tooltip title="Tip: Redeeming multiple space vouchers at once is more likely to result in contiguous Spaces on the canvas" placement="right">
+                        <InfoIcon sx={{marginLeft: "10px"}}/>
+                      </Tooltip>
+                    </div>
+                  }
 
-                  {wallet && <p>Use your space vouchers to mint spaces </p>} 
-                  {wallet && <p>Your Space vouchers: {totalTokens} </p>}
+                  {wallet && <p>Use your Space Vouchers to mint Spaces </p>} 
 
-                  {wallet && <p>Estimated cost to mint and register Spaces: {Math.round(totalTokens * (MINT_PRICE) * 1000) / 1000} SOL</p>}
+                  {wallet && <p>Estimated cost to mint and register all of your Spaces: {Math.round(totalTokens * (MINT_PRICE) * 1000) / 1000} SOL</p>}
 
                   <TextField
                     required
@@ -854,8 +887,13 @@ export const Home = (props: HomeProps) => {
                   <Divider/>
                   {wallet ? (
                   <div>
-                    <h3 style={{color: "#82CBC5"}}><b>3. Register your Spaces </b></h3>
-                    <p> After minting, register your spaces in order to see them on the canvas and change their colors </p>
+                    <div>
+                      <h3 style={{color: "#B687D8", display: "inline-block"}}><b>3. Register your Spaces </b></h3>
+                      <Tooltip title="Tip: Registering will take around 30 seconds, and it will take longer depending on the number of Spaces you own" placement="right">
+                        <InfoIcon sx={{marginLeft: "10px"}}/>
+                      </Tooltip>
+                    </div>
+                    <p> After minting, register your Spaces in order to see them on the canvas and change their colors </p>
                   <Button
                     disabled={isRegistering || isMinting}
                     onClick={onRegister}
@@ -900,7 +938,7 @@ export const Home = (props: HomeProps) => {
 
       <Snackbar
         open={alertState.open}
-        autoHideDuration={6000}
+        autoHideDuration={20000}
         onClose={() => setAlertState({ ...alertState, open: false })}
       >
         <Alert
