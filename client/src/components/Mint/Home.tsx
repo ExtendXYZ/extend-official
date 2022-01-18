@@ -499,7 +499,7 @@ export const Home = (props: HomeProps) => {
         );
         tokenCache.add(spaceATA.toBase58());
     }
-
+    
     const data = await server.getSpacesByOwner(props.connection, wallet.publicKey, false, tokenCache);
     if (!data) {
       setAlertState({
@@ -530,7 +530,7 @@ export const Home = (props: HomeProps) => {
     }
     console.log("Accounts", accs.length)
     const accInfos = await server.batchGetMultipleAccountsInfoLoading(props.connection, accs, 'Registering');
-    loading(null, 'Registering', null);
+    loading(null, 'Registering', "success");
 
     // pass the accounts and mints we want to initialize
     let numAccountsToRegister = 0;
@@ -556,7 +556,8 @@ export const Home = (props: HomeProps) => {
     } else {
       try {
         let ixs = await initSpaceMetadataInstructions(wallet, BASE, currSpaceAccs, currMints);
-        let res = await sendInstructionsGreedyBatch(props.connection, wallet, ixs, "Register", false);
+        let res = await sendInstructionsGreedyBatch(props.connection, wallet, ixs, "Register", false);                    loading(null, 'Registering', null);
+        loading(null, 'Registering', null);
 
         // update mints that have been registered
         let responses = res.responses;

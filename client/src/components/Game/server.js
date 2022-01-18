@@ -394,7 +394,7 @@ export class Server {
 
             loading(80, 'Loading Info', null);
 
-            let outps = await this.batchGetMultipleAccountsInfoLoading(connection, tokenaccts, 'Loading Info', user, false, 80, 100);
+            let outps = await this.batchGetMultipleAccountsInfoLoading(connection, tokenaccts, 'Loading Info', user, false, 80, 99);
 
             let info = [];
 
@@ -492,8 +492,7 @@ export class Server {
             loading(0, infoText, null);
             const spaces = new Set();
             const mints = {};
-            const pubkey = new PublicKey(address);
-            const tokens = await connection.getTokenAccountsByOwner(pubkey, { programId: TOKEN_PROGRAM_ID });
+            const tokens = await connection.getTokenAccountsByOwner(address, { programId: TOKEN_PROGRAM_ID });
             // FILTER out token accounts with 0 qty or inside the token cache
             const validTokens = [];
             for (let t of tokens.value) {
@@ -502,7 +501,7 @@ export class Server {
                     validTokens.push(t);
                 }
             }
-            loading(10, infoText, null);
+            loading(20, infoText, null);
             const metadataBuffer = Buffer.from("metadata");
             const METADATA_PROGRAM_IDBuffer = METADATA_PROGRAM_ID.toBuffer();
             const listMetadatas = await Promise.all(validTokens.map(async (x) => {
@@ -514,9 +513,8 @@ export class Server {
                     }, 500);
                 });
             }));
-            loading(10, infoText, null);
             // batch list metadatas 
-            const metadataInfo = await this.batchGetMultipleAccountsInfoLoading(connection, listMetadatas, infoText, address, diffUser, 20, 100);
+            const metadataInfo = await this.batchGetMultipleAccountsInfoLoading(connection, listMetadatas, infoText, address, diffUser, 20, 99);
             let candyMachines = {};
             for (let currMetadata of metadataInfo) {
                 if (currMetadata) {
