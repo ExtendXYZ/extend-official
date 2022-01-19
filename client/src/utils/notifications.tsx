@@ -1,5 +1,6 @@
 import React from 'react';
 import {notification} from 'antd';
+import JSConfetti from 'js-confetti';
 
 // import Link from '../components/Link';
 
@@ -57,4 +58,8 @@ export function register_succeed_notify({
     placement,
     duraction: null,
   });
+
+  const jsConfetti = new JSConfetti()
+
+  jsConfetti.addConfetti()
 }
