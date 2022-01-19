@@ -115,6 +115,13 @@ section{
     margin-top: 40px !important;
 }
 @media (max-width: 768px) {
+
+    .big-button{
+        height: 64px !important;
+        font-size: 24px !important;
+        padding: 0px 40px !important;
+        border-radius: 25px !important;
+    }
     .main-title {
         font-style: normal;
         font-weight: 800;
