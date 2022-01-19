@@ -74,9 +74,9 @@ export const Header: React.FC = () => {
               backgroundColor: "#DC1FFF"
              }
             }} >
-          <Link to={"/"} style={{ color: '#00FFA3' }}><Tab value={0} label="Canvas" sx={{fontWeight: "bold"}}/></Link>
-          <Link to={"/activity"} style={{ color: '#00FFA3' }}><Tab value={1} label="Activity" sx={{fontWeight: "bold"}}/></Link>
-          <Link to={"/mint"} style={{ color: '#00FFA3' }}><Tab value={2} label="Mint" sx={{fontWeight: "bold"}}/></Link>
+          <Link to={"/"} style={{ color: '#CE65B0' }}><Tab value={0} label="Canvas" sx={{fontWeight: "bold"}}/></Link>
+          <Link to={"/activity"} style={{ color: '#CE65B0' }}><Tab value={1} label="Activity" sx={{fontWeight: "bold"}}/></Link>
+          <Link to={"/mint"} style={{ color: '#CE65B0' }}><Tab value={2} label="Mint" sx={{fontWeight: "bold"}}/></Link>
           </Tabs>
       </Box>
       <Box sx={{ flexGrow: 1 }}></Box>

@@ -872,8 +872,8 @@ export const Home = (props: HomeProps) => {
       >
         <b>Connect Your Wallet</b>
       </Button>)}
-      {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your balance: {(balance || 0).toLocaleString()} SOL</b></p>}
-      {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your Space Vouchers: {totalTokens} </b></p>}
+      {wallet && <p style={{color: "#B9A06E", textAlign: "center", fontSize: "25px"}}><b>Your balance: {(balance || 0).toLocaleString()} SOL</b></p>}
+      {wallet && <p style={{color: "#B9A06E", textAlign: "center", fontSize: "25px"}}><b>Your Space Vouchers: {totalTokens} </b></p>}
 
       {wallet ? (
         <div>
