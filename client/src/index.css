@@ -60,6 +60,18 @@ code {
     line-height: 1.4 !important;
 }
 
+.disconnectButton {
+    background: rgba(255, 0, 0, 0.801) !important;
+    color: white !important;
+    padding: 10px 24px !important;
+    border-radius: 40px !important;
+    font-size: 16px !important;
+    letter-spacing: -0.01em !important;;
+    margin-left: 16px !important;
+    text-transform: capitalize !important;
+    line-height: 1.4 !important;
+}
+
 .searchButton {
     font-size: 16px !important;
 }
@@ -128,6 +140,11 @@ code {
 
 .gradientButton {
     background: linear-gradient(270deg, #FFEBE0 -68.71%, #FFD1D1 26.57%, #FF82F2 149.08%) !important;
+    color: #303030 !important;
+}
+
+.gradientButtonDisconnect {
+    background: linear-gradient(270deg, #f8b9b9 -68.71%, #f82727 149.08%) !important;
     color: #303030 !important;
 }
 

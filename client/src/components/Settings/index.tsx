@@ -65,7 +65,7 @@ export function Settings({
                 </Button> */}
                 <Button
                     variant="contained"
-                    className={"defaultButton"}
+                    className={"defaultButton gradientButtonDisconnect"}
                     onClick={() => disconnect().catch()}
                 >
                   {/* <b>Disconnect ({env})</b> */}
