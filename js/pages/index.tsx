@@ -54,7 +54,7 @@ const Home: NextPage = () => {
                         <div>
                             <h1 className={`main-title ${styles.mainTitle}`}>The ultimate customizable NFT</h1>
                             <p className={styles.headerText}>
-                                Extend is the groundbreaking utility NFT project that crypto deserves!
+                                Extend is the groundbreaking utility NFT project that crypto communities deserve!
                             </p>   
                             <p className={styles.headerText}>
                             A million Spaces will be minted for FREE on the blazing fast Solana network, the largest NFT mint

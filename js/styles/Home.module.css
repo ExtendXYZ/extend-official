@@ -221,6 +221,7 @@
 @media (max-width: 1400px) {
     .mainTitle{
         font-size: 55px;
+        line-height: 30px;
     }
 }
 @media (max-width: 1200px) {
@@ -441,6 +442,11 @@
         transform: scaleY(-1);
         background-size: 130%;
         background-position-x: left;
+    }
+
+    .mainTitle{
+        font-size: 30px;
+
     }
 }
 
