@@ -37,7 +37,7 @@ import { letterSpacing } from "@mui/system";
 import { InfoOutlined } from "@mui/icons-material";
 import Search from "antd/es/input/Search";
 
-const SIDE_NAV_WIDTH = 400;
+const SIDE_NAV_WIDTH = 320;
 
 export const getBounds = (spaces) => {
     let left = Infinity;

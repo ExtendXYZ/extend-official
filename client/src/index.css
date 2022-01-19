@@ -159,3 +159,8 @@ code {
 .headerLogoLeft{
     margin-right: 10px;
 }
+
+@font-face {
+    font-family: 'DM Sans'; /*a name to be used later*/
+    src: url('assets/fonts/dm-sans-v6-latin-regular.woff'); /*URL to font*/
+}
