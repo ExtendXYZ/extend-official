@@ -662,8 +662,8 @@ export class Game extends React.Component {
     }
 
     addNewFrame = async () => {
-        const n_x = Math.floor(this.state.focus.x / NEIGHBORHOOD_SIZE);
-        const n_y = Math.floor(this.state.focus.y / NEIGHBORHOOD_SIZE);
+        const n_x = this.state.neighborhood.n_x;
+        const n_y = this.state.neighborhood.n_y;
         this.props.setNewFrameTrigger({ n_x: n_x, n_y: n_y });
         notify({
             message: "Adding new frame",
