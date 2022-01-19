@@ -118,7 +118,7 @@ export class SelectingSidebar extends React.Component {
                     alpha: false,
                     desynchronized: true,
                 });
-                context.clearRect(0, 0, img.width, img.height);
+                // context.clearRect(0, 0, img.width, img.height);
                 context.drawImage(image, 0, 0, imgwidth, imgheight);
             }.bind(this);
             image.setAttribute("src",bfile);
