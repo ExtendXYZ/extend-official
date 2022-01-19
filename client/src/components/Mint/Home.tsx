@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import * as React from 'react';
 import styled from "styled-components";
 import Countdown from "react-countdown";
-import { Alert, Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select, Tooltip } from "@mui/material";
+import { Alert, Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select, Tooltip, InputAdornment } from "@mui/material";
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import InfoIcon from '@mui/icons-material/Info';
 
@@ -638,6 +638,10 @@ export const Home = (props: HomeProps) => {
     }
   }
 
+  const onMax = () => {
+    setNumRedeeming(totalTokens);
+  }
+
   // USE EFFECTS
 
   useEffect(() => {
@@ -790,7 +794,6 @@ export const Home = (props: HomeProps) => {
             colorMap[key] = await server.getFrameData(frameDatas[i]);
           })
         );
-        console.log(colorMap);
         const canvas = document.getElementById("preview") as HTMLCanvasElement;
         if (canvas) {
           const context = canvas.getContext("2d", {
@@ -853,7 +856,7 @@ export const Home = (props: HomeProps) => {
       
       {(!wallet || (neighborhoodX === undefined && neighborhoodY === undefined)) && (
       <div style={{marginRight: "10%", marginTop: "30%"}}>
-        <p style={{textAlign: "center", fontSize: "30px"}}>One million Spaces are divided into a 5 x 5 grid of neighborhoods. Each neighborhood contains 200 x 200 (40,000) Spaces and neighborhoods will be minted sequentially over a period of time. Welcome, future Neighbor, have a look around the Canvas and feel free to join the neighborhood by minting your very own Spaces.</p>
+        <p style={{textAlign: "center", fontSize: "25px"}}>One million Spaces are divided into a 5 x 5 grid of neighborhoods. Each neighborhood contains 200 x 200 (40,000) Spaces and neighborhoods will be minted sequentially over a period of time. Welcome, future Neighbor, have a look around the Canvas and feel free to join the neighborhood by minting your very own Spaces.</p>
         <Divider/>
       </div>)}
       {!wallet && (
@@ -872,8 +875,8 @@ export const Home = (props: HomeProps) => {
       >
         <b>Connect Your Wallet</b>
       </Button>)}
-      {wallet && <p style={{color: "#B9A06E", textAlign: "center", fontSize: "25px"}}><b>Your balance: {(balance || 0).toLocaleString()} SOL</b></p>}
-      {wallet && <p style={{color: "#B9A06E", textAlign: "center", fontSize: "25px"}}><b>Your Space Vouchers: {totalTokens} </b></p>}
+      {wallet && <p style={{marginRight: "10%", color: "#B9A06E", textAlign: "center", fontSize: "20px"}}><b>Your balance: {(balance || 0).toLocaleString()} SOL</b></p>}
+      {wallet && <p style={{marginRight: "10%", color: "#B9A06E", textAlign: "center", fontSize: "20px"}}><b>Your Space Vouchers: {totalTokens} </b></p>}
 
       {wallet ? (
         <div>
@@ -944,12 +947,21 @@ export const Home = (props: HomeProps) => {
 
                   <TextField
                     required
-                    id="outlined-required"
+                    id="redeem"
                     label="Space vouchers to redeem"
                     type="number"
                     defaultValue={1}
                     value={numRedeeming}
-                    onChange={changeNumMint} />
+                    onChange={changeNumMint}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position='end'>
+                          <Button onClick={onMax}>MAX</Button>
+                        </InputAdornment>
+                      ),
+                    }}
+                    style={{width: "200px"}}
+                  />
                   <MintButton
                     disabled={isSoldOut || isMinting || !isActive || disableMint}
                     onClick={onMint}
