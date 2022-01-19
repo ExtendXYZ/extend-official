@@ -111,8 +111,8 @@ button {
 }
 
 section{
-    margin-bottom: 60px !important;
-    margin-top: 60px !important;
+    margin-bottom: 40px !important;
+    margin-top: 40px !important;
 }
 @media (max-width: 768px) {
     .main-title {

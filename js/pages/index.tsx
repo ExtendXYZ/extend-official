@@ -69,6 +69,7 @@ const Home: NextPage = () => {
                         <div />
                     </Col>
                     <Col className={styles.titleImageContainer} xs={24} sm={24} md={12} lg={12} xl={13}>
+                    <div className={styles.centered}>
                     <video autoPlay muted loop className={styles.myVideo}>
                     <source src="/images/asset.mp4" type="video/mp4" /> 
                     </video>
@@ -76,7 +77,9 @@ const Home: NextPage = () => {
                     <text 
                         x="480" y="900">020,622</text>
                     </svg>
+                    </div>
                     </Col>
+                    
                 </Row>
             </section>
             <section className={`${styles.sectionMain} `}>

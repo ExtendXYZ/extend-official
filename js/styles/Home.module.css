@@ -1,4 +1,6 @@
 .nftText{
+    padding-left: inherit;
+    padding-right: inherit;
     font-family: Attila Sans Sharp;
     text-anchor: middle;
     text-align: center;
@@ -8,6 +10,8 @@
     top:0;
     left:0;
     z-index: 3;
+    width : 100%;
+    
 }
 
 .myVideo{
@@ -29,6 +33,11 @@
     font-size: 24px;
 }
 
+.centered{
+    padding-left:50px;
+    padding-right:50px;
+    position: relative;
+}
 .titleImageContainer, .extendsImageContainer, .spaceImageContainer, .arrowImageContainer {
     min-height: 35rem;
     background-size: cover;
@@ -226,14 +235,16 @@
 }
 @media (max-width: 1200px) {
 
+    .titleImageContainer{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     .mainTitle{
         font-size: 50px;
     }
 
-    .logoAndSocial{
-        padding-left: 0px;
-        padding-bottom : 20px;
-    }
     .socialMediaBar {
         flex-direction: row;
         justify-content: center;
@@ -253,14 +264,6 @@
         min-height: 400px;
     }
 
-    .nftText{
-        top:50%;
-    }
-
-    .myVideo{
-        position:absolute;
-        top:50%;
-    }
 }
 
 @media (max-width: 768px) {
@@ -270,14 +273,6 @@
         top:0%;
     }
 
-    .nftText{
-        top:0%;
-        padding:10%;
-    }
-
-    .titleImageContainer{
-        padding:10%;
-    }
     .sectionReverse {
         flex-direction: column-reverse;
     }
