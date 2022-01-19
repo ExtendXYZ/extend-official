@@ -56,13 +56,13 @@ export function Settings({
                       <b>{shortenAddress(publicKey.toBase58())}</b>
                     </Button>
                 )}
-                <Button
+                {/* <Button
                     variant="contained"
                     className={"defaultButton"}
                     onClick={open}
                 >
                   <b>Change Wallet</b>
-                </Button>
+                </Button> */}
                 <Button
                     variant="contained"
                     className={"defaultButton"}
