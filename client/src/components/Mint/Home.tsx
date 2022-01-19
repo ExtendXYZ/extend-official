@@ -825,7 +825,7 @@ export const Home = (props: HomeProps) => {
   const border = 5;
 
   return (
-    <div id="home" style={{display: "flex", flexDirection: "row"}}>
+    <div id="home" style={{display: "flex", flexDirection: "row", backgroundColor: "black"}}>
       <div style={{width: "50%"}}>
         <Divider/>
       <FormControl sx={{marginLeft: "20%", minWidth: "60%", maxWidth: "60%", zIndex: 1}}>
@@ -842,8 +842,8 @@ export const Home = (props: HomeProps) => {
       </FormControl>
         <Divider/>
       
-      <div style={{width: "1000px", height: "1000px", marginLeft: "10%", marginTop: "-150px", position: "relative"}}>
-        <canvas id="preview" width="1000px" height="1000px" />
+      <div style={{width: "950px", height: "950px", marginLeft: "5%", marginTop: "-150px", position: "relative"}}>
+        <canvas id="preview" width="950px" height="950px" />
         <div id="selector" style={{position: "absolute", top: 400 - border + "px", left: 400 - border + "px", width: 200 + 2 * border + "px", height: 200 + 2 * border + "px", border: border + "px dashed white"}}/>
         </div>
       </div>
@@ -852,7 +852,7 @@ export const Home = (props: HomeProps) => {
         <Divider/>
       
       {(!wallet || (neighborhoodX === undefined && neighborhoodY === undefined)) && (
-      <div style={{marginRight: "10%"}}>
+      <div style={{marginRight: "10%", marginTop: "30%"}}>
         <p style={{textAlign: "center", fontSize: "30px"}}>One million Spaces are divided into a 5 x 5 grid of neighborhoods. Each neighborhood contains 200 x 200 (40,000) Spaces and neighborhoods will be minted sequentially over a period of time. Welcome, future Neighbor, have a look around the Canvas and feel free to join the neighborhood by minting your very own Spaces.</p>
         <Divider/>
       </div>)}
