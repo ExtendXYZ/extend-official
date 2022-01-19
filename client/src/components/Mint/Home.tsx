@@ -49,7 +49,7 @@ import { sleep, twoscomplement_i2u, twoscomplement_u2i, convertToInt, loading } 
 import { Server } from "../Game/server.js";
 import { Database } from "../Game/database.js";
 import { initSpaceMetadataInstructions, sendInstructionsGreedyBatch } from "../../actions";
-import {ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID} from "@solana/spl-token";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 const axios = require('axios');
 
@@ -81,7 +81,7 @@ export const Home = (props: HomeProps) => {
   ) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
   });
-  
+
 
   const [balance, setBalance] = useState<number>();
   const [isActive, setIsActive] = useState(false); // true when countdown completes
@@ -190,7 +190,7 @@ export const Home = (props: HomeProps) => {
       for (let i = 0; i < neighborhoods.length; i++) {
         const n = neighborhoods[i];
         if (statuses[i] !== "") {
-          keys.push(<MenuItem value={n} key={n} sx={{color: "#E0714F"}}>{"Neighborhood (" + n + "): " + nhoodNames[i] + statuses[i]}</MenuItem>);
+          keys.push(<MenuItem value={n} key={n} sx={{ color: "#E0714F" }}>{"Neighborhood (" + n + "): " + nhoodNames[i] + statuses[i]}</MenuItem>);
         } else {
           keys.push(<MenuItem value={n} key={n}>{"Neighborhood (" + n + "): " + nhoodNames[i] + statuses[i]}</MenuItem>);
         }
@@ -476,7 +476,7 @@ export const Home = (props: HomeProps) => {
     }
   }
 
-  const onRegister = async() => {
+  const onRegister = async () => {
     setIsRegistering(true);
     if (!wallet) {
       setIsRegistering(false);
@@ -486,7 +486,7 @@ export const Home = (props: HomeProps) => {
     const currMints = {};
     let accs: any[] = [];
     let tokenCache = new Set();
-    
+
     const dbData = await database.getSpacesByOwner(wallet.publicKey); // call to db for cache
     for (let pos in dbData.mints) {
       const [spaceATA,] =
@@ -498,9 +498,9 @@ export const Home = (props: HomeProps) => {
           ],
           ASSOCIATED_TOKEN_PROGRAM_ID
         );
-        tokenCache.add(spaceATA.toBase58());
+      tokenCache.add(spaceATA.toBase58());
     }
-    
+
     const data = await server.getSpacesByOwner(props.connection, wallet.publicKey, false, tokenCache);
     if (!data) {
       setAlertState({
@@ -537,10 +537,10 @@ export const Home = (props: HomeProps) => {
     let numAccountsToRegister = 0;
     for (let i = 0; i < accInfos.length; i++) {
       if (accInfos[i] === null) {
-        if(numAccountsToRegister < MAX_REGISTER_ACCS) { // limit to MAX register accs in current batch
+        if (numAccountsToRegister < MAX_REGISTER_ACCS) { // limit to MAX register accs in current batch
           currSpaceAccs[ownedSpacesArray[i]] = accs[i];
           currMints[ownedSpacesArray[i]] = ownedMintsDict[ownedSpacesArray[i]];
-        } 
+        }
         numAccountsToRegister++;
       }
     }
@@ -557,7 +557,7 @@ export const Home = (props: HomeProps) => {
     } else {
       try {
         let ixs = await initSpaceMetadataInstructions(wallet, BASE, currSpaceAccs, currMints);
-        let res = await sendInstructionsGreedyBatch(props.connection, wallet, ixs, "Register", false);                    loading(null, 'Registering', null);
+        let res = await sendInstructionsGreedyBatch(props.connection, wallet, ixs, "Register", false); loading(null, 'Registering', null);
         loading(null, 'Registering', null);
 
         // update mints that have been registered
@@ -568,7 +568,7 @@ export const Home = (props: HomeProps) => {
         let doneMints = {};
         for (let i = 0; i < responses.length; i++) {
           if (responses[i]) { // if tx success
-            for (let j = 0; j < ixPerTx[i]; j++) { 
+            for (let j = 0; j < ixPerTx[i]; j++) {
               doneMints[allPositions[ind + j]] = currMints[allPositions[ind + j]];
             }
           }
@@ -639,7 +639,7 @@ export const Home = (props: HomeProps) => {
       selector.style.top = (n_y + 2) * NEIGHBORHOOD_SIZE - border + "px";
     }
   }
-  
+
   // USE EFFECTS
 
   useEffect(() => {
@@ -680,7 +680,7 @@ export const Home = (props: HomeProps) => {
           return;
         }
         if (x != null && y != null) {
-            goodNeighborhoods.push(x.toString() + "," + y.toString());
+          goodNeighborhoods.push(x.toString() + "," + y.toString());
         }
       }
       setNeighborhoods(goodNeighborhoods);
@@ -689,7 +689,7 @@ export const Home = (props: HomeProps) => {
   }, []);
 
   useEffect(() => {
-    const getNeighborhoodStatuses = async() => {
+    const getNeighborhoodStatuses = async () => {
       if (!neighborhoods) {
         return;
       }
@@ -710,13 +710,13 @@ export const Home = (props: HomeProps) => {
 
       // update neighborhood names
       const names: string[] = [];
-      for(let i = 0; i < neighborhoods.length; i++) {
+      for (let i = 0; i < neighborhoods.length; i++) {
         names.push(Buffer.from(nhoodInfos[i].data.slice(97, 97 + 64)).toString('utf-8'));
       }
       setNhoodNames(names);
 
       const currStatuses: string[] = [];
-      for(let i = 0; i < neighborhoods.length; i++) { // update statuses
+      for (let i = 0; i < neighborhoods.length; i++) { // update statuses
         const id = new anchor.web3.PublicKey(nhoodInfos[i].data.slice(65, 97));
         let res = await getCandyMachineState(
           wallet as anchor.Wallet,
@@ -727,7 +727,7 @@ export const Home = (props: HomeProps) => {
         if (itemsRemaining === 0) {
           currStatuses.push("[MINTED OUT]"); // minted out
           continue;
-        } 
+        }
         if (!ataInfos[i]) {
           currStatuses.push("[SOLD OUT]"); // sold out
           continue;
@@ -776,7 +776,7 @@ export const Home = (props: HomeProps) => {
       const getColors = async () => {
         const frameKeysMap = await server.getFrameKeys(props.connection, neighborhoods.map(x => {
           const split = x.split(",");
-          return {n_x: parseInt(split[0]), n_y: parseInt(split[1])}
+          return { n_x: parseInt(split[0]), n_y: parseInt(split[1]) }
         }), 0);
         const frameInfos = Object.keys(frameKeysMap).map(x => JSON.parse(x));
         const frameKeys = Object.values(frameKeysMap);
@@ -802,7 +802,7 @@ export const Home = (props: HomeProps) => {
           if (context) {
             for (let n_x = -2; n_x < 3; ++n_x) {
               for (let n_y = -2; n_y < 3; ++n_y) {
-                const key = JSON.stringify({n_x, n_y});
+                const key = JSON.stringify({ n_x, n_y });
                 if (key in colorMap) {
                   const map = colorMap[key];
                   for (let x = 0; x < NEIGHBORHOOD_SIZE; ++x) {
@@ -827,10 +827,10 @@ export const Home = (props: HomeProps) => {
   const border = 5;
 
   return (
-    <div id="home" className="centered-full">
-      <div style={{minWidth: "50%", maxWidth: "50%"}}>
+    <div id="home" style={{display: "flex", flexDirection: "row"}}>
+      <div style={{width: "50%"}}>
         <Divider/>
-      <FormControl sx={{marginLeft: "20%", minWidth: "60%", maxWidth: "60%" }}>
+      <FormControl sx={{marginLeft: "20%", minWidth: "60%", maxWidth: "60%", zIndex: 1}}>
         <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
         <Select
           labelId="demo-simple-select-label"
@@ -843,25 +843,22 @@ export const Home = (props: HomeProps) => {
         </Select>
       </FormControl>
         <Divider/>
-      {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your balance: {(balance || 0).toLocaleString()} SOL</b></p>}
-      {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your Space Vouchers: {totalTokens} </b></p>}
-      <div style={{width: "1000px", height: "1000px", position: "relative"}}>
-        <canvas id="preview" width="1000px" height="1000px"/>
+      
+      <div style={{width: "1000px", height: "1000px", marginLeft: "10%", marginTop: "-150px", position: "relative"}}>
+        <canvas id="preview" width="1000px" height="1000px" />
         <div id="selector" style={{position: "absolute", top: 400 - border + "px", left: 400 - border + "px", width: 200 + 2 * border + "px", height: 200 + 2 * border + "px", border: border + "px dashed white"}}/>
-      </div>
-      </div>
-
-
-      {!wallet || (neighborhoodX === undefined && neighborhoodY === undefined) ? (
-      <div style={{marginRight: "10%"}}>
-      {!wallet || (neighborhoodX === undefined && neighborhoodY === undefined) ? (
-        <div>
-        <p style={{textAlign: "center", fontSize: "40px"}}>One million Spaces are divided into a 5 x 5 grid of neighborhoods. Each neighborhood contains 200 x 200 (40,000) Spaces and neighborhoods will be minted sequentially over a period of time. Welcome, future Neighbor, have a look around the Canvas and feel free to join the neighborhood by minting your very own Spaces.</p>
-        <Divider/>
         </div>
-      ) : null
-      }
-      {!wallet ? (
+      </div>
+
+      <div style={{width: "50%", zIndex: 1}}>
+        <Divider/>
+      
+      {(!wallet || (neighborhoodX === undefined && neighborhoodY === undefined)) && (
+      <div style={{marginRight: "10%"}}>
+        <p style={{textAlign: "center", fontSize: "30px"}}>One million Spaces are divided into a 5 x 5 grid of neighborhoods. Each neighborhood contains 200 x 200 (40,000) Spaces and neighborhoods will be minted sequentially over a period of time. Welcome, future Neighbor, have a look around the Canvas and feel free to join the neighborhood by minting your very own Spaces.</p>
+        <Divider/>
+      </div>)}
+      {!wallet && (
       <Button
         size="large"
         variant="contained"
@@ -876,11 +873,9 @@ export const Home = (props: HomeProps) => {
         }}
       >
         <b>Connect Your Wallet</b>
-      </Button>) : null
-      }
-      </div>
-      ) : null
-      }
+      </Button>)}
+      {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your balance: {(balance || 0).toLocaleString()} SOL</b></p>}
+      {wallet && <p style={{color: "#D8D687", textAlign: "center"}}><b>Your Space Vouchers: {totalTokens} </b></p>}
 
       {wallet ? (
         <div>
@@ -1020,6 +1015,7 @@ export const Home = (props: HomeProps) => {
       ) :
         null
       }
+      </div>
 
       <Snackbar
         open={alertState.open}
@@ -1045,7 +1041,7 @@ export const Home = (props: HomeProps) => {
         alignItems: "center"
       }
       }></div>
-    </div>
+    </div >
   );
 };
 
