@@ -105,7 +105,7 @@ export class SelectingSidebar extends React.Component {
             let imgheight;
 
             if (width >= height) {
-                imgwidth = 0.8*this.props.canvasSize;
+                imgwidth = 0.6*this.props.canvasSize;
                 imgheight = (height/width) * imgwidth;
             }
             else {
@@ -278,7 +278,7 @@ export class SelectingSidebar extends React.Component {
                           }
                         </div>
                         {/* {this.props.hasImage &&  */}
-                        <canvas id="img-render" style={{marginTop: "20px"}} width={this.props.canvasSize + "px"} height={this.props.canvasSize + "px"}/> 
+                        <canvas id="img-render" style={{marginTop: "20px"}} width={0.6*this.props.canvasSize + "px"} height={0.6*this.props.canvasSize + "px"}/> 
                           {/* } */}
                         <Tooltip placement={'right'} title={tooltipModifyColorTitle}>
                           <Button
