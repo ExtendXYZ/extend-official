@@ -132,9 +132,6 @@ const Home: NextPage = () => {
                             Extend is open to developers and new experiences will continue to be added.
                             Each Space is minted with an X and Y coordinate. The Z is left to you, the creators.
                         </p>
-                        <div>
-                            <a href="https://canvas.extend.xyz"><Button className={styles.borderRadiusButton} size={'middle'}>Browse the canvas</Button></a>
-                        </div>
                     </Col>
                 </Row>
             </section>
