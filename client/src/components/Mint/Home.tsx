@@ -815,6 +815,8 @@ export const Home = (props: HomeProps) => {
                 }
               }
             }
+            context.strokeStyle = 'white';
+            context.strokeRect(0, 0, canvas.width, canvas.height);
           }
         }
       }

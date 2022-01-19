@@ -1942,7 +1942,7 @@ export class Game extends React.Component {
                         <Tooltip title="Click for your spaces">
                             <Button
                                 variant="contained"
-                                disabled={!this.props.loadedOwned || this.state.refreshingUserSpaces}
+                                disabled={!this.props.user || !this.props.loadedOwned || this.state.refreshingUserSpaces}
                                 className={"defaultButton"}
                                 id="myspaces-button"
                                 aria-controls={this.state.mySpacesOpen ? 'myspaces-menu' : undefined}

@@ -18,7 +18,11 @@ export class NeighborhoodSidebar extends React.Component {
       alpha: false,
       desynchronized: true,
     });
+    
     context.drawImage(this.props.canvas, this.props.canvasSize * 0.25, 0, this.props.canvasSize * 0.5, this.props.canvasSize * 0.5);
+    context.strokeStyle = 'white';
+    context.strokeRect(this.props.canvasSize * 0.25, 0, this.props.canvasSize * 0.5, this.props.canvasSize * 0.5);
+
   }
   componentDidUpdate() {
     if (!this.props.neighborhood.infoLoaded){
@@ -30,6 +34,8 @@ export class NeighborhoodSidebar extends React.Component {
       desynchronized: true,
     });
     context.drawImage(this.props.canvas, this.props.canvasSize * 0.25, 0, this.props.canvasSize * 0.5, this.props.canvasSize * 0.5);
+    context.strokeStyle = 'white';
+    context.strokeRect(this.props.canvasSize * 0.25, 0, this.props.canvasSize * 0.5, this.props.canvasSize * 0.5);
   }
   render() {
     let coordName = `Neighborhood (${this.props.neighborhood.n_x}, ${this.props.neighborhood.n_y})`;
