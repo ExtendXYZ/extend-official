@@ -1418,6 +1418,8 @@ export class Game extends React.Component {
                     floorM: 1,
                     floorN: 1,
                 },
+                img_upl: null,
+                has_img: false,
             });
         }
     }
