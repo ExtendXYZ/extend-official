@@ -221,7 +221,7 @@
 @media (max-width: 1400px) {
     .mainTitle{
         font-size: 55px;
-        line-height: 30px;
+        
     }
 }
 @media (max-width: 1200px) {
@@ -446,7 +446,7 @@
 
     .mainTitle{
         font-size: 30px;
-
+        line-height: 30px;
     }
 }
 
