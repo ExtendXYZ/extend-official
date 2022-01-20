@@ -818,6 +818,7 @@ export const Home = (props: HomeProps) => {
                 }
               }
             }
+            context.lineWidth = 5;
             context.strokeStyle = 'white';
             context.strokeRect(0, 0, canvas.width, canvas.height);
           }
@@ -828,9 +829,10 @@ export const Home = (props: HomeProps) => {
   }, [neighborhoods]);
 
   const border = 5;
+  const ratio = window.innerHeight * 0.7 / 1000;
 
   return (
-    <div id="home" style={{display: "flex", flexDirection: "row", backgroundColor: "black"}}>
+    <div id="home" style={{display: "flex", flexDirection: "row"}}>
       <div style={{width: "50%"}}>
         <Divider/>
       <FormControl sx={{marginLeft: "20%", minWidth: "60%", maxWidth: "60%", zIndex: 1}}>
@@ -847,9 +849,9 @@ export const Home = (props: HomeProps) => {
       </FormControl>
         <Divider/>
       
-      <div style={{width: "950px", height: "950px", marginLeft: "5%", marginTop: "-150px", position: "relative"}}>
-        <canvas id="preview" width="950px" height="950px" />
-        <div id="selector" style={{position: "absolute", top: 400 - border + "px", left: 400 - border + "px", width: 200 + 2 * border + "px", height: 200 + 2 * border + "px", border: border + "px dashed white"}}/>
+      <div style={{width: window.innerHeight * 0.7, height: window.innerHeight * 0.7, marginLeft: "25%", position: "relative"}}>
+        <canvas id="preview" width="1000px" height="1000px" style={{width: window.innerHeight * 0.7, height: window.innerHeight * 0.7}}/>
+        <div id="selector" style={{position: "absolute", top: 400 * ratio - border + "px", left: 400 * ratio - border + "px", width: 200 * ratio + 2 * border + "px", height: 200 * ratio + 2 * border + "px", border: border + "px dashed white"}}/>
         </div>
       </div>
 
