@@ -18,6 +18,7 @@ import {
     Menu,
     fabClasses,
 } from "@mui/material";
+import { Tooltip as TooltipAntd } from 'antd';
 import { CopyOutlined } from "@ant-design/icons";
 import SearchIcon from "@mui/icons-material/Search";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -1931,20 +1932,17 @@ export class Game extends React.Component {
                             <MenuItem onClick={(e) => this.copyCurrentView()}>Current View</MenuItem>
                             <MenuItem onClick={(e) => this.copyMyView()}>My Spaces</MenuItem>
                         </Menu>
-                        <Tooltip
+                        <TooltipAntd
 
                             title="Enter a user's wallet address to select their Spaces or enter a location in the form of x,y">
-                            <InfoOutlined id="search-tooltip" />
-                        </Tooltip>
-                        <Search
+                            <Search
                             id="address-textfield"
-                            placeholder="SPCE5rvxKQJRn2uubgNRAD9KrP8RMXmkucy9TuCXD6e"
                             allowClear
-                            enterButton="Find"
                             onSearch={() => this.handleFindSpaces()}
                             disabled={this.state.findSpaces}
                             className="searchButton"
-                        />
+                            />
+                        </TooltipAntd>
 
                         <Tooltip title="Click for your Spaces">
                             <Button

@@ -74,6 +74,7 @@ code {
 
 .searchButton {
     font-size: 16px !important;
+    margin-left: 16px !important;
 }
 
 .searchButton > span > .ant-input-group-addon:first-child {
