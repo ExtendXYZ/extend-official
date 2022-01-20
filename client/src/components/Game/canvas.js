@@ -558,6 +558,7 @@ export class Board extends React.Component {
                 currentRef.style.width = scale - 0.2 * scale + "px";
                 currentRef.style.height = scale - 0.2 * scale + "px";
                 currentRef.style.border = 0.1 * scale + "px solid blue";
+                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight("#0000FF");
             });
             this.props.selecting.purchasableInfo.forEach((info) => {
                 // purchasable spaces
@@ -566,11 +567,13 @@ export class Board extends React.Component {
                 const deltax = x * scale + this.x;
                 const deltay = y * scale + this.y;
                 const currentRef = document.getElementById(`boxTracker${pos}`);
+                const color = "#" + getColor(price);
                 currentRef.style.left = deltax + 0.1 * scale + "px";
                 currentRef.style.top = deltay + 0.1 * scale + "px";
                 currentRef.style.width = scale - 0.2 * scale + "px";
                 currentRef.style.height = scale - 0.2 * scale + "px";
-                currentRef.style.border = 0.1 * scale + `px solid #${getColor(price)}`;
+                currentRef.style.border = 0.1 * scale + "px solid " + color;
+                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(color);
             });
 
             this.props.selecting.poses.forEach((pos) => {
@@ -592,6 +595,7 @@ export class Board extends React.Component {
                 currentRef.style.width = scale - 0.2 * scale + "px";
                 currentRef.style.height = scale - 0.2 * scale + "px";
                 currentRef.style.border = 0.1 * scale + "px solid red";
+                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight("#FF0000");
             });
         } else if (this.props.clicked) {
             const deltax = this.props.clicked_x * scale + this.x;
@@ -799,23 +803,20 @@ export class Board extends React.Component {
                     const deltax = x * scale + this.x;
                     const deltay = y * scale + this.y;
                     return (
-                        <img
+                        <div
                             className="boxTracker"
                             id={`boxTracker${pos}`}
-                            src={
-                                require("../../assets/images/small_logo.svg")
-                                    .default
-                                }
                             style={{
                                 left: deltax + 0.1 * scale,
                                 top: deltay + 0.1 * scale,
                                 width: scale - 0.2 * scale,
                                 height: scale - 0.2 * scale,
                                 border: 0.1 * scale + "px solid blue",
+                                outline: 0.1 * scale + "px solid " + colorHighlight("#0000FF")
                             }}
                             key={pos}
                         >
-                        </img>
+                        </div>
                     );
                 })
             );
@@ -826,24 +827,22 @@ export class Board extends React.Component {
                     const pos = JSON.stringify({ x, y });
                     const deltax = x * scale + this.x;
                     const deltay = y * scale + this.y;
+                    const color = "#" + getColor(price);
                     return (
-                        <img
+                        <div
                             className="boxTracker"
                             id={`boxTracker${pos}`}
-                            src={
-                                require("../../assets/images/small_logo.svg")
-                                    .default
-                                }
                             style={{
                                 left: deltax + 0.1 * scale,
                                 top: deltay + 0.1 * scale,
                                 width: scale - 0.2 * scale,
                                 height: scale - 0.2 * scale,
-                                border: 0.1 * scale + `px solid #${getColor(price)}`,
+                                border: 0.1 * scale + "px solid " + color,
+                                outline: 0.1 * scale + "px solid " + colorHighlight(color)
                             }}
                             key={pos}
                         >
-                        </img>
+                        </div>
                     );
                 })
             );
@@ -863,23 +862,20 @@ export class Board extends React.Component {
                         const deltax = x * scale + this.x;
                         const deltay = y * scale + this.y;
                         return (
-                            <img
+                            <div
                                 className="boxTracker"
                                 id={`boxTracker${pos}`}
-                                src={
-                                    require("../../assets/images/small_logo.svg")
-                                        .default
-                                    }
                                 style={{
                                     left: deltax + 0.1 * scale,
                                     top: deltay + 0.1 * scale,
                                     width: scale - 0.2 * scale,
                                     height: scale - 0.2 * scale,
                                     border: 0.1 * scale + "px solid red",
+                                    outline: 0.1 * scale + "px solid " + colorHighlight("#FF0000")
                                 }}
                                 key={pos}
                             >
-                            </img>
+                            </div>
                         );
                     })
                     .filter((x) => x !== null)
@@ -899,13 +895,9 @@ export class Board extends React.Component {
                 colorstr = `px dashed ${newColor}`;
             }
             clickTracker = (
-                <img
+                <div
                     className="clickTracker"
                     id={"clickTracker"}
-                    src={
-                        require("../../assets/images/small_logo.svg")
-                            .default
-                        }
                     style={{
                         left: deltax + 0.1 * scale,
                         top: deltay + 0.1 * scale,
@@ -914,7 +906,7 @@ export class Board extends React.Component {
                         border: 0.1 * scale + colorstr,
                     }}
                 >
-                </img>
+                </div>
             );
         }
 
