@@ -136,7 +136,9 @@ export class Board extends React.Component {
         const offsetX = event.clientX - rect.left;
         const offsetY = event.clientY - rect.top;
         if (event.shiftKey) {
-            this.boxed = { x0: offsetX, y0: offsetY, x1: offsetX, y1: offsetY };
+            this.boxed = { x0: offsetX, y0: offsetY, x1: offsetX, y1: offsetY, alt: false };
+        } else if (event.altKey) {
+            this.boxed = { x0: offsetX, y0: offsetY, x1: offsetX, y1: offsetY, alt: true }; 
         } else {
             this.press.pressed = true;
             this.press.x = offsetX;
@@ -317,7 +319,12 @@ export class Board extends React.Component {
                     selection.push(JSON.stringify({ x, y }));
                 }
             }
-            this.props.shiftClick(new Set(selection));
+            if (this.boxed.alt) {
+                this.props.altClick(new Set(selection));
+            }
+            else {
+                this.props.shiftClick(new Set(selection));
+            }
         } else if (this.press.pressed) {
             const scale = this.scale;
             const rect = this.sensor.current.getBoundingClientRect();
