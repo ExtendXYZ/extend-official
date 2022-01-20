@@ -887,8 +887,14 @@ export const Home = (props: HomeProps) => {
 
           {neighborhoodX != null && neighborhoodY != null && !noMint ? (
             <div>
-              {wallet && <h3 style={{color: "#B687D8"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>}
-
+              {wallet && 
+              <div>
+              <h3 style={{color: "#B687D8", display: "inline-block"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>
+              <Tooltip title="Enter the number of space vouchers you want and solve the captcha to receive them! Claiming multiple vouchers at once will have a higher price." placement="right">
+                <InfoIcon sx={{marginLeft: "10px"}}/>
+              </Tooltip>
+              </div>
+              }
               {wallet && <p>Get Space Vouchers to mint your Spaces </p>}
               <MintContainer>
                 <div>
