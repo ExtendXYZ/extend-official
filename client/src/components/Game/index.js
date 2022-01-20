@@ -94,7 +94,7 @@ export class Game extends React.Component {
                 color: "#000000",
                 price: null,
                 loadingPricesStatus: 0,
-                loadingFloorStatus: 0,
+                targetStatus: 0,
                 purchasableInfoAll: new Array(),
                 purchasableInfo: new Array(),
                 purchasable: new Set(),
@@ -109,6 +109,7 @@ export class Game extends React.Component {
                 n_y: 0,
                 infoLoaded: false,
                 num_frames: 0,
+                trades: {},
             },
             findingSpaces: false,
             refreshingUserSpaces: false,
@@ -142,7 +143,6 @@ export class Game extends React.Component {
 
     // pull color data for a specific frame into viewport
     fetch_neighborhoods = async (frame) => {
-        // loading(null, "Loading colors", null);
         const connection = this.props.connection;
         const start = this.viewport.neighborhood_start;
         const end = this.viewport.neighborhood_end;
@@ -214,14 +214,12 @@ export class Game extends React.Component {
         // }
         this.viewport.neighborhood_data = tmp_neighborhood_data;
         this.setState({ maxFrame: newMax });
-        // loading(null, "Loading colors", "success");
         return frameKeys;
         
     }
 
     // pull all color data into viewport
     fetch_neighborhoods_all_frames = async () => {
-        loading(null, "Loading colors", null);
         const connection = this.props.connection;
         const start = this.viewport.neighborhood_start;
         const end = this.viewport.neighborhood_end;
@@ -295,7 +293,6 @@ export class Game extends React.Component {
         }
 
         this.setState({ maxFrame: newMax });
-        loading(null, "Loading colors", "success");
         return frameKeys;
     }
 
@@ -342,7 +339,13 @@ export class Game extends React.Component {
             try {
                 const text = this.props.locator.address;
                 const pubkey = new PublicKey(text); // make sure valid pubkey
-                const data = await this.props.database.getSpacesByOwner(pubkey);
+                let data;
+                try{
+                    data = await this.props.database.getSpacesByOwner(pubkey);
+                } catch(e){
+                    console.error(e);
+                    data = await this.props.server.getSpacesByOwner(this.props.connection, pubkey, true);
+                }
                 if (data && data["spaces"]) {
                     const msg =
                         data["spaces"].size > 0 ? "Spaces shown on map" : "No Spaces found";
@@ -770,6 +773,12 @@ export class Game extends React.Component {
     }
 
     handleShowAllPurchasable = async () => {
+        this.setState({
+            selecting: {
+                ...this.state.selecting,
+                targetStatus: 1,
+            },
+        });
         let totalPrice = 0;
         let purchasable = new Set();
         let purchasableInfo = [];
@@ -792,6 +801,7 @@ export class Game extends React.Component {
                 purchasable,
                 purchasableInfo,
                 totalPrice: lamportsToSol(totalPrice),
+                targetStatus: 2,
             },
         });
     }
@@ -805,7 +815,7 @@ export class Game extends React.Component {
         this.setState({
             selecting: {
                 ...this.state.selecting,
-                loadingFloorStatus: 1,
+                targetStatus: 1,
             },
         });
 
@@ -833,7 +843,7 @@ export class Game extends React.Component {
             this.setState({
                 selecting: {
                     ...this.state.selecting,
-                    loadingFloorStatus: 2,
+                    targetStatus: 2,
                     purchasableInfo,
                     purchasable,
                     totalPrice: lamportsToSol(floor),
@@ -903,7 +913,7 @@ export class Game extends React.Component {
         this.setState({
             selecting: {
                 ...this.state.selecting,
-                loadingFloorStatus: 2,
+                targetStatus: 2,
                 purchasableInfo,
                 purchasable,
                 totalPrice: lamportsToSol(floor),
@@ -1076,10 +1086,11 @@ export class Game extends React.Component {
                             });
                         }
                         found = true;
-                        loading(null, "Finding Spaces", "success");
                     }
+                    loading(null, "Finding Spaces", "success");
                 } catch (e) {
                     console.log(e);
+                    loading(null, "Finding Spaces", "error");
                     found = false;
                 }
             }
@@ -1124,7 +1135,9 @@ export class Game extends React.Component {
 
         if (anims) {
             clearInterval(this.intervalId2);
+            loading(null, "Loading frames", null);
             await this.fetch_neighborhoods_all_frames();
+            loading(null, "Loading frames", "success");
             this.intervalId1 = setInterval(() => {
                 // TODO: do the rendering of this.viewport.neighborhood_data_all_frames by key, of multiple frames stored
                 // set neighborhood_data equal to specific frames of neighborhood_data_all_frames?
@@ -1174,7 +1187,9 @@ export class Game extends React.Component {
     }
 
     handleChangeFrame = async (e) => {
+        loading(null, "Loading frame", null);
         await this.fetch_neighborhoods(e.target.value);
+        loading(null, "Loading frame", "success");
         const x = this.state.focus.x;
         const y = this.state.focus.y;
         const n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
@@ -1265,7 +1280,7 @@ export class Game extends React.Component {
                 n_y: 0,
                 infoLoaded: false,
                 numFrames: 0,
-                trades: null,
+                trades: {},
             }
         });
     }
@@ -1384,10 +1399,17 @@ export class Game extends React.Component {
               infoLoaded: false
             },
           });
-        let [numFrames, trades] = await Promise.all([
-            this.props.server.getNumFrames(this.props.connection, n_x, n_y),
-            this.props.database.getNeighborhoodTrades(n_x, n_y),
-        ]);
+        let numFrames, trades;
+        try{
+            [numFrames, trades] = await Promise.all([
+                this.props.server.getNumFrames(this.props.connection, n_x, n_y),
+                this.props.database.getNeighborhoodTrades(n_x, n_y),
+            ]);
+        } catch(e){
+            console.error(e);
+            numFrames = 0;
+            trades = {};
+        }
         console.log("NEIGHBOR SIDEBAR");
         if (!this.state.neighborhood.focused){ // sidebar changed
             return;
@@ -1419,7 +1441,7 @@ export class Game extends React.Component {
                     selecting: true,
                     poses,
                     loadingPricesStatus: 0,
-                    loadingFloorStatus: 0,
+                    targetStatus: 0,
                     purchasableInfo: new Array(),
                     purchasable: new Set(),
                     totalPrice: NaN,
@@ -1534,9 +1556,14 @@ export class Game extends React.Component {
         }
 
         // refresh info client side
-        const data = await this.props.database.getSpacesByOwner(this.props.user);
-        this.props.setOwnedSpaces(data.spaces); // set spaces and mints on hooks side
-        this.props.setOwnedMints(data.mints);
+        try{
+            const data = await this.props.database.getSpacesByOwner(this.props.user);
+            this.props.setOwnedSpaces(data.spaces); // set spaces and mints on hooks side
+            this.props.setOwnedMints(data.mints);
+        }
+        catch(e){
+            console.error(e);
+        }
 
         // set focus, if focus hasn't changed
         if (x == this.state.focus.x && y == this.state.focus.y){
@@ -1567,9 +1594,14 @@ export class Game extends React.Component {
         }
 
         // refresh info client side
-        const data = await this.props.database.getSpacesByOwner(this.props.user);
-        this.props.setOwnedSpaces(data.spaces); // set spaces and mints on hooks side
-        this.props.setOwnedMints(data.mints);
+        try{
+            const data = await this.props.database.getSpacesByOwner(this.props.user);
+            this.props.setOwnedSpaces(data.spaces); // set spaces and mints on hooks side
+            this.props.setOwnedMints(data.mints);
+        }
+        catch(e){
+            console.error(e);
+        }
 
         if (error){
             notify({
