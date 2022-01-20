@@ -938,7 +938,7 @@ export class Game extends React.Component {
             });
         } else {
             notify({
-                message: "No Spaces owned",
+                message: "No Spaces Selected",
             });
         }
     }
