@@ -344,9 +344,9 @@ export class Game extends React.Component {
                 const data = await this.props.database.getSpacesByOwner(pubkey);
                 if (data && data["spaces"]) {
                     const msg =
-                        data["spaces"].size > 0 ? "Spaces shown on map" : "No spaces found";
+                        data["spaces"].size > 0 ? "Spaces shown on map" : "No Spaces found";
                     notify({
-                        message: "Finding spaces...",
+                        message: "Finding Spaces...",
                         description: msg,
                     });
                     if (data["spaces"].size > 0) {
@@ -375,7 +375,7 @@ export class Game extends React.Component {
             } catch (e) {
                 console.log(e)
                 notify({
-                    message: `(${this.props.locator.col}, ${this.props.locator.row}) is not a valid space coordinate.`
+                    message: `(${this.props.locator.col}, ${this.props.locator.row}) is not a valid Space coordinate.`
                 });
             }
         }
@@ -782,7 +782,7 @@ export class Game extends React.Component {
         if (purchasable.size === 0) {
             totalPrice = NaN;
             notify({
-                message: "No spaces available to buy",
+                message: "No Spaces available to buy",
             });
         }
         this.setState({
@@ -919,7 +919,7 @@ export class Game extends React.Component {
             mySpacesAnchorEl: null,
         });
 
-        loading(null, "Getting your spaces", null);
+        loading(null, "Getting your Spaces", null);
         let data;
         try{
             data = await this.props.database.getSpacesByOwner(this.props.user);
@@ -948,10 +948,10 @@ export class Game extends React.Component {
             });
         } else {
             notify({
-                message: "No spaces owned",
+                message: "No Spaces owned",
             });
         }
-        loading(null, "Getting your spaces", "success");
+        loading(null, "Getting your Spaces", "success");
     }
 
     handleGetMyListings = async () => {
@@ -990,7 +990,7 @@ export class Game extends React.Component {
             });
         } else {
             notify({
-                message: "No spaces listed",
+                message: "No Spaces listed",
             });
         }
         loading(null, "Getting your listings", "success");
@@ -1003,7 +1003,7 @@ export class Game extends React.Component {
         });
         this.props.setRegisterTrigger(true);
         notify({
-            message: "Registering all spaces...",
+            message: "Registering all Spaces...",
         });
     }
 
@@ -1045,7 +1045,7 @@ export class Game extends React.Component {
                 //     true
                 // );
                 try {
-                    loading(null, "Finding spaces", null);
+                    loading(null, "Finding Spaces", null);
                     const pubkey = new PublicKey(text); // make sure valid pubkey
                     let data;
                     try{
@@ -1056,9 +1056,9 @@ export class Game extends React.Component {
                     }
                     if (data && data["spaces"]) {
                         const msg =
-                            data["spaces"].size > 0 ? "Spaces shown on map" : "No spaces found";
+                            data["spaces"].size > 0 ? "Spaces shown on map" : "No Spaces found";
                         notify({
-                            message: "Finding spaces...",
+                            message: "Finding Spaces...",
                             description: msg,
                         });
                         if (data["spaces"].size > 0) {
@@ -1075,7 +1075,7 @@ export class Game extends React.Component {
                             });
                         }
                         found = true;
-                        loading(null, "Finding spaces", "success");
+                        loading(null, "Finding Spaces", "success");
                     }
                 } catch (e) {
                     console.log(e);
@@ -1312,7 +1312,7 @@ export class Game extends React.Component {
         try { // run props.database query
             space_metadata_data = await this.props.database.getSpaceMetadata(x, y);
         } catch(e) { // if fails, run RPC call
-            console.log("RPC call for space metadata")
+            console.log("RPC call for Space metadata")
             space_metadata_data = await this.props.server.getSpaceMetadata(connection, x, y);
         }
         let owned = false;
@@ -1462,7 +1462,7 @@ export class Game extends React.Component {
             mySpacesAnchorEl: null,
         });
         this.setState({refreshingUserSpaces: true});
-        console.log("refreshing user spaces");
+        console.log("refreshing user Spaces");
         let data = await this.props.server.getSpacesByOwner(this.props.connection, this.props.user);
         const spaces = data.spaces;
         const mints = data.mints;
@@ -1838,16 +1838,16 @@ export class Game extends React.Component {
                             open={this.state.mySpacesOpen}
                             onClose={() => this.handleMySpacesClose()}
                         >
-                            <Tooltip title="Click to select all your spaces" placement="right">
+                            <Tooltip title="Click to select all your Spaces" placement="right">
                                 <MenuItem onClick={async () => await this.handleGetMySpaces()}>Show Spaces</MenuItem>
                             </Tooltip>
-                            <Tooltip title="Click to select all your listed spaces" placement="right">
+                            <Tooltip title="Click to select all your listed Spaces" placement="right">
                                 <MenuItem onClick={async () => await this.handleGetMyListings()}>Show my Listed Spaces</MenuItem>
                             </Tooltip>
-                            <Tooltip title="Refresh your spaces to match their blockchain state" placement="right">
+                            <Tooltip title="Refresh your Spaces to match their blockchain state" placement="right">
                                 <MenuItem onClick={async () => await this.handleRefreshUserSpaces()}>Refresh Spaces</MenuItem>
                             </Tooltip>
-                            <Tooltip title="Register your spaces to be able to find your spaces and change their colors" placement="right">
+                            <Tooltip title="Register your Spaces to be able to find your spaces and change their colors" placement="right">
                                 <MenuItem onClick={() => this.register()}>Register Spaces</MenuItem>
                             </Tooltip>
                         </Menu>
@@ -1899,7 +1899,7 @@ export class Game extends React.Component {
                             marginRight: "36px", // TODO
                         }}
                     >
-                        <Tooltip title="Copy link to share spaces with others">
+                        <Tooltip title="Copy link to share Spaces with others">
                             <Button
                                 variant="contained"
                                 className={"defaultButton"}
@@ -1926,20 +1926,20 @@ export class Game extends React.Component {
                         </Menu>
                         <Tooltip
 
-                            title="Enter a user's wallet address to select their spaces or enter a location in the form of x,y">
+                            title="Enter a user's wallet address to select their Spaces or enter a location in the form of x,y">
                             <InfoOutlined id="search-tooltip" />
                         </Tooltip>
                         <Search
                             id="address-textfield"
                             placeholder="SPCE5rvxKQJRn2uubgNRAD9KrP8RMXmkucy9TuCXD6e"
                             allowClear
-                            enterButton="Find address"
-                            onSearch={() => this.findSpaces()}
+                            enterButton="Find"
+                            onSearch={() => this.handleFindSpaces()}
                             disabled={this.state.findSpaces}
                             className="searchButton"
                         />
 
-                        <Tooltip title="Click for your spaces">
+                        <Tooltip title="Click for your Spaces">
                             <Button
                                 variant="contained"
                                 disabled={!this.props.user || !this.props.loadedOwned || this.state.refreshingUserSpaces}
