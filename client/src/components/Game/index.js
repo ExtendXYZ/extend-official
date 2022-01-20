@@ -1922,7 +1922,7 @@ export class Game extends React.Component {
                     </Box>}
                 </Box>
                 <div className="botnav" id="botnav"></div>
-                <div className="topnav" id="topnav">
+                {/* <div className="topnav" id="topnav">
                     <Button sx={{color: "white"}} onClick={() => {
                         this.moveToSpaces(this.state.selecting.poses)}}> All Selected</Button>
                     <Button sx={{color: "blue"}} onClick={() => {
@@ -1934,7 +1934,7 @@ export class Game extends React.Component {
                         this.moveToSpaces(new Set([...this.state.selecting.poses].filter(
                             x=> (!this.props.ownedSpaces.has(x)) && (!this.state.selecting.purchasable.has(x)))))}}> Other </Button>
                     <Button sx={{color: "white"}}> Neighborhood </Button> 
-                </div>
+                </div> */}
             </div>
         );
     }
