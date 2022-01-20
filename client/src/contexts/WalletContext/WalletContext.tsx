@@ -14,6 +14,8 @@ import { Button } from "antd";
 import React, { createContext, FC, ReactNode, useCallback, useContext, useEffect, useMemo, useState, } from "react";
 import { notify } from "../../utils";
 
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+
 import "./wallet.less";
 import CancelIcon from "@mui/icons-material/Cancel";
 
@@ -57,8 +59,15 @@ export const WalletModal: FC = () => {
                             marginBottom: 10,
                         }}
                     ></div>
-                    <p style={{textAlign: "center"}}>Connect your wallet & explore metaverse...</p>
-                    <br />
+                    <div style={{margin: "0 16px"}}>
+                        <div style={{display: "flex"}}>
+                            <PersonOutlineIcon style={{color: "#FFFFFFB2"}}/> &nbsp; <p className={"dm"} style={{color: "#FFFFFFB2"}}>My Wallet</p>
+                        </div>
+                    </div>
+                    <hr style={{border: "1px solid gray", filter: "opacity(0.5)"}}/>
+                    <div style={{margin: "0 16px"}}>
+                        <p className={"dm"} style={{margin: "10px 0", color: "#FFFFFFB2"}}>Connect your wallet & explore metaverse...</p>
+                    </div>                    <br />
                     {wallets.map((wallet) => {
                         return (
                             <Button

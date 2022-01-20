@@ -1,35 +1,26 @@
 import React from "react";
 import "./index.css";
-import { GIF, notify, shortenAddress } from "../../utils";
-import { NEIGHBORHOOD_SIZE, RPC, UPPER } from "../../constants";
+import { formatPrice, notify, shortenAddress } from "../../utils";
+import { NEIGHBORHOOD_SIZE } from "../../constants";
 import {
+  AppBar,
   Box,
   Button,
-  FormControl,
   FormControlLabel,
   InputAdornment,
-  MenuItem,
-  Switch,
   TextField,
   Tooltip,
-  Select,
   RadioGroup,
   Typography,
   Radio,
+  Tab,
+  Tabs
 } from "@mui/material";
 import { Spin } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
 import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
-import SearchIcon from "@mui/icons-material/Search";
-import CancelIcon from "@mui/icons-material/Cancel";
-import HelpIcon from "@mui/icons-material/Help";
-import { solToLamports, lamportsToSol, formatPrice} from "../../utils"; 
-import {Tab, Tabs, AppBar} from "@mui/material";
-
-
-import ReactDOM from "react-dom";
 
 import PropTypes from "prop-types";
 
