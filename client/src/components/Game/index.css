@@ -190,18 +190,11 @@
 .topnav {
     position: fixed;
     z-index: 1;
-    top: 100px;
+    top: 175px;
     right: 50px;
+    width: 150px;
     /* background: black;
     opacity: 0.5; */
-}
-
-.topnav .address {
-    border: 1px solid grey;
-    border-radius: 5px;
-}
-.topnav .address, textarea {
-    background: transparent;
 }
 
 #search-tooltip{
