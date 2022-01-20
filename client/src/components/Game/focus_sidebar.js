@@ -9,14 +9,13 @@ import {
   FormControlLabel,
   InputAdornment,
   TextField,
-  Tooltip,
   RadioGroup,
   Typography,
   Radio,
   Tab,
   Tabs
 } from "@mui/material";
-import { Spin } from "antd";
+import { Spin, Tooltip } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
 import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
@@ -459,7 +458,7 @@ export class FocusSidebar extends React.Component {
                                                 });
                                             }}
                                             disabled={!this.props.scale}
-                                            sx={{
+                                            style={{
                                                 width: "100%",
                                                 color: "#FFFFFF",
                                                 background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",

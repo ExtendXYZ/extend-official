@@ -13,12 +13,11 @@ import {
     MenuItem,
     Switch,
     TextField,
-    Tooltip,
     Select,
     Menu,
     fabClasses,
 } from "@mui/material";
-import { Tooltip as TooltipAntd } from 'antd';
+import { Tooltip } from 'antd';
 import { CopyOutlined } from "@ant-design/icons";
 import SearchIcon from "@mui/icons-material/Search";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -1969,7 +1968,7 @@ export class Game extends React.Component {
                             <MenuItem onClick={(e) => this.copyCurrentView()}>Current View</MenuItem>
                             <MenuItem onClick={(e) => this.copyMyView()}>My Spaces</MenuItem>
                         </Menu>
-                        <TooltipAntd
+                        <Tooltip
 
                             title="Enter a user's wallet address to select their Spaces or enter a location in the form of x,y">
                             <Search
@@ -1979,7 +1978,7 @@ export class Game extends React.Component {
                             disabled={this.state.findSpaces}
                             className="searchButton"
                             />
-                        </TooltipAntd>
+                        </Tooltip>
 
                         <Tooltip title="Click for your Spaces">
                             <Button

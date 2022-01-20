@@ -1,8 +1,8 @@
 import React from "react";
-import { Box, Button, Tooltip } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
-import { Spin } from "antd";
+import { Tooltip, Spin } from "antd";
 import {formatPrice} from "../../utils"; 
 
 export class NeighborhoodSidebar extends React.Component {

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import * as React from 'react';
 import styled from "styled-components";
 import Countdown from "react-countdown";
-import { Alert, Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select, Tooltip, InputAdornment } from "@mui/material";
+import { Alert, Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select, InputAdornment } from "@mui/material";
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import InfoIcon from '@mui/icons-material/Info';
 
@@ -12,6 +12,7 @@ import { Commitment, LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/we
 import { MintLayout } from "@solana/spl-token";
 
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import { Tooltip } from "antd";
 
 import { sendInstructionsGreedyBatchMint, sendSignedTransaction } from "../../helpersMint/transactions";
 
