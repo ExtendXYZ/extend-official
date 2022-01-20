@@ -633,8 +633,8 @@ export const Home = (props: HomeProps) => {
     setCurrNeighborhood(n);
     const selector = document.getElementById("selector");
     if (selector) {
-      selector.style.left = (n_x + 2) * NEIGHBORHOOD_SIZE - border + "px";
-      selector.style.top = (n_y + 2) * NEIGHBORHOOD_SIZE - border + "px";
+      selector.style.left = (n_x + 2) * NEIGHBORHOOD_SIZE * ratio - border + "px";
+      selector.style.top = (n_y + 2) * NEIGHBORHOOD_SIZE * ratio - border + "px";
     }
   }
 
