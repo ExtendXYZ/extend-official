@@ -1758,6 +1758,11 @@ export class Game extends React.Component {
                             xor(this.state.selecting.poses || new Set(), x)
                         )
                     }
+                    altClick={async (x) =>
+                        this.setSelecting(
+                            x
+                        )
+                    }
                     clicked={this.state.focus.focus}
                     clicked_x={this.state.focus.x}
                     clicked_y={this.state.focus.y}
