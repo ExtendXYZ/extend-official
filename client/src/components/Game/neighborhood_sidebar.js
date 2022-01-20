@@ -158,6 +158,16 @@ export class NeighborhoodSidebar extends React.Component {
                     </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
+              <Box className="infoHeader">NUMBER OF FRAMES</Box>
+              <Box>
+                    <b>
+                        <font color="#82CBC5">
+                        {this.props.neighborhood.numFrames}
+                        </font>
+                    </b>
+                    </Box>
+            </ListItem>
+            <ListItem className="info" style={{ display: "block" }}>
               <Tooltip placement={'right'} title="Add a new frame for this neighborhood">
                 <Button
                 size="small"

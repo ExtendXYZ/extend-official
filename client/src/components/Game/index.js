@@ -108,6 +108,7 @@ export class Game extends React.Component {
                 n_x: 0,
                 n_y: 0,
                 infoLoaded: false,
+                num_frames: 0,
             },
             findingSpaces: false,
             refreshingUserSpaces: false,
@@ -1263,6 +1264,8 @@ export class Game extends React.Component {
                 n_x: 0,
                 n_y: 0,
                 infoLoaded: false,
+                numFrames: 0,
+                trades: null,
             }
         });
     }
@@ -1381,7 +1384,10 @@ export class Game extends React.Component {
               infoLoaded: false
             },
           });
-        const trades = await this.props.database.getNeighborhoodTrades(n_x, n_y);
+        let [numFrames, trades] = await Promise.all([
+            this.props.server.getNumFrames(this.props.connection, n_x, n_y),
+            this.props.database.getNeighborhoodTrades(n_x, n_y),
+        ]);
         console.log("NEIGHBOR SIDEBAR");
         if (!this.state.neighborhood.focused){ // sidebar changed
             return;
@@ -1393,6 +1399,7 @@ export class Game extends React.Component {
             n_x,
             n_y,
             infoLoaded: true,
+            numFrames,
             trades,
           },
         });
