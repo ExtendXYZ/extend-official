@@ -849,7 +849,7 @@ export const Home = (props: HomeProps) => {
       </FormControl>
         <Divider/>
       
-      <div style={{width: window.innerHeight * 0.7, height: window.innerHeight * 0.7, marginLeft: "25%", position: "relative"}}>
+      <div style={{width: window.innerHeight * 0.7, height: window.innerHeight * 0.7, marginLeft: "20%", position: "relative"}}>
         <canvas id="preview" width="1000px" height="1000px" style={{width: window.innerHeight * 0.7, height: window.innerHeight * 0.7}}/>
         <div id="selector" style={{position: "absolute", top: 400 * ratio - border + "px", left: 400 * ratio - border + "px", width: 200 * ratio + 2 * border + "px", height: 200 * ratio + 2 * border + "px", border: border + "px dashed white"}}/>
         </div>
