@@ -53,7 +53,7 @@ export function register_succeed_notify({
   </div>);
 
   (notification as any)[type]({
-    message: <span>{`Congratulations! Register succeeded for ${numSucceed} out of ${numRegistering} spaces.`}</span>,
+    message: <span>{`Congratulations! Register succeeded for ${numSucceed} out of ${numRegistering} Spaces.`}</span>,
     description: (
       <span>{description}</span>
     ),

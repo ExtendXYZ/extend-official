@@ -185,7 +185,7 @@ export function Screen(props) {
                 console.log("Need to register", numRegistering)
 
                 if (numRegistering === 0) { // if there are no spaces to register
-                    notify({ message: "Already registered all spaces" });
+                    notify({ message: "Already registered all Spaces" });
                 } else {
                     try {
                         let ixs = await initSpaceMetadataInstructions(wallet, BASE, currSpaceAccs, currMints);
@@ -218,9 +218,9 @@ export function Screen(props) {
 
                         // notify if need to reclick register
                         let numSucceed = res.spacesSucceed;
-                        notify({ message: `Register succeeded for ${numSucceed} out of ${numRegistering} spaces` });
+                        notify({ message: `Register succeeded for ${numSucceed} out of ${numRegistering} Spaces` });
                         if (numAccountsToRegister > numRegistering) {
-                            notify({ message: `Registered ${numSucceed} spaces, need to register ${numAccountsToRegister - numSucceed} more spaces, reclick register!` });
+                            notify({ message: `Registered ${numSucceed} Spaces, need to register ${numAccountsToRegister - numSucceed} more Spaces, reclick register!` });
                         }
                     }
                     catch (e) {

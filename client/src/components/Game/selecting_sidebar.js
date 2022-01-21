@@ -155,7 +155,7 @@ export class SelectingSidebar extends React.Component {
 
         let tooltipModifyColorTitle = `Estimated Cost to Change Colors:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
         let tooltipSetPriceTitle = `Estimated Cost to List/Delist:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
-        let tooltipBuyTitle = `Batch buying is non-atomic and is available as a convenience feature. Successful purchase of every space selected is not guaranteed.
+        let tooltipBuyTitle = `Batch buying is non-atomic and is available as a convenience feature. Successful purchase of every Space selected is not guaranteed.
         
         Estimated Transaction Cost to Buy:  ${(this.props.selecting.purchasableInfo.length * 0.000005).toFixed(6)} SOL`;
         
@@ -459,7 +459,7 @@ export class SelectingSidebar extends React.Component {
                         </Button>
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
-                        <Tooltip placement={'right'} title="Select all purchasable spaces in your selection to prepare to purchase them.">
+                        <Tooltip placement={'right'} title="Select all purchasable Spaces in your selection to prepare to purchase them.">
                           <Button
                             size="small"
                             variant="contained"
@@ -573,7 +573,7 @@ export class SelectingSidebar extends React.Component {
                             Advanced
                         </Divider>
                         <ListItem className="info" style={{ display: "block" }}>
-                              <Tooltip placement={'right'} title="Refresh information for these spaces directly from the blockchain. Refreshing may be rate-limited if performed excessively.">  
+                              <Tooltip placement={'right'} title="Refresh information for these Spaces directly from the blockchain. Refreshing may be rate-limited if performed excessively.">  
                                 <Button
                                 size="small"
                                 variant="contained"

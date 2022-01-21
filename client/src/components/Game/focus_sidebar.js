@@ -424,7 +424,7 @@ export class FocusSidebar extends React.Component {
                                 Advanced
                             </Divider>
                             <ListItem className="info" style={{ display: "block" }}>
-                                <Tooltip placement={'right'} title="Refresh information for this space directly from the blockchain. Refreshing may be rate-limited if performed excessively.">
+                                <Tooltip placement={'right'} title="Refresh information for this Space directly from the blockchain. Refreshing may be rate-limited if performed excessively.">
                                     <Button
                                     size="small"
                                     variant="contained"
@@ -443,7 +443,7 @@ export class FocusSidebar extends React.Component {
                             </ListItem>
                             <ListItem className="info" style={{ display: "block" }}>
                                 <Typography align="center">
-                                    <Tooltip placement={'right'} title="Copy link to space">
+                                    <Tooltip placement={'right'} title="Copy link to Space">
                                         <Button
                                             size="small"
                                             variant="contained"

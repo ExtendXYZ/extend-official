@@ -547,7 +547,7 @@ export class Server {
                     }
                 }
             }
-            console.log("Done getting owner spaces")
+            console.log("Done getting owner Spaces")
 
             loading(null, infoText, 'success');
             return { spaces, mints };

@@ -396,7 +396,7 @@ export class Game extends React.Component {
             } catch (e) {
                 console.log(e)
                 notify({
-                    message: `[${this.props.locator.colStart},${this.props.locator.colEnd}] x [${this.props.locator.rowStart},${this.props.locator.rowEnd}] is not a valid range of spaces.`
+                    message: `[${this.props.locator.colStart},${this.props.locator.colEnd}] x [${this.props.locator.rowStart},${this.props.locator.rowEnd}] is not a valid range of Spaces.`
                 })
             }
         }

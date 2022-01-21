@@ -504,7 +504,7 @@ export const Home = (props: HomeProps) => {
     const data = await server.getSpacesByOwner(props.connection, wallet.publicKey, false, tokenCache);
     if (!data) {
       notify({
-        message: "No spaces owned or minted",
+        message: "No Spaces owned or minted",
         type: "info",
         duration: 0,
       });
@@ -550,7 +550,7 @@ export const Home = (props: HomeProps) => {
 
     if (numRegistering === 0) { // if there are no spaces to register
       notify({
-        message: "Already registered all spaces",
+        message: "Already registered all Spaces",
         type: "info",
         duration: 0,
       });
@@ -583,7 +583,7 @@ export const Home = (props: HomeProps) => {
         let numSucceed = res.spacesSucceed;
         if (numAccountsToRegister > numRegistering) {
           notify({
-            message: `Registered succeeded for ${numSucceed} out of ${numRegistering} spaces, need to register ${numAccountsToRegister - numSucceed} more spaces, reclick register!`,
+            message: `Registered succeeded for ${numSucceed} out of ${numRegistering} Spaces, need to register ${numAccountsToRegister - numSucceed} more Spaces, reclick register!`,
             type: "success",
             duration: 0,
           });
@@ -890,7 +890,7 @@ export const Home = (props: HomeProps) => {
               {wallet && 
               <div>
               <h3 style={{color: "#B687D8", display: "inline-block"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>
-              <Tooltip title="Enter the number of space vouchers you want and solve the captcha to receive them! Claiming multiple vouchers at once will have a higher price." placement="right">
+              <Tooltip title="Enter the number of Space vouchers you want and solve the captcha to receive them! Claiming multiple vouchers at once will have a higher price." placement="right">
                 <InfoIcon sx={{marginLeft: "10px"}}/>
               </Tooltip>
               </div>
@@ -945,7 +945,7 @@ export const Home = (props: HomeProps) => {
                   {wallet && 
                     <div>
                       <h3 style={{color: "#B687D8", display: "inline-block"}}><b>2. Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></h3>
-                      <Tooltip title="Tip: Redeeming multiple space vouchers at once is more likely to result in contiguous Spaces on the canvas" placement="right">
+                      <Tooltip title="Tip: Redeeming multiple Space vouchers at once is more likely to result in contiguous Spaces on the canvas" placement="right">
                         <InfoIcon sx={{marginLeft: "10px"}}/>
                       </Tooltip>
                     </div>

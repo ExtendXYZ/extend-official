@@ -120,7 +120,7 @@ export const sendInstructionsGreedyBatch = async (
     }
 
     if (showNotify) {
-        notify({ message: `${name} succeeded for ${spacesSucceed} out of ${totalSpaces} spaces` });
+        notify({ message: `${name} succeeded for ${spacesSucceed} out of ${totalSpaces} Spaces` });
     }
     
     return { responses, ixPerTx, spacesSucceed };
