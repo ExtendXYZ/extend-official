@@ -579,7 +579,7 @@ export class Board extends React.Component {
                 const deltax = x * scale + this.x;
                 const deltay = y * scale + this.y;
                 const currentRef = document.getElementById(`boxTracker${pos}`);
-                const color = "#" + getColor(price);
+                const color = "#" + priceToColor(price);
                 currentRef.style.left = deltax + 0.1 * scale + "px";
                 currentRef.style.top = deltay + 0.1 * scale + "px";
                 currentRef.style.width = scale - 0.2 * scale + "px";
@@ -839,7 +839,7 @@ export class Board extends React.Component {
                     const pos = JSON.stringify({ x, y });
                     const deltax = x * scale + this.x;
                     const deltay = y * scale + this.y;
-                    const color = "#" + getColor(price);
+                    const color = "#" + priceToColor(price);
                     return (
                         <div
                             className="boxTracker"
