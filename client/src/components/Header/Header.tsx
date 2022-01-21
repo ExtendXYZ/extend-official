@@ -67,13 +67,13 @@ export const Header = (props: { setNotificationsBar?: (type: string) => void }) 
                       backgroundColor: "#DC1FFF"
                     }
                   }}>
-              <Link to={"/"} style={{ color: '#CE65B0' }}>
+              <Link to={"/"} style={{ color: '#FFFFFF' }}>
                 <Tab value={0} label="Canvas" sx={{ fontWeight: "bold" }} />
               </Link>
-              <Link to={"/activity"} style={{ color: '#CE65B0' }}>
+              <Link to={"/activity"} style={{ color: '#FFFFFF' }}>
                 <Tab value={1} label="Activity" sx={{ fontWeight: "bold" }} />
               </Link>
-              <Link to={"/mint"} style={{ color: '#CE65B0' }}>
+              <Link to={"/mint"} style={{ color: '#FFFFFF' }}>
                 <Tab value={2} label="Mint" sx={{ fontWeight: "bold" }} />
               </Link>
 
