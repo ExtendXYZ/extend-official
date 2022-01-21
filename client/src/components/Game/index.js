@@ -360,10 +360,10 @@ export class Game extends React.Component {
         }, 10000);
         this.intervalFetchNeighborhoodNames = setInterval(async () => {
             await this.fetch_neighborhood_names();
-        }, 10000);
+        }, 60000);
         this.intervalFetchPrices = setInterval(async () => {
             await this.fetch_neighborhood_prices();
-        }, 10000);
+        }, 15000);
 
         // open websocket to listen to color cluster accounts
         // for (let j = 0; j < colorClusterKeys.length; j++) {
@@ -1646,13 +1646,16 @@ export class Game extends React.Component {
 
     setColorView = () => {
         this.viewport.view = 0;
+        this.board.current.resetCanvas();
         this.setState({
             viewMenuOpen: false,
             viewMenuAnchorEl: null,
         });
     }
     setPriceView = () => {
+        this.handleChangeAnims({target: {checked: false}});
         this.viewport.view = 1;
+        this.board.current.resetCanvas();
         this.setState({
             viewMenuOpen: false,
             viewMenuAnchorEl: null,
@@ -1827,9 +1830,7 @@ export class Game extends React.Component {
                         )
                     }
                     altClick={async (x) =>
-                        this.setSelecting(
-                            x
-                        )
+                        this.setSelecting(x)
                     }
                     clicked={this.state.focus.focus}
                     clicked_x={this.state.focus.x}
@@ -1857,31 +1858,42 @@ export class Game extends React.Component {
                     minWidth="100%"
                     className={"headerMenu"}
                 >
-                    <Tooltip title="Change view">
-                        <Button
-                            variant="contained"
-                            className={"defaultButton"}
-                            id="view-button"
-                            aria-controls={this.state.viewMenuOpen ? 'view-menu' : undefined}
-                            aria-haspopup="true"
-                            aria-expanded={this.state.viewMenuOpen ? 'true' : undefined}
-                            onClick={(e) => this.handleViewMenuOpen(e)}
-                            endIcon={<KeyboardArrowDownIcon />}
-                        >
-                            <CopyOutlined />
-                            {this.viewport.view == 0 ? "Color view" : "Price view"}
-                        </Button>
-                    </Tooltip>
-                    <Menu
-                        id="view-menu"
-                        aria-labelledby="view-button"
-                        anchorEl={this.state.viewMenuAnchorEl}
-                        open={this.state.viewMenuOpen}
-                        onClose={() => this.handleViewMenuClose()}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            height: "63px",
+                            justifyContent: "flex-start",
+                            alignItems: "center",
+                            marginLeft: "36px", // TODO
+                        }}
                     >
-                        <MenuItem onClick={(e) => this.setColorView()}>Color view</MenuItem>
-                        <MenuItem onClick={(e) => this.setPriceView()}>Price view</MenuItem>
-                    </Menu>
+                        <Tooltip title="Change view">
+                            <Button
+                                variant="contained"
+                                className={"defaultButton"}
+                                id="view-button"
+                                aria-controls={this.state.viewMenuOpen ? 'view-menu' : undefined}
+                                aria-haspopup="true"
+                                aria-expanded={this.state.viewMenuOpen ? 'true' : undefined}
+                                onClick={(e) => this.handleViewMenuOpen(e)}
+                                endIcon={<KeyboardArrowDownIcon />}
+                            >
+                                {this.viewport.view == 0 ? "Colors" : "Prices"}
+                            </Button>
+                        </Tooltip>
+                        <Menu
+                            id="view-menu"
+                            aria-labelledby="view-button"
+                            anchorEl={this.state.viewMenuAnchorEl}
+                            open={this.state.viewMenuOpen}
+                            onClose={() => this.handleViewMenuClose()}
+                        >
+                            <MenuItem onClick={(e) => this.setColorView()}>Colors</MenuItem>
+                            <MenuItem onClick={(e) => this.setPriceView()}>Prices</MenuItem>
+                        </Menu>
+                    </Box>
+
+                    
                     <Box
                         sx={{
                             display: "flex",
@@ -1893,7 +1905,7 @@ export class Game extends React.Component {
                     >
                         <FormControl>
                             <FormControlLabel
-                                disabled={!this.state.animsInfoLoaded}
+                                disabled={!this.state.animsInfoLoaded || this.viewport.view != 0}
                                 control={
                                     <Switch
                                         onChange={(e) => this.handleChangeAnims(e)}
@@ -1907,11 +1919,11 @@ export class Game extends React.Component {
                             <Select
                                 variant="standard"
                                 value={this.state.frame}
+                                disabled={this.state.anims || this.viewport.view != 0}
                                 onChange={(e) => {
                                     this.handleChangeFrame(e);
                                 }}
                                 label="Frame"
-                                disabled={this.state.anims}
                                 sx={{ marginRight: "10px", borderRadius: "40px" }}
                             >
                                 {Array.from({ length: this.state.maxFrame }, (x, i) => (
@@ -1925,27 +1937,35 @@ export class Game extends React.Component {
                         {!this.mobile &&
                         <>
                             <div className={"animationsSeparator"}></div>
-
-                            <Menu
-                                id="myspaces-menu"
-                                aria-labelledby="myspaces-button"
-                                anchorEl={this.state.mySpacesMenuAnchorEl}
-                                open={this.state.mySpacesMenuOpen}
-                                onClose={() => this.handleMySpacesMenuClose()}
+                        {/* <Tooltip title="Register your spaces to be able to find your spaces and change their colors">
+                            <Button
+                                variant="contained"
+                                onClick={() => this.register()}
+                                disabled={!this.props.loadedOwned}
+                                sx={{
+                                    marginRight: "10px",
+                                    borderRadius: "40px",
+                                    color: "#FFFFFF",
+                                    background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                                }}
                             >
-                            <Tooltip title="Click to select all your Spaces" placement="right">
-                                <MenuItem onClick={async () => await this.handleGetMySpaces()}>Show Spaces</MenuItem>
-                            </Tooltip>
-                            <Tooltip title="Click to select all your listed Spaces" placement="right">
-                                <MenuItem onClick={async () => await this.handleGetMyListings()}>Show my Listed Spaces</MenuItem>
-                            </Tooltip>
-                            <Tooltip title="Refresh your Spaces to match their blockchain state" placement="right">
-                                <MenuItem onClick={async () => await this.handleRefreshUserSpaces()}>Refresh Spaces</MenuItem>
-                            </Tooltip>
-                            <Tooltip title="Register your Spaces to be able to find your spaces and change their colors" placement="right">
-                                <MenuItem onClick={() => this.register()}>Register Spaces</MenuItem>
-                            </Tooltip>
-                        </Menu>
+                                Register
+                            </Button>
+                        </Tooltip> */}
+                        {/* <Tooltip title="Refresh your spaces to match their blockchain state">
+                            <Button
+                                variant="contained"
+                                onClick={this.handleRefreshUserSpaces}
+                                disabled={!this.props.loadedOwned || this.state.refreshingUserSpaces}
+                                sx={{
+                                    borderRadius: "40px",
+                                    color: "#FFFFFF",
+                                    background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                                }}
+                            >
+                                Refresh
+                            </Button>
+                        </Tooltip> */}
                         </>}
                         <Tooltip title="Number of viewers">
                             <Box sx={{marginLeft: "10px"}}>
@@ -2017,6 +2037,26 @@ export class Game extends React.Component {
                                 My Spaces
                             </Button>
                         </Tooltip>
+                        <Menu
+                                id="myspaces-menu"
+                                aria-labelledby="myspaces-button"
+                                anchorEl={this.state.mySpacesMenuAnchorEl}
+                                open={this.state.mySpacesMenuOpen}
+                                onClose={() => this.handleMySpacesMenuClose()}
+                            >
+                            <Tooltip title="Click to select all your Spaces" placement="right">
+                                <MenuItem onClick={async () => await this.handleGetMySpaces()}>Show Spaces</MenuItem>
+                            </Tooltip>
+                            <Tooltip title="Click to select all your listed Spaces" placement="right">
+                                <MenuItem onClick={async () => await this.handleGetMyListings()}>Show my Listed Spaces</MenuItem>
+                            </Tooltip>
+                            <Tooltip title="Refresh your Spaces to match their blockchain state" placement="right">
+                                <MenuItem onClick={async () => await this.handleRefreshUserSpaces()}>Refresh Spaces</MenuItem>
+                            </Tooltip>
+                            <Tooltip title="Register your Spaces to be able to find your spaces and change their colors" placement="right">
+                                <MenuItem onClick={() => this.register()}>Register Spaces</MenuItem>
+                            </Tooltip>
+                        </Menu>
                     </Box>}
                 </Box>
                 <div className="botnav" id="botnav"></div>

@@ -482,6 +482,11 @@ export class Board extends React.Component {
         // document.removeEventListener("touchcancel", this.preventDefault);
     }
 
+    resetCanvas(){
+        this.canvasCache = { t: Date.now() };
+        requestAnimationFrame(() => this.drawCanvas());
+    }
+
     drawMouseTracker() {
         const currentMouse = document.getElementById("mouseTracker");
         const n_x = Math.floor(this.focus.x / NEIGHBORHOOD_SIZE);
