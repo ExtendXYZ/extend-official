@@ -6,7 +6,8 @@ solanaGradient.setNumberRange(7, 10);
 
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 
-export function getColor(price : number){
+// returns color (without # in front)
+export function priceToColor(price : number){
     const price_log = Math.log10(price);
     return solanaGradient.colorAt(price_log, 7, 10);
 }

@@ -50,15 +50,17 @@ export class Database {
         const newPoses = [...poses];
         let posesX = [];
         let posesY = [];
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
         for (let pose of newPoses) {
             let pos = JSON.parse(pose);
-            posesX.push(Number(pos.x));
-            posesY.push(Number(pos.y));
+            minX = Math.min(minX, pos.x);
+            minY = Math.min(minY, pos.y);
+            maxX = Math.max(maxX, pos.x);
+            maxY = Math.max(maxY, pos.y);
         }
-        const minX = Math.min(...posesX);
-        const maxX = Math.max(...posesX);
-        const minY = Math.min(...posesY);
-        const maxY = Math.max(...posesY);
 
         const results = await axios.get(this.mysql + '/spaces/' + minX + '/' + minY + '/' + maxX + '/' + maxY);
         const data = results.data;
@@ -124,7 +126,7 @@ export class Database {
         await axios.post(this.mysql + '/update', {owners: ownersStrings, mints: mintsStrings});
     }
 
-    async getNeighborhoodTrades(x, y) {
+    async getNeighborhoodStats(x, y) {
         const results = await axios.get(this.mysql + "/stats/" + x + "/" + y);
         const data = results.data;
         return {
