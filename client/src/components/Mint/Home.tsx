@@ -833,8 +833,9 @@ export const Home = (props: HomeProps) => {
   const ratio = window.innerHeight * 0.7 / 1000;
 
   return (
-    <div id="home" style={{display: "flex", flexDirection: "row"}}>
-      <div style={{width: "50%"}}>
+    //<div id="home" style={{display: "flex", flexDirection: "row", position: "absolute", top: "10%", bottom: 0, left: 0, right: 0, overflow: "auto"}}>
+    <div id="home" style={{display: "flex", height: 0.9 * window.innerHeight, overflow: "auto"}}>
+    <div style={{width: "50%"}}>
         <Divider/>
       <FormControl sx={{marginLeft: "20%", minWidth: "60%", maxWidth: "60%", zIndex: 1}}>
         <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
@@ -1021,6 +1022,7 @@ export const Home = (props: HomeProps) => {
                   </div>) : null
                   }
                 </div>
+                <Divider/>
               </MintContainer>
             </div>)
             :
