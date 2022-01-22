@@ -39,6 +39,7 @@ import {notify, loading} from "../../utils";
 import {twoscomplement_i2u} from "../../utils/borsh"
 import * as anchor from "@project-serum/anchor";
 import {sleep} from "../../utils";
+import { StoreMallDirectoryOutlined } from "@mui/icons-material";
 
 const axios = require('axios');
 
@@ -69,24 +70,36 @@ export function Screen(props) {
     const [newNeighborhoodTrigger, setNewNeighborhoodTrigger] = useState<any>({});
     const [newFrameTrigger, setNewFrameTrigger] = useState<any>({});
     const [viewer, setViewer] = useState(0);
+    const [uniqueId, setUniqueId] = useState<string>();
 
     const game = useRef<Game>(null);
+    const crypto = require("crypto");
 
     useEffect(() => {
         const cleanup = async () => {
             if (document.visibilityState === "hidden") {
-                await database.disconnect();
+                await database.disconnectNew(uniqueId);
             } else if (document.visibilityState === "visible") {
-                await database.connect();
+                await database.connectNew(uniqueId);
             }
         }
         const getViewer = async () => {
-            const response = await database.connect();
+            const storedId = localStorage.getItem("id");
+            if (storedId !== null) {
+                console.log("Stored", storedId)
+                setUniqueId(storedId);
+            } else {
+                const id = crypto.randomBytes(20).toString('hex');
+                console.log("New", id)
+                localStorage.setItem("id", id);
+                setUniqueId(id);
+            }
+            const response = await database.connectNew(uniqueId);
             setViewer(response.data.number);
             document.addEventListener('visibilitychange', cleanup);
         }
         const unMount = () => {
-            database.disconnect();
+            database.disconnectNew(uniqueId);
             mounted.current = false;
             document.removeEventListener('visibilitychange', cleanup);
         }

@@ -93,6 +93,14 @@ export class Database {
         });
     }
 
+    async connectNew(id) {
+        return await axios.post(this.mysql + "/connectId/", {id: id});
+    }
+
+    async disconnectNew(id) {
+        return await axios.post(this.mysql + "/disconnectId/", {id: id});
+    }
+
     async getOnline() {
         const result = await axios.get(this.mysql + '/connect');
         console.log(result);
