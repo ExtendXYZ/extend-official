@@ -80,7 +80,8 @@ export function Screen(props) {
             if (document.visibilityState === "hidden") {
                 await database.disconnectNew(uniqueId);
             } else if (document.visibilityState === "visible") {
-                await database.connectNew(uniqueId);
+                const response = await database.connectNew(uniqueId);
+                setViewer(response.data.numer);
             }
         }
         const getViewer = async () => {

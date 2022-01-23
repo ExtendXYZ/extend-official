@@ -94,11 +94,11 @@ export class Database {
     }
 
     async connectNew(id) {
-        return await axios.post(this.mysql + "/connectId/", {id: id});
+        return await axios.post(this.mysql + "/connectId/", {type: "connect", id: id, time: Date.now()});
     }
 
     async disconnectNew(id) {
-        return await axios.post(this.mysql + "/disconnectId/", {id: id});
+        return await axios.post(this.mysql + "/connectId/", {type: "disconnect", id: id, time: Date.now()});
     }
 
     async getOnline() {
