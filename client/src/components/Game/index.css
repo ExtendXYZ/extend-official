@@ -7,6 +7,10 @@
     font-family: "Attila Sans Sharp" !important;
     color: azure;
 }
+.loadingScreen h5 {
+    font-family: "Attila Sans Sharp" !important;
+    color: azure;
+}
 
 .myboard {
     position: fixed;
