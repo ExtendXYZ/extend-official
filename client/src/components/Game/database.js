@@ -94,7 +94,9 @@ export class Database {
     }
 
     async connectNew(id) {
-        return await axios.post(this.mysql + "/connectId/", {type: "connect", id: id, time: Date.now()});
+        const currTime = Date.now();
+        const result = await axios.post(this.mysql + "/connectId/", {type: "connect", id: id, time: Date.now()});
+        return result.data[0];
     }
 
     async disconnectNew(id) {

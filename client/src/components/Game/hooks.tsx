@@ -70,37 +70,37 @@ export function Screen(props) {
     const [newNeighborhoodTrigger, setNewNeighborhoodTrigger] = useState<any>({});
     const [newFrameTrigger, setNewFrameTrigger] = useState<any>({});
     const [viewer, setViewer] = useState(0);
-    const [uniqueId, setUniqueId] = useState<string>();
 
     const game = useRef<Game>(null);
     const crypto = require("crypto");
 
+    const getId = () => {
+        const currId = localStorage.getItem("id");
+        if (currId !== null) {
+            return currId;
+        } 
+        const id = crypto.randomBytes(20).toString('hex');
+        console.log("New", id)
+        localStorage.setItem("id", id);
+        return id;
+    }
+
     useEffect(() => {
         const cleanup = async () => {
             if (document.visibilityState === "hidden") {
-                await database.disconnectNew(uniqueId);
+                await database.disconnectNew(getId());
             } else if (document.visibilityState === "visible") {
-                const response = await database.connectNew(uniqueId);
-                setViewer(response.data.numer);
+                const viewers = await database.connectNew(getId());
+                setViewer(viewers);
             }
         }
         const getViewer = async () => {
-            const storedId = localStorage.getItem("id");
-            if (storedId !== null) {
-                console.log("Stored", storedId)
-                setUniqueId(storedId);
-            } else {
-                const id = crypto.randomBytes(20).toString('hex');
-                console.log("New", id)
-                localStorage.setItem("id", id);
-                setUniqueId(id);
-            }
-            const response = await database.connectNew(uniqueId);
-            setViewer(response.data.number);
+            const viewers = await database.connectNew(getId());
+            setViewer(viewers);
             document.addEventListener('visibilitychange', cleanup);
         }
         const unMount = () => {
-            database.disconnectNew(uniqueId);
+            database.disconnectNew(getId());
             mounted.current = false;
             document.removeEventListener('visibilitychange', cleanup);
         }
