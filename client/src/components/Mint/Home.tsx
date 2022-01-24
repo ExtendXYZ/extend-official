@@ -903,7 +903,7 @@ export const Home = (props: HomeProps) => {
       {wallet && !(neighborhoodX === undefined && neighborhoodY === undefined) && 
         <p style={{marginRight: "10%", color: "#CA59AE", textAlign: "center", fontSize: "20px"}}>
           <b>
-            Turn on auto-approve transactions for the best experience.
+            Turn on auto-approving transactions for the best experience.
           </b>
         </p>
       }
