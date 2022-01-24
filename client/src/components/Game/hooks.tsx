@@ -39,7 +39,6 @@ import {notify, loading} from "../../utils";
 import {twoscomplement_i2u} from "../../utils/borsh"
 import * as anchor from "@project-serum/anchor";
 import {sleep} from "../../utils";
-import { StoreMallDirectoryOutlined } from "@mui/icons-material";
 
 const axios = require('axios');
 
