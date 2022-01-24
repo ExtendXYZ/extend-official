@@ -3,6 +3,11 @@
     src: url("../../assets/fonts/AttilaSansSharp-Black.woff") format("opentype");
 }
 
+.loadingScreen h1 {
+    font-family: "Attila Sans Sharp" !important;
+    color: azure;
+}
+
 .myboard {
     position: fixed;
     top: 126px;

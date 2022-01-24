@@ -27,6 +27,7 @@ import { twoscomplement_i2u } from "../../utils/borsh";
 
 import { Server } from "./server.js";
 import { Database } from "./database.js";
+import { LoadingScreen } from './loading_screen.js';
 import { Board } from './canvas.js';
 import { FocusSidebar } from './focus_sidebar.js';
 import { SelectingSidebar } from './selecting_sidebar.js';
@@ -112,6 +113,7 @@ export class Game extends React.Component {
                 num_frames: 0,
                 trades: {},
             },
+            initialFetchStatus: 0,
             findingSpaces: false,
             refreshingUserSpaces: false,
             colorApplyAll: false,
@@ -352,7 +354,10 @@ export class Game extends React.Component {
             this.fetch_colors(this.state.frame),
             this.fetch_neighborhood_names(this.state.frame),
             this.fetch_neighborhood_prices(),
-        ])
+        ]);
+        this.setState({
+            initialFetchStatus: 1,
+        });
 
         // setInterval for requerying from chain regularly
         this.intervalFetchColors = setInterval(async () => {
@@ -1747,6 +1752,11 @@ export class Game extends React.Component {
     }
 
     render() {
+        if (this.state.initialFetchStatus == 0){
+            return (
+                <LoadingScreen/>
+            );
+        }
         let info = <FocusSidebar
             ownedSpaces={this.props.ownedSpaces}
             focus={this.state.focus}
