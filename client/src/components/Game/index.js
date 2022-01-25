@@ -292,7 +292,6 @@ export class Game extends React.Component {
     }
 
     fetch_neighborhood_prices = async() => {
-        console.log("fetching prices")
         let neighborhoods = await this.getViewportNeighborhoods();
         let poses = new Set();
         for(let {n_x, n_y} of neighborhoods){ // loop through all spaces
@@ -350,7 +349,7 @@ export class Game extends React.Component {
     //         this.viewport.neighborhood_colors[key] = await this.props.server.getFrameData(
     //             account
     //         );
-    //     }
+    //     }t
     // }
 
     async componentDidMount() {
@@ -365,17 +364,18 @@ export class Game extends React.Component {
 
         // setInterval for requerying from chain regularly
         this.intervalFetchColors = setInterval(async () => {
-            if (document.hasFocus()){
+            console.log("hidden:", document.hidden);
+            if (!document.hidden){
                 await this.fetch_colors(this.state.frame);
             }
         }, FETCH_COLORS_INTERVAL);
         this.intervalFetchNeighborhoodNames = setInterval(async () => {
-            if (document.hasFocus()){
+            if (!document.hidden){
                 await this.fetch_neighborhood_names();
             }
         }, FETCH_NAMES_INTERVAL);
         this.intervalFetchPrices = setInterval(async () => {
-            if (document.hasFocus()){
+            if (!document.hidden){
                 await this.fetch_neighborhood_prices();
             }
         }, FETCH_PRICES_INTERVAL);
@@ -1181,7 +1181,7 @@ export class Game extends React.Component {
             await this.fetch_colors_all_frames();
             loading(null, "Loading frames", "success");
             this.intervalChangeFrame = setInterval(() => {
-                if (!document.hasFocus()){
+                if (document.hidden){
                     return;
                 }
 
