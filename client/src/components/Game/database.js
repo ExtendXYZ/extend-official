@@ -64,11 +64,11 @@ export class Database {
 
         const results = await axios.get(this.mysql + '/spaces/' + minX + '/' + minY + '/' + maxX + '/' + maxY);
         const data = results.data;
-        
+
         let purchasableInfo = [];
         for (let arr of data) {
-            const [x, y, mint, owner, price, forSale] = arr;
-            if (poses.has(JSON.stringify({x, y})) && (!user || user.toBase58() != owner) && forSale == 1) { // if in poses, not owned by curr user, and for Sale 
+            const [x, y, mint, owner, price] = arr;
+            if (poses.has(JSON.stringify({x, y})) && (!user || user.toBase58() != owner)) { // if in poses, not owned by curr user, and for Sale 
                 purchasableInfo.push({x, y, mint: new PublicKey(mint), price: Number(price), seller: new PublicKey(owner)});
             }
         }

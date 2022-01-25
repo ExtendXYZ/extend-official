@@ -288,7 +288,6 @@ export class Game extends React.Component {
     }
 
     fetch_neighborhood_prices = async() => {
-        console.log("fetching prices")
         let neighborhoods = await this.getViewportNeighborhoods();
         let poses = new Set();
         for(let {n_x, n_y} of neighborhoods){ // loop through all spaces
@@ -323,7 +322,6 @@ export class Game extends React.Component {
             let key = JSON.stringify({n_x, n_y});
             this.viewport.neighborhood_prices[key] = data;
         }
-
     }
 
     // updateAccount = async (account) => {
@@ -368,7 +366,7 @@ export class Game extends React.Component {
         }, 60000);
         this.intervalFetchPrices = setInterval(async () => {
             await this.fetch_neighborhood_prices();
-        }, 15000);
+        }, 3 * 60 * 1000);
 
         // open websocket to listen to color cluster accounts
         // for (let j = 0; j < colorClusterKeys.length; j++) {
