@@ -444,7 +444,6 @@ export class Board extends React.Component {
 
         this.interval = setInterval(() => {
             if (!document.hidden && Date.now() - this.canvasCache.t > 500) {
-                console.log("canvas interval");
                 requestAnimationFrame(() => this.drawCanvas());
             }
         }, 1000);

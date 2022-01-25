@@ -364,7 +364,6 @@ export class Game extends React.Component {
 
         // setInterval for requerying from chain regularly
         this.intervalFetchColors = setInterval(async () => {
-            console.log("hidden:", document.hidden);
             if (!document.hidden){
                 await this.fetch_colors(this.state.frame);
             }
