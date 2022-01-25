@@ -361,13 +361,19 @@ export class Game extends React.Component {
 
         // setInterval for requerying from chain regularly
         this.intervalFetchColors = setInterval(async () => {
-            await this.fetch_colors(this.state.frame);
+            if (document.hasFocus()){
+                await this.fetch_colors(this.state.frame);
+            }
         }, 10000);
         this.intervalFetchNeighborhoodNames = setInterval(async () => {
-            await this.fetch_neighborhood_names();
+            if (document.hasFocus()){
+                await this.fetch_neighborhood_names();
+            }
         }, 60000);
         this.intervalFetchPrices = setInterval(async () => {
-            await this.fetch_neighborhood_prices();
+            if (document.hasFocus()){
+                await this.fetch_neighborhood_prices();
+            }
         }, 15000);
 
         // open websocket to listen to color cluster accounts
@@ -1171,6 +1177,10 @@ export class Game extends React.Component {
             await this.fetch_colors_all_frames();
             loading(null, "Loading frames", "success");
             this.intervalChangeFrame = setInterval(() => {
+                if (!document.hasFocus()){
+                    return;
+                }
+
                 // TODO: do the rendering of this.viewport.neighborhood_colors_all_frames by key, of multiple frames stored
                 // set neighborhood_colors equal to specific frames of neighborhood_colors_all_frames?
 
