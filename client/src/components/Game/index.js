@@ -40,6 +40,10 @@ import { InfoOutlined } from "@mui/icons-material";
 import Search from "antd/es/input/Search";
 
 const SIDE_NAV_WIDTH = 400;
+const FETCH_COLORS_INTERVAL = 10000;
+const FETCH_NAMES_INTERVAL = 60000;
+const FETCH_PRICES_INTERVAL = 15000;
+const ANIMATION_INTERVAL = 300;
 
 export const getBounds = (spaces) => {
     let left = Infinity;
@@ -364,17 +368,17 @@ export class Game extends React.Component {
             if (document.hasFocus()){
                 await this.fetch_colors(this.state.frame);
             }
-        }, 10000);
+        }, FETCH_COLORS_INTERVAL);
         this.intervalFetchNeighborhoodNames = setInterval(async () => {
             if (document.hasFocus()){
                 await this.fetch_neighborhood_names();
             }
-        }, 60000);
+        }, FETCH_NAMES_INTERVAL);
         this.intervalFetchPrices = setInterval(async () => {
             if (document.hasFocus()){
                 await this.fetch_neighborhood_prices();
             }
-        }, 15000);
+        }, FETCH_PRICES_INTERVAL);
 
         // open websocket to listen to color cluster accounts
         // for (let j = 0; j < colorClusterKeys.length; j++) {
@@ -1202,7 +1206,7 @@ export class Game extends React.Component {
                     this.board.current.drawCanvas();
                 });
                 k = k + 1;
-            }, 300);
+            }, ANIMATION_INTERVAL);
         } else {
             clearInterval(this.intervalId1);
             await this.fetch_colors(this.state.frame);
