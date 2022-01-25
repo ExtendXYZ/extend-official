@@ -62,7 +62,7 @@ export class Database {
             maxY = Math.max(maxY, pos.y);
         }
 
-        const results = await axios.get(this.mysql + '/spaces/' + minX + '/' + minY + '/' + maxX + '/' + maxY);
+        const results = await axios.get(this.mysql + '/listedSpaces/' + minX + '/' + minY + '/' + maxX + '/' + maxY);
         const data = results.data;
 
         let purchasableInfo = [];
