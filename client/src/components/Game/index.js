@@ -40,6 +40,10 @@ import { InfoOutlined } from "@mui/icons-material";
 import Search from "antd/es/input/Search";
 
 const SIDE_NAV_WIDTH = 400;
+const FETCH_COLORS_INTERVAL = 10 * 1000;
+const FETCH_NAMES_INTERVAL = 60 * 1000;
+const FETCH_PRICES_INTERVAL = 3 * 60 * 1000;
+const ANIMATION_INTERVAL = 300;
 
 export const getBounds = (spaces) => {
     let left = Infinity;
@@ -344,7 +348,7 @@ export class Game extends React.Component {
     //         this.viewport.neighborhood_colors[key] = await this.props.server.getFrameData(
     //             account
     //         );
-    //     }
+    //     }t
     // }
 
     async componentDidMount() {
@@ -359,14 +363,20 @@ export class Game extends React.Component {
 
         // setInterval for requerying from chain regularly
         this.intervalFetchColors = setInterval(async () => {
-            await this.fetch_colors(this.state.frame);
-        }, 10000);
+            if (!document.hidden){
+                await this.fetch_colors(this.state.frame);
+            }
+        }, FETCH_COLORS_INTERVAL);
         this.intervalFetchNeighborhoodNames = setInterval(async () => {
-            await this.fetch_neighborhood_names();
-        }, 60000);
+            if (!document.hidden){
+                await this.fetch_neighborhood_names();
+            }
+        }, FETCH_NAMES_INTERVAL);
         this.intervalFetchPrices = setInterval(async () => {
-            await this.fetch_neighborhood_prices();
-        }, 3 * 60 * 1000);
+            if (!document.hidden){
+                await this.fetch_neighborhood_prices();
+            }
+        }, FETCH_PRICES_INTERVAL);
 
         // open websocket to listen to color cluster accounts
         // for (let j = 0; j < colorClusterKeys.length; j++) {
@@ -1169,6 +1179,10 @@ export class Game extends React.Component {
             await this.fetch_colors_all_frames();
             loading(null, "Loading frames", "success");
             this.intervalChangeFrame = setInterval(() => {
+                if (document.hidden){
+                    return;
+                }
+
                 // TODO: do the rendering of this.viewport.neighborhood_colors_all_frames by key, of multiple frames stored
                 // set neighborhood_colors equal to specific frames of neighborhood_colors_all_frames?
 
@@ -1190,7 +1204,7 @@ export class Game extends React.Component {
                     this.board.current.drawCanvas();
                 });
                 k = k + 1;
-            }, 300);
+            }, ANIMATION_INTERVAL);
         } else {
             clearInterval(this.intervalId1);
             await this.fetch_colors(this.state.frame);

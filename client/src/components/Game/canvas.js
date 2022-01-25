@@ -78,8 +78,6 @@ export class Board extends React.Component {
         this.sensor = React.createRef();
         this.canvas = React.createRef();
         this.resizeHandler = this.resizeHandler.bind(this);
-        this.onFocus = this.onFocus.bind(this);
-        this.onBlur = this.onBlur.bind(this);
         this.onTouchMove = this.onTouchMove.bind(this);
         this.onWheel = this.onWheel.bind(this);
         this.map = null;
@@ -434,19 +432,6 @@ export class Board extends React.Component {
         }
     }
 
-    onFocus() {
-        this.interval = setInterval(() => {
-            if (Date.now() - this.canvasCache.t > 500) {
-                // console.log("  onFocus condition passed");
-                requestAnimationFrame(() => this.drawCanvas());
-            }
-        }, 1000);
-    }
-
-    onBlur(event) {
-        clearInterval(this.interval);
-    }
-
     async componentDidMount() {
         const canvas = document.getElementById("canvas");
         const sensor = document.getElementById("sensor");
@@ -457,10 +442,13 @@ export class Board extends React.Component {
         sensor.width = width;
         sensor.height = height;
 
-        this.onFocus() // start loop without waiting for an onFocus event
+        this.interval = setInterval(() => {
+            if (!document.hidden && Date.now() - this.canvasCache.t > 500) {
+                requestAnimationFrame(() => this.drawCanvas());
+            }
+        }, 1000);
+
         window.addEventListener("resize", this.resizeHandler);
-        window.addEventListener("focus", this.onFocus);
-        window.addEventListener("blur", this.onBlur);
         // document.addEventListener("touchstart", this.preventDefault, {passive: false});
         document.addEventListener("touchmove", this.onTouchMove, {passive: false});
         document.addEventListener("wheel", this.onWheel, {passive: false});
@@ -473,8 +461,6 @@ export class Board extends React.Component {
     componentWillUnmount() {
         clearInterval(this.interval);
         window.removeEventListener("resize", this.resizeHandler);
-        window.removeEventListener("focus", this.onFocus);
-        window.removeEventListener("blur", this.onBlur);
         // document.removeEventListener("touchstart", this.preventDefault);
         document.removeEventListener("touchmove", this.onTouchMove);
         document.removeEventListener("wheel", this.onWheel);
