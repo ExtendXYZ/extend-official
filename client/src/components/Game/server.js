@@ -22,11 +22,34 @@ import {loading} from '../../utils/loading';
 window.frameKeyCache = {};
 window.neighborhoodCreatorCache = {};
 window.neighborhoodCandyMachineCache = {};
+window.neighborhoodCreatedCache = new Set();
 window.myTokens = new Set();
 
 let user = null;
 
 export class Server {
+
+    // filters out nonexistent neighborhoods from input list
+    async filterExistingNeighborhoods(connection, neighborhoods){
+        let neighborhood_metadatas = [];
+        for (const {n_x, n_y} of neighborhoods){
+            const n_meta = (await PublicKey.findProgramAddress([
+                BASE.toBuffer(),
+                Buffer.from(NEIGHBORHOOD_METADATA_SEED),
+                twoscomplement_i2u(n_x),
+                twoscomplement_i2u(n_y),
+            ], SPACE_PROGRAM_ID))[0];
+            neighborhood_metadatas.push(n_meta);
+        }
+        let neighborhood_metadatas_data = await this.batchGetMultipleAccountsInfo(connection, neighborhood_metadatas);
+        let existing = [];
+        for (let i = 0; i < neighborhoods.length; i++){
+            if (neighborhood_metadatas_data[i]){
+                existing.push(neighborhoods[i]);
+            }
+        }
+        return existing;
+    }
     
     async getNumFrames(connection, n_x, n_y, clusters_expl = {}) {
         let n_frames;
@@ -125,8 +148,8 @@ export class Server {
     }
 
     /*
-    returns maps, one mapping neighborhoods to the number of frames it has, and one mapping
-    n_x, n_y, frame to the public key of the color cluster
+    returns maps, one mapping neighborhoods to the number of frames it has (-1 for neighborhoods where frame base doesn't exist),
+    and one mapping n_x, n_y, frame to the public key of the color cluster
     */
     async getAllFrameKeys(connection, neighborhoods) {
         let numFramesMap = {};

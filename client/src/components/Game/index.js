@@ -27,11 +27,13 @@ import { twoscomplement_i2u } from "../../utils/borsh";
 
 import { Server } from "./server.js";
 import { Database } from "./database.js";
+import { LoadingScreen } from './loading_screen.js';
 import { Board } from './canvas.js';
 import { FocusSidebar } from './focus_sidebar.js';
 import { SelectingSidebar } from './selecting_sidebar.js';
 import { NeighborhoodSidebar } from './neighborhood_sidebar.js';
 import { solToLamports, lamportsToSol, xor} from "../../utils";
+import { priceToColor, colorHighlight } from "../../utils";
 import {loading} from '../../utils/loading';
 import { letterSpacing } from "@mui/system";
 import { InfoOutlined } from "@mui/icons-material";
@@ -71,7 +73,7 @@ export class Game extends React.Component {
         this.intervalId1 = 0;
         this.intervalId2 = 0;
         this.state = {
-            neighborhood_data: {},
+            neighborhood_colors: {},
             showNav: false,
             focus: {
                 focus: false,
@@ -111,6 +113,7 @@ export class Game extends React.Component {
                 num_frames: 0,
                 trades: {},
             },
+            initialFetchStatus: 0,
             findingSpaces: false,
             refreshingUserSpaces: false,
             colorApplyAll: false,
@@ -121,10 +124,12 @@ export class Game extends React.Component {
             has_img: false,
             frame: 0,
             maxFrame: 1,
-            menuOpen: false, 
-            menuAnchorEl: null,
-            mySpacesOpen: false,
-            mySpacesAnchorEl: null,
+            viewMenuOpen: false, 
+            viewMenuAnchorEl: null,
+            shareMenuOpen: false, 
+            shareMenuAnchorEl: null,
+            mySpacesMenuOpen: false,
+            mySpacesMenuAnchorEl: null,
         };
         this.clusters_expl = {};
         this.subIds = [];
@@ -132,18 +137,19 @@ export class Game extends React.Component {
         this.viewport = {
             neighborhood_start: [-1, -1], // inclusive
             neighborhood_end: [2, 2], // exclusive
-            neighborhood_data: {},
-            neighborhood_data_all_frames: {},
+            neighborhood_colors: {},
+            neighborhood_colors_all_frames: {},
             neighborhood_names: {},
+            neighborhood_prices: {},
+            view: 0,
         };
         this.board = React.createRef();
         this.captchaResponse = null;
         this.mobile = window.innerWidth < 500;
     }
 
-    // pull color data for a specific frame into viewport
-    fetch_neighborhoods = async (frame) => {
-        const connection = this.props.connection;
+    // gets neighborhoods in viewport with neighborhood metadata created
+    getViewportNeighborhoods = async() => {
         const start = this.viewport.neighborhood_start;
         const end = this.viewport.neighborhood_end;
         let neighborhoods = [];
@@ -153,6 +159,13 @@ export class Game extends React.Component {
                 neighborhoods.push({ n_x, n_y });
             }
         }
+        return this.props.server.filterExistingNeighborhoods(this.props.connection, neighborhoods);
+    }
+
+    // pull color data for a specific frame into viewport
+    fetch_colors = async (frame) => {
+        const connection = this.props.connection;
+        let neighborhoods = await this.getViewportNeighborhoods();
 
         const frameKeysMap = await this.props.server.getFrameKeys(
             connection,
@@ -166,13 +179,13 @@ export class Game extends React.Component {
             this.props.connection,
             frameKeys
         );
-        const tmp_neighborhood_data = {};
+        const tmp_neighborhood_colors = {};
         let newMax = this.state.maxFrame;
         const neighborhood_accounts = await Promise.all(
             frameInfos.map(async (value, i) => {
                 let { n_x, n_y, frame } = value;
                 let key = JSON.stringify({ n_x, n_y });
-                tmp_neighborhood_data[key] = await this.props.server.getFrameData(
+                tmp_neighborhood_colors[key] = await this.props.server.getFrameData(
                     frameDatas[i]
                 );
                 const newNumFrames = await this.props.server.getNumFrames(
@@ -193,44 +206,17 @@ export class Game extends React.Component {
             })
         );
 
-        let accounts = await this.props.server.batchGetMultipleAccountsInfo(this.props.connection, neighborhood_accounts);
-
-        for (let cntr = 0; cntr < frameInfos.length; cntr++) {
-            let account = accounts[cntr];
-            let { n_x, n_y, frame } = frameInfos[cntr];
-            let key = JSON.stringify({ n_x, n_y });
-            if (account) {
-                const name = Buffer.from(account.data.slice(97, 97 + 64)).toString('utf-8');
-                this.viewport.neighborhood_names[key] = name.replaceAll("\x00", " ").trim();
-            }
-        }
-
-        // for (let i = 0; i < frameDatas.length; i++) {
-        //     let {n_x, n_y, frame} = frameInfos[i];
-        //     let key = JSON.stringify({n_x, n_y});
-        //     tmp_neighborhood_data[key] = await this.props.server.getFrameData(frameDatas[i]);
-        //     const newNumFrames = await this.props.server.getNumFrames(this.props.connection, n_x, n_y);
-        //     newMax = (newNumFrames > newMax ? newNumFrames : newMax);
-        // }
-        this.viewport.neighborhood_data = tmp_neighborhood_data;
+        this.viewport.neighborhood_colors = tmp_neighborhood_colors;
         this.setState({ maxFrame: newMax });
         return frameKeys;
-        
     }
 
     // pull all color data into viewport
-    fetch_neighborhoods_all_frames = async () => {
+    fetch_colors_all_frames = async () => {
         const connection = this.props.connection;
-        const start = this.viewport.neighborhood_start;
-        const end = this.viewport.neighborhood_end;
 
-        let neighborhoods = [];
+        let neighborhoods = await this.getViewportNeighborhoods();
 
-        for (let n_x = start[0]; n_x < end[0]; n_x++) {
-            for (let n_y = start[1]; n_y < end[1]; n_y++) {
-                neighborhoods.push({ n_x, n_y });
-            }
-        }
         let { numFramesMap, frameKeysMap } = await this.props.server.getAllFrameKeys(
             connection,
             neighborhoods
@@ -244,17 +230,17 @@ export class Game extends React.Component {
         );
 
         let newMax = this.state.maxFrame;
-        this.viewport.neighborhood_data_all_frames = {};
+        this.viewport.neighborhood_colors_all_frames = {};
         for (let i = 0; i < frameDatas.length; i++) {
             let { n_x, n_y, frame } = frameInfos[i];
             let key = JSON.stringify({ n_x, n_y });
             let n_frames = numFramesMap[key];
             newMax = n_frames > newMax ? n_frames : newMax;
 
-            if (!(key in this.viewport.neighborhood_data_all_frames)) {
-                this.viewport.neighborhood_data_all_frames[key] = [];
+            if (!(key in this.viewport.neighborhood_colors_all_frames)) {
+                this.viewport.neighborhood_colors_all_frames[key] = [];
                 for (let k = 0; k < n_frames; k++) {
-                    this.viewport.neighborhood_data_all_frames[key].push(
+                    this.viewport.neighborhood_colors_all_frames[key].push(
                         Array.from({ length: NEIGHBORHOOD_SIZE }, () =>
                             new Array(NEIGHBORHOOD_SIZE).fill(null)
                         )
@@ -262,11 +248,19 @@ export class Game extends React.Component {
                 }
             }
 
-            this.viewport.neighborhood_data_all_frames[key][frame] =
+            this.viewport.neighborhood_colors_all_frames[key][frame] =
                 await this.props.server.getFrameData(frameDatas[i]);
         }
 
-        // Get neighborhood names
+        this.setState({ maxFrame: newMax });
+        return frameKeys;
+    }
+
+    fetch_neighborhood_names = async() => {
+        const connection = this.props.connection;
+
+        let neighborhoods = await this.getViewportNeighborhoods();
+        
         const neighborhood_accounts = await Promise.all(
             neighborhoods.map(async (value, i) => {
                 let { n_x, n_y } = value;
@@ -291,9 +285,45 @@ export class Game extends React.Component {
                 this.viewport.neighborhood_names[key] = name.replaceAll("\x00", " ").trim();
             }
         }
+    }
 
-        this.setState({ maxFrame: newMax });
-        return frameKeys;
+    fetch_neighborhood_prices = async() => {
+        console.log("fetching prices")
+        let neighborhoods = await this.getViewportNeighborhoods();
+        let poses = new Set();
+        for(let {n_x, n_y} of neighborhoods){ // loop through all spaces
+            for(let x = n_x * NEIGHBORHOOD_SIZE; x < (n_x + 1) * NEIGHBORHOOD_SIZE; x++){
+                for(let y = n_y * NEIGHBORHOOD_SIZE; y < (n_y + 1) * NEIGHBORHOOD_SIZE; y++){
+                    poses.add(JSON.stringify({x, y}));
+                }
+            }
+        }
+        let purchasableInfo = await this.props.database.getPurchasableInfo(null, poses);
+        let colorMap = {};
+        for(let {x, y, mint, price, seller} of purchasableInfo){
+            let color = `#${priceToColor(price)}`;
+            colorMap[JSON.stringify({x, y})] = color;
+        }
+        this.viewport.neighborhood_prices = {};
+        for(let {n_x, n_y} of neighborhoods){ // loop through all spaces
+            let data = Array.from({ length: NEIGHBORHOOD_SIZE }, () => new Array(NEIGHBORHOOD_SIZE).fill(null));
+            for(let x = n_x * NEIGHBORHOOD_SIZE; x < (n_x + 1) * NEIGHBORHOOD_SIZE; x++){
+                for(let y = n_y * NEIGHBORHOOD_SIZE; y < (n_y + 1) * NEIGHBORHOOD_SIZE; y++){
+                    let key = JSON.stringify({x, y});
+                    let x_relative = x - n_x * NEIGHBORHOOD_SIZE;
+                    let y_relative = y - n_y * NEIGHBORHOOD_SIZE;
+                    if (key in colorMap){
+                        data[y_relative][x_relative] = colorMap[key];
+                    }
+                    else{
+                        data[y_relative][x_relative] = "#000000" // black
+                    }
+                }
+            }
+            let key = JSON.stringify({n_x, n_y});
+            this.viewport.neighborhood_prices[key] = data;
+        }
+
     }
 
     // updateAccount = async (account) => {
@@ -313,19 +343,32 @@ export class Game extends React.Component {
 
     //         let key = JSON.stringify({ n_x: nx_int, n_y: ny_int });
 
-    //         this.viewport.neighborhood_data[key] = await this.props.server.getFrameData(
+    //         this.viewport.neighborhood_colors[key] = await this.props.server.getFrameData(
     //             account
     //         );
     //     }
     // }
 
     async componentDidMount() {
-        await this.fetch_neighborhoods(this.state.frame);
+        await Promise.all([
+            this.fetch_colors(this.state.frame),
+            this.fetch_neighborhood_names(this.state.frame),
+            this.fetch_neighborhood_prices(),
+        ]);
+        this.setState({
+            initialFetchStatus: 1,
+        });
 
         // setInterval for requerying from chain regularly
-        this.intervalId2 = setInterval(async () => {
-            await this.fetch_neighborhoods(this.state.frame);
+        this.intervalFetchColors = setInterval(async () => {
+            await this.fetch_colors(this.state.frame);
         }, 10000);
+        this.intervalFetchNeighborhoodNames = setInterval(async () => {
+            await this.fetch_neighborhood_names();
+        }, 60000);
+        this.intervalFetchPrices = setInterval(async () => {
+            await this.fetch_neighborhood_prices();
+        }, 15000);
 
         // open websocket to listen to color cluster accounts
         // for (let j = 0; j < colorClusterKeys.length; j++) {
@@ -402,8 +445,10 @@ export class Game extends React.Component {
     }
 
     componentWillUnmount() {
-        clearInterval(this.intervalId1);
-        clearInterval(this.intervalId2);
+        clearInterval(this.intervalFetchColors);
+        clearInterval(this.intervalFetchNeighborhoodNames);
+        clearInterval(this.intervalChangeFrame);
+        clearInterval(this.intervalFetchPrices);
         // remove account listeners
         // const connection = this.props.connection;
         // for (const id of this.subIds) {
@@ -947,8 +992,8 @@ export class Game extends React.Component {
             return;
         }
         this.setState({
-            mySpacesOpen: false,
-            mySpacesAnchorEl: null,
+            mySpacesMenuOpen: false,
+            mySpacesMenuAnchorEl: null,
         });
 
         loading(null, "Getting your Spaces", null);
@@ -971,8 +1016,8 @@ export class Game extends React.Component {
 
     handleGetMyListings = async () => {
         this.setState({
-            mySpacesOpen: false,
-            mySpacesAnchorEl: null,
+            mySpacesMenuOpen: false,
+            mySpacesMenuAnchorEl: null,
         });
 
         loading(null, "Getting your listings", null);
@@ -996,8 +1041,8 @@ export class Game extends React.Component {
 
     register = () => {
         this.setState({
-            mySpacesOpen: false,
-            mySpacesAnchorEl: null,
+            mySpacesMenuOpen: false,
+            mySpacesMenuAnchorEl: null,
         });
         this.props.setRegisterTrigger(true);
         notify({
@@ -1123,11 +1168,11 @@ export class Game extends React.Component {
         if (anims) {
             clearInterval(this.intervalId2);
             loading(null, "Loading frames", null);
-            await this.fetch_neighborhoods_all_frames();
+            await this.fetch_colors_all_frames();
             loading(null, "Loading frames", "success");
-            this.intervalId1 = setInterval(() => {
-                // TODO: do the rendering of this.viewport.neighborhood_data_all_frames by key, of multiple frames stored
-                // set neighborhood_data equal to specific frames of neighborhood_data_all_frames?
+            this.intervalChangeFrame = setInterval(() => {
+                // TODO: do the rendering of this.viewport.neighborhood_colors_all_frames by key, of multiple frames stored
+                // set neighborhood_colors equal to specific frames of neighborhood_colors_all_frames?
 
                 const start = this.viewport.neighborhood_start;
                 const end = this.viewport.neighborhood_end;
@@ -1135,11 +1180,11 @@ export class Game extends React.Component {
                 for (let n_x = start[0]; n_x < end[0]; n_x++) {
                     for (let n_y = start[1]; n_y < end[1]; n_y++) {
                         let key = JSON.stringify({ n_x, n_y });
-                        if (key in this.viewport.neighborhood_data_all_frames) {
+                        if (key in this.viewport.neighborhood_colors_all_frames) {
                             let datalen =
-                                this.viewport.neighborhood_data_all_frames[key].length;
-                            this.viewport.neighborhood_data[key] =
-                                this.viewport.neighborhood_data_all_frames[key][k % datalen];
+                                this.viewport.neighborhood_colors_all_frames[key].length;
+                            this.viewport.neighborhood_colors[key] =
+                                this.viewport.neighborhood_colors_all_frames[key][k % datalen];
                         }
                     }
                 }
@@ -1150,12 +1195,12 @@ export class Game extends React.Component {
             }, 300);
         } else {
             clearInterval(this.intervalId1);
-            await this.fetch_neighborhoods(this.state.frame);
+            await this.fetch_colors(this.state.frame);
             requestAnimationFrame(() => {
                 this.board.current.drawCanvas();
             });
             this.intervalId2 = setInterval(async () => {
-                await this.fetch_neighborhoods(this.state.frame);
+                await this.fetch_colors(this.state.frame);
             }, 10000);
         }
         this.setState({
@@ -1175,7 +1220,7 @@ export class Game extends React.Component {
 
     handleChangeFrame = async (e) => {
         loading(null, "Loading frame", null);
-        await this.fetch_neighborhoods(e.target.value);
+        await this.fetch_colors(e.target.value);
         loading(null, "Loading frame", "success");
         const x = this.state.focus.x;
         const y = this.state.focus.y;
@@ -1191,8 +1236,8 @@ export class Game extends React.Component {
             focus: {
                 ...this.state.focus,
                 color:
-                    key in this.viewport.neighborhood_data
-                        ? this.viewport.neighborhood_data[key][p_y][p_x]
+                    key in this.viewport.neighborhood_colors
+                        ? this.viewport.neighborhood_colors[key][p_y][p_x]
                         : 0,
             },
         });
@@ -1358,8 +1403,8 @@ export class Game extends React.Component {
             focus: {
                 ...this.state.focus,
                 color:
-                    key in this.viewport.neighborhood_data
-                        ? this.viewport.neighborhood_data[key][p_y][p_x]
+                    key in this.viewport.neighborhood_colors
+                        ? this.viewport.neighborhood_colors[key][p_y][p_x]
                         : "#000000",
                 owned: owned,
                 owner: owner,
@@ -1390,7 +1435,7 @@ export class Game extends React.Component {
         try{
             [numFrames, trades] = await Promise.all([
                 this.props.server.getNumFrames(this.props.connection, n_x, n_y),
-                this.props.database.getNeighborhoodTrades(n_x, n_y),
+                this.props.database.getNeighborhoodStats(n_x, n_y),
             ]);
         } catch(e){
             console.error(e);
@@ -1474,8 +1519,8 @@ export class Game extends React.Component {
 
     handleRefreshUserSpaces = async () => {
         this.setState({
-            mySpacesOpen: false,
-            mySpacesAnchorEl: null,
+            mySpacesMenuOpen: false,
+            mySpacesMenuAnchorEl: null,
         });
         this.setState({refreshingUserSpaces: true});
         console.log("refreshing user Spaces");
@@ -1604,6 +1649,24 @@ export class Game extends React.Component {
         loading(null, "refreshing", "success");
     }
 
+    setColorView = () => {
+        this.viewport.view = 0;
+        this.board.current.resetCanvas();
+        this.setState({
+            viewMenuOpen: false,
+            viewMenuAnchorEl: null,
+        });
+    }
+    setPriceView = () => {
+        this.handleChangeAnims({target: {checked: false}});
+        this.viewport.view = 1;
+        this.board.current.resetCanvas();
+        this.setState({
+            viewMenuOpen: false,
+            viewMenuAnchorEl: null,
+        });
+    }
+
     copyCurrentView = (e) => {
         const width = this.board.current.width;
         const height = this.board.current.height;
@@ -1620,8 +1683,8 @@ export class Game extends React.Component {
             description: "URL copied to clipboard",
         });
         this.setState({
-            menuOpen: false,
-            menuAnchorEl: null,
+            shareMenuOpen: false,
+            shareMenuAnchorEl: null,
         });
     }
 
@@ -1641,40 +1704,59 @@ export class Game extends React.Component {
             });
         }
         this.setState({
-            menuOpen: false,
-            menuAnchorEl: null,
+            shareMenuOpen: false,
+            shareMenuAnchorEl: null,
         });
     }
 
-    handleMenuOpen = (e) => {
+    handleViewMenuOpen = (e) => {
         this.setState({
-            menuOpen: true,
-            menuAnchorEl: e.currentTarget,
+            viewMenuOpen: true,
+            viewMenuAnchorEl: e.currentTarget,
         });
     }
 
-    handleMenuClose = () => {
+    handleViewMenuClose = () => {
         this.setState({
-            menuOpen: false,
-            menuAnchorEl: null,
+            viewMenuOpen: false,
+            viewMenuAnchorEl: null,
         });
     }
 
-    handleMySpacesOpen = (e) => {
+    handleShareMenuOpen = (e) => {
         this.setState({
-            mySpacesOpen: true,
-            mySpacesAnchorEl: e.currentTarget,
+            shareMenuOpen: true,
+            shareMenuAnchorEl: e.currentTarget,
         });
     }
 
-    handleMySpacesClose = () => {
+    handleShareMenuClose = () => {
         this.setState({
-            mySpacesOpen: false,
-            mySpacesAnchorEl: null,
+            shareMenuOpen: false,
+            shareMenuAnchorEl: null,
+        });
+    }
+
+    handleMySpacesMenuOpen = (e) => {
+        this.setState({
+            mySpacesMenuOpen: true,
+            mySpacesMenuAnchorEl: e.currentTarget,
+        });
+    }
+
+    handleMySpacesMenuClose = () => {
+        this.setState({
+            mySpacesMenuOpen: false,
+            mySpacesMenuAnchorEl: null,
         });
     }
 
     render() {
+        if (this.state.initialFetchStatus == 0){
+            return (
+                <LoadingScreen/>
+            );
+        }
         let info = <FocusSidebar
             ownedSpaces={this.props.ownedSpaces}
             focus={this.state.focus}
@@ -1740,14 +1822,14 @@ export class Game extends React.Component {
                 <Board
                     ownedSpaces={this.props.ownedSpaces}
                     ref={this.board}
-                    getMap={() => this.viewport.neighborhood_data}
+                    getMap={() => this.viewport.view == 0 ? this.viewport.neighborhood_colors : this.viewport.neighborhood_prices}
                     getNeighborhoodNames={() => this.viewport.neighborhood_names}
                     user={this.props.user}
                     onViewportChange={(startx, starty, endx, endy) => {
                         this.viewport.neighborhood_start = [startx, starty];
                         this.viewport.neighborhood_end = [endx, endy];
                     }}
-                    prepare={async () => await this.fetch_neighborhoods(0)}
+                    prepare={async () => await this.fetch_colors(0)}
                     click={this.setFocus}
                     clickNeighborhood={this.setNeighborhood}
                     selecting={this.state.selecting}
@@ -1758,9 +1840,7 @@ export class Game extends React.Component {
                         )
                     }
                     altClick={async (x) =>
-                        this.setSelecting(
-                            x
-                        )
+                        this.setSelecting(x)
                     }
                     clicked={this.state.focus.focus}
                     clicked_x={this.state.focus.x}
@@ -1797,9 +1877,45 @@ export class Game extends React.Component {
                             marginLeft: "36px", // TODO
                         }}
                     >
+                        <Tooltip title="Change view">
+                            <Button
+                                variant="contained"
+                                className={"defaultButton"}
+                                id="view-button"
+                                aria-controls={this.state.viewMenuOpen ? 'view-menu' : undefined}
+                                aria-haspopup="true"
+                                aria-expanded={this.state.viewMenuOpen ? 'true' : undefined}
+                                onClick={(e) => this.handleViewMenuOpen(e)}
+                                endIcon={<KeyboardArrowDownIcon />}
+                            >
+                                {this.viewport.view == 0 ? "Colors" : "Prices"}
+                            </Button>
+                        </Tooltip>
+                        <Menu
+                            id="view-menu"
+                            aria-labelledby="view-button"
+                            anchorEl={this.state.viewMenuAnchorEl}
+                            open={this.state.viewMenuOpen}
+                            onClose={() => this.handleViewMenuClose()}
+                        >
+                            <MenuItem onClick={(e) => this.setColorView()}>Colors</MenuItem>
+                            <MenuItem onClick={(e) => this.setPriceView()}>Prices</MenuItem>
+                        </Menu>
+                    </Box>
+
+                    
+                    <Box
+                        sx={{
+                            display: "flex",
+                            height: "63px",
+                            justifyContent: "flex-start",
+                            alignItems: "center",
+                            marginLeft: "36px", // TODO
+                        }}
+                    >
                         <FormControl>
                             <FormControlLabel
-                                disabled={!this.state.animsInfoLoaded}
+                                disabled={!this.state.animsInfoLoaded || this.viewport.view != 0}
                                 control={
                                     <Switch
                                         onChange={(e) => this.handleChangeAnims(e)}
@@ -1813,11 +1929,11 @@ export class Game extends React.Component {
                             <Select
                                 variant="standard"
                                 value={this.state.frame}
+                                disabled={this.state.anims || this.viewport.view != 0}
                                 onChange={(e) => {
                                     this.handleChangeFrame(e);
                                 }}
                                 label="Frame"
-                                disabled={this.state.anims}
                                 sx={{ marginRight: "10px", borderRadius: "40px" }}
                             >
                                 {Array.from({ length: this.state.maxFrame }, (x, i) => (
@@ -1831,27 +1947,35 @@ export class Game extends React.Component {
                         {!this.mobile &&
                         <>
                             <div className={"animationsSeparator"}></div>
-
-                            <Menu
-                            id="myspaces-menu"
-                            aria-labelledby="myspaces-button"
-                            anchorEl={this.state.mySpacesAnchorEl}
-                            open={this.state.mySpacesOpen}
-                            onClose={() => this.handleMySpacesClose()}
-                        >
-                            <Tooltip title="Click to select all your Spaces" placement="right">
-                                <MenuItem onClick={async () => await this.handleGetMySpaces()}>Show Spaces</MenuItem>
-                            </Tooltip>
-                            <Tooltip title="Click to select all your listed Spaces" placement="right">
-                                <MenuItem onClick={async () => await this.handleGetMyListings()}>Show my Listed Spaces</MenuItem>
-                            </Tooltip>
-                            <Tooltip title="Refresh your Spaces to match their blockchain state" placement="right">
-                                <MenuItem onClick={async () => await this.handleRefreshUserSpaces()}>Refresh Spaces</MenuItem>
-                            </Tooltip>
-                            <Tooltip title="Register your Spaces to be able to find your spaces and change their colors" placement="right">
-                                <MenuItem onClick={() => this.register()}>Register Spaces</MenuItem>
-                            </Tooltip>
-                        </Menu>
+                        {/* <Tooltip title="Register your spaces to be able to find your spaces and change their colors">
+                            <Button
+                                variant="contained"
+                                onClick={() => this.register()}
+                                disabled={!this.props.loadedOwned}
+                                sx={{
+                                    marginRight: "10px",
+                                    borderRadius: "40px",
+                                    color: "#FFFFFF",
+                                    background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                                }}
+                            >
+                                Register
+                            </Button>
+                        </Tooltip> */}
+                        {/* <Tooltip title="Refresh your spaces to match their blockchain state">
+                            <Button
+                                variant="contained"
+                                onClick={this.handleRefreshUserSpaces}
+                                disabled={!this.props.loadedOwned || this.state.refreshingUserSpaces}
+                                sx={{
+                                    borderRadius: "40px",
+                                    color: "#FFFFFF",
+                                    background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                                }}
+                            >
+                                Refresh
+                            </Button>
+                        </Tooltip> */}
                         </>}
                         <Tooltip title="Number of viewers">
                             <Box sx={{marginLeft: "10px"}}>
@@ -1876,10 +2000,10 @@ export class Game extends React.Component {
                                 variant="contained"
                                 className={"defaultButton"}
                                 id="share-button"
-                                aria-controls={this.state.menuOpen ? 'share-menu' : undefined}
+                                aria-controls={this.state.shareMenuOpen ? 'share-menu' : undefined}
                                 aria-haspopup="true"
-                                aria-expanded={this.state.menuOpen ? 'true' : undefined}
-                                onClick={(e) => this.handleMenuOpen(e)}
+                                aria-expanded={this.state.shareMenuOpen ? 'true' : undefined}
+                                onClick={(e) => this.handleShareMenuOpen(e)}
                                 endIcon={<KeyboardArrowDownIcon />}
                             >
                                 <CopyOutlined />
@@ -1889,9 +2013,9 @@ export class Game extends React.Component {
                         <Menu
                             id="share-menu"
                             aria-labelledby="share-button"
-                            anchorEl={this.state.menuAnchorEl}
-                            open={this.state.menuOpen}
-                            onClose={() => this.handleMenuClose()}
+                            anchorEl={this.state.shareMenuAnchorEl}
+                            open={this.state.shareMenuOpen}
+                            onClose={() => this.handleShareMenuClose()}
                         >
                             <MenuItem onClick={(e) => this.copyCurrentView()}>Current View</MenuItem>
                             <MenuItem onClick={(e) => this.copyMyView()}>My Spaces</MenuItem>
@@ -1914,15 +2038,35 @@ export class Game extends React.Component {
                                 disabled={!this.props.user || !this.props.loadedOwned || this.state.refreshingUserSpaces}
                                 className={"defaultButton"}
                                 id="myspaces-button"
-                                aria-controls={this.state.mySpacesOpen ? 'myspaces-menu' : undefined}
+                                aria-controls={this.state.mySpacesMenuOpen ? 'myspaces-menu' : undefined}
                                 aria-haspopup="true"
-                                aria-expanded={this.state.mySpacesOpen ? 'true' : undefined}
-                                onClick={(e) => this.handleMySpacesOpen(e)}
+                                aria-expanded={this.state.mySpacesMenuOpen ? 'true' : undefined}
+                                onClick={(e) => this.handleMySpacesMenuOpen(e)}
                                 endIcon={<KeyboardArrowDownIcon />}
                             >
                                 My Spaces
                             </Button>
                         </Tooltip>
+                        <Menu
+                                id="myspaces-menu"
+                                aria-labelledby="myspaces-button"
+                                anchorEl={this.state.mySpacesMenuAnchorEl}
+                                open={this.state.mySpacesMenuOpen}
+                                onClose={() => this.handleMySpacesMenuClose()}
+                            >
+                            <Tooltip title="Click to select all your Spaces" placement="right">
+                                <MenuItem onClick={async () => await this.handleGetMySpaces()}>Show Spaces</MenuItem>
+                            </Tooltip>
+                            <Tooltip title="Click to select all your listed Spaces" placement="right">
+                                <MenuItem onClick={async () => await this.handleGetMyListings()}>Show my Listed Spaces</MenuItem>
+                            </Tooltip>
+                            <Tooltip title="Refresh your Spaces to match their blockchain state" placement="right">
+                                <MenuItem onClick={async () => await this.handleRefreshUserSpaces()}>Refresh Spaces</MenuItem>
+                            </Tooltip>
+                            <Tooltip title="Register your Spaces to be able to find your spaces and change their colors" placement="right">
+                                <MenuItem onClick={() => this.register()}>Register Spaces</MenuItem>
+                            </Tooltip>
+                        </Menu>
                     </Box>}
                 </Box>
                 <div className="botnav" id="botnav"></div>

@@ -2,7 +2,7 @@ import React from "react";
 import { PublicKey } from "@solana/web3.js";
 import "./index.css";
 import { Captcha } from "./captcha.js";
-import { getColor, colorHighlight } from "../../utils";
+import { priceToColor, colorHighlight } from "../../utils";
 import { NEIGHBORHOOD_SIZE, UPPER } from "../../constants";
 import {
     Button,
@@ -482,6 +482,11 @@ export class Board extends React.Component {
         // document.removeEventListener("touchcancel", this.preventDefault);
     }
 
+    resetCanvas(){
+        this.canvasCache = { t: Date.now() };
+        requestAnimationFrame(() => this.drawCanvas());
+    }
+
     drawMouseTracker() {
         const currentMouse = document.getElementById("mouseTracker");
         const n_x = Math.floor(this.focus.x / NEIGHBORHOOD_SIZE);
@@ -574,7 +579,7 @@ export class Board extends React.Component {
                 const deltax = x * scale + this.x;
                 const deltay = y * scale + this.y;
                 const currentRef = document.getElementById(`boxTracker${pos}`);
-                const color = "#" + getColor(price);
+                const color = "#" + priceToColor(price);
                 currentRef.style.left = deltax + 0.1 * scale + "px";
                 currentRef.style.top = deltay + 0.1 * scale + "px";
                 currentRef.style.width = scale - 0.2 * scale + "px";
@@ -660,8 +665,10 @@ export class Board extends React.Component {
                         currentMap[key],
                         this.canvasCache[key]
                     );
+                }
+                if (key in this.canvasCache) {
                     context.drawImage(
-                        tmpCanvas,
+                        this.canvasCache[key],
                         this.x + n_x * neighborhood_scale,
                         this.y + n_y * neighborhood_scale,
                         neighborhood_scale,
@@ -834,7 +841,7 @@ export class Board extends React.Component {
                     const pos = JSON.stringify({ x, y });
                     const deltax = x * scale + this.x;
                     const deltay = y * scale + this.y;
-                    const color = "#" + getColor(price);
+                    const color = "#" + priceToColor(price);
                     return (
                         <div
                             className="boxTracker"

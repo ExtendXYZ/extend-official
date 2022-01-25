@@ -36,7 +36,7 @@ const Home: NextPage = () => {
             <Col  xs={24} sm={24} md={12} lg={12} xl={13}>
             <Row className={styles.launchAppContainer}>
                         {/* <img src={"/images/twitter.svg"} className={styles.socialMediaButton}/> */}
-                        <a href="https://canvas.extend.xyz/"><Button className={styles.launchAppButton}>Launch app</Button></a>
+                        <a href="https://canvas.extend.xyz/"><Button className={styles.launchAppButton}>Launch App</Button></a>
                         </Row>
             </Col>
             </Row>
@@ -95,7 +95,7 @@ const Home: NextPage = () => {
                             Imagine what’s possible with a little coordination! 
                         </p>
                         <div>
-                            <a href="https://canvas.extend.xyz"><Button className={styles.borderRadiusButton} size={'middle'}>Browse the canvas</Button></a>
+                            <a href="https://canvas.extend.xyz"><Button className={styles.borderRadiusButton} size={'middle'}>Browse the Canvas</Button></a>
                         </div>
                     </Col>
                 </Row>

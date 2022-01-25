@@ -1,20 +1,20 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Extend",
+  "name": "Extend - Creating the Most Customizable NFT",
   "icons": [
     {
-      "src": "favicon.ico",
+      "src": "images/logo.svg",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "type": "image/svg+xml"
     },
     {
-      "src": "images/logo192.png",
-      "type": "image/png",
+      "src": "images/logo.svg",
+      "type": "image/svg+xml",
       "sizes": "192x192"
     },
     {
-      "src": "images/logo512.png",
-      "type": "image/png",
+      "src": "images/logo.svg",
+      "type": "image/svg+xml",
       "sizes": "512x512"
     }
   ],

@@ -833,8 +833,9 @@ export const Home = (props: HomeProps) => {
   const ratio = window.innerHeight * 0.7 / 1000;
 
   return (
-    <div id="home" style={{display: "flex", flexDirection: "row"}}>
-      <div style={{width: "50%"}}>
+    //<div id="home" style={{display: "flex", flexDirection: "row", position: "absolute", top: "10%", bottom: 0, left: 0, right: 0, overflow: "auto"}}>
+    <div id="home" style={{display: "flex", height: 0.9 * window.innerHeight, overflow: "auto"}}>
+    <div style={{width: "50%"}}>
         <Divider/>
       <FormControl sx={{marginLeft: "20%", minWidth: "60%", maxWidth: "60%", zIndex: 1}}>
         <InputLabel id="demo-simple-select-label">Neighborhood</InputLabel>
@@ -860,10 +861,15 @@ export const Home = (props: HomeProps) => {
         <Divider/>
       
       {(!wallet || (neighborhoodX === undefined && neighborhoodY === undefined)) && (
-      <div style={{marginRight: "10%", marginTop: "30%"}}>
-        <p style={{textAlign: "center", fontSize: "25px"}}>One million Spaces are divided into a 5 x 5 grid of Neighborhoods. Each Neighborhood contains 200 x 200 (40,000) Spaces and Neighborhoods will be minted sequentially over a period of time. Welcome, future Neighbor, have a look around the Canvas and feel free to join the Neighborhood by minting your very own Spaces.</p>
-        <Divider/>
-      </div>)}
+        <div style={{marginRight: "10%", marginTop: "30%"}}>
+          <p style={{textAlign: "center", fontSize: "25px"}}>
+            One million Spaces are divided into a 5 x 5 grid of Neighborhoods.
+            Each Neighborhood contains 200 x 200 (40,000) Spaces, and Neighborhoods will
+            be minted sequentially over a period of time. Join one today by minting a free Space!
+          </p>
+          <Divider/>
+        </div>)
+      }
       {!wallet && (
       <Button
         size="large"
@@ -880,8 +886,27 @@ export const Home = (props: HomeProps) => {
       >
         <b>Connect Your Wallet</b>
       </Button>)}
-      {wallet && <p style={{marginRight: "10%", color: "#B9A06E", textAlign: "center", fontSize: "20px"}}><b>Your balance: {(balance || 0).toLocaleString()} SOL</b></p>}
-      {wallet && <p style={{marginRight: "10%", color: "#B9A06E", textAlign: "center", fontSize: "20px"}}><b>Your Space Vouchers: {totalTokens} </b></p>}
+      {wallet && 
+        <p style={{marginRight: "10%", color: "#B9A06E", textAlign: "center", fontSize: "20px"}}>
+          <b>
+            Your balance: {(balance || 0).toLocaleString()} SOL
+          </b>
+        </p>
+      }
+      {wallet && !(neighborhoodX === undefined && neighborhoodY === undefined) &&
+        <p style={{marginRight: "10%", color: "#B9A06E", textAlign: "center", fontSize: "20px"}}>
+          <b>
+            Your Space Vouchers: {totalTokens} 
+          </b>
+        </p>
+      }
+      {wallet && !(neighborhoodX === undefined && neighborhoodY === undefined) && 
+        <p style={{marginRight: "10%", color: "#CA59AE", textAlign: "center", fontSize: "20px"}}>
+          <b>
+            Turn on auto-approving transactions for the best experience.
+          </b>
+        </p>
+      }
 
       {wallet ? (
         <div>
@@ -891,12 +916,12 @@ export const Home = (props: HomeProps) => {
               {wallet && 
               <div>
               <h3 style={{color: "#B687D8", display: "inline-block"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>
-              <Tooltip title="Enter the number of Space vouchers you want and solve the captcha to receive them! Claiming multiple vouchers at once will have a higher price." placement="right">
+              <Tooltip title="Enter the number of Space vouchers (max 100) you want and solve the captcha to receive them! Receiving more vouchers at a time will cost more SOL." placement="right">
                 <InfoIcon sx={{marginLeft: "10px"}}/>
               </Tooltip>
               </div>
               }
-              {wallet && <p>Get Space Vouchers to mint your Spaces </p>}
+              {wallet && <p>Get Space Vouchers to mint your Spaces. </p>}
               <MintContainer>
                 <div>
                   <TextField
@@ -1021,6 +1046,7 @@ export const Home = (props: HomeProps) => {
                   </div>) : null
                   }
                 </div>
+                <Divider/>
               </MintContainer>
             </div>)
             :
