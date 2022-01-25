@@ -96,11 +96,16 @@ export class Database {
     async connectNew(id) {
         const currTime = Date.now();
         const result = await axios.post(this.mysql + "/connectId/", {type: "connect", id: id, time: Date.now()});
-        return result.data[0];
+        return result.data[0][0];
     }
 
     async disconnectNew(id) {
         return await axios.post(this.mysql + "/connectId/", {type: "disconnect", id: id, time: Date.now()});
+    }
+
+    async getNumViewers() {
+        const result = await axios.get(this.mysql + '/connectId');
+        return result.data[0][0];
     }
 
     async getOnline() {

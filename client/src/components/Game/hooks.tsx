@@ -84,6 +84,11 @@ export function Screen(props) {
         return id;
     }
 
+    const pullNumViewers = async() => {
+        const numViewers = await database.getNumViewers();
+        setViewer(numViewers);
+    }
+
     useEffect(() => {
         const cleanup = async () => {
             if (document.visibilityState === "hidden") {
@@ -104,8 +109,16 @@ export function Screen(props) {
             document.removeEventListener('visibilitychange', cleanup);
         }
         getViewer();
-        return unMount;
+        return unMount();
     }, []);
+
+    useEffect(() => {
+        const interval = setInterval(pullNumViewers, 15000); // update numviewers live
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
+    
 
     useEffect(() => {
         const getTokens = async () => {
