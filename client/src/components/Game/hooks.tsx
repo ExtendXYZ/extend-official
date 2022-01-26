@@ -89,36 +89,42 @@ export function Screen(props) {
         setViewer(numViewers);
     }
 
+    const refreshUser = async() => {
+        const numViewers = await database.connectNew(getId());
+        setViewer(numViewers);
+    }
+
     useEffect(() => {
-        const cleanup = async () => {
-            if (document.visibilityState === "hidden") {
-                await database.disconnectNew(getId());
-            } else if (document.visibilityState === "visible") {
-                const viewers = await database.connectNew(getId());
-                setViewer(viewers);
-            }
-        }
+        // const cleanup = async () => {
+        //     if (document.visibilityState === "visible") {
+        //         await refreshUser();
+        //     }
+        // }
         const getViewer = async () => {
-            const viewers = await database.connectNew(getId());
-            setViewer(viewers);
-            document.addEventListener('visibilitychange', cleanup);
+            await refreshUser();
+            // document.addEventListener('visibilitychange', cleanup);
         }
         const unMount = () => {
-            database.disconnectNew(getId());
             mounted.current = false;
-            document.removeEventListener('visibilitychange', cleanup);
+            // document.removeEventListener('visibilitychange', cleanup);
         }
         getViewer();
         return unMount();
     }, []);
 
     useEffect(() => {
-        const interval = setInterval(pullNumViewers, 30000); // update numviewers live
+        const interval = setInterval(pullNumViewers, 30 * 1000); // update numviewers live
         return () => {
             clearInterval(interval);
         };
     }, []);
-    
+
+    useEffect(() => {
+        const interval = setInterval(refreshUser, 5 * 60 * 1000); // refresh timestamp for user
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
 
     useEffect(() => {
         const getTokens = async () => {
