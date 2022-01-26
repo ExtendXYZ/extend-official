@@ -1,7 +1,7 @@
 import Rainbow from 'rainbowvis.js';
 
 const solanaGradient = new Rainbow();
-solanaGradient.setSpectrum('#00FFA3', '#03E1FF', '#DC1FFF');
+solanaGradient.setSpectrum('#3d50c3', 'white', '#b70d28');
 solanaGradient.setNumberRange(7, 10);
 
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
