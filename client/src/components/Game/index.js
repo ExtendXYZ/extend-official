@@ -978,8 +978,6 @@ export class Game extends React.Component {
 
     moveToSpaces = (spaces) => {
         if (spaces.size > 0) {
-            this.resetSelecting();
-            this.setSelecting(new Set(spaces));
             const bounds = getBounds(spaces);
             requestAnimationFrame(() => {
                 this.board.current.drawCanvasCache({
@@ -990,6 +988,10 @@ export class Game extends React.Component {
                 });
                 this.board.current.drawSelected();
             });
+            setTimeout(() => {
+                this.resetSelecting();
+                this.setSelecting(new Set(spaces));
+            }, 1000);
         } else {
             notify({
                 message: "No Spaces Selected",
