@@ -285,13 +285,14 @@ export function Screen(props) {
 
                 let numFramesMap = {};
                 let frameKeysMap = {};
+                let n_frames = -1;
                 if (frame == -1){
                     let neighborhoods = server.getNeighborhoods([position]);
                     ({numFramesMap, frameKeysMap} = await server.getAllFrameKeys(connection, neighborhoods));
                     let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
                     let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
 
-                    let n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
+                    n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
                     for (let frame_i = 0; frame_i < n_frames; frame_i++){
                         changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, spaceMint}));
                     }
@@ -302,7 +303,7 @@ export function Screen(props) {
                 }
                 try {
                     let ixs = await changeColorInstructions(connection, wallet, BASE, changes, frameKeysMap);
-                    sendInstructionsGreedyBatch(connection, wallet, ixs, "change color");
+                    sendInstructionsGreedyBatch(connection, wallet, ixs, "change color", true, n_frames);
                 }
                 catch (e) {
                     console.log(e)
@@ -334,6 +335,7 @@ export function Screen(props) {
                 let neighborhoods = server.getNeighborhoods(spaces);
                 let numFramesMap = {};
                 let frameKeysMap = {};
+                let n_frames = -1;
                 if (frame == -1){
                     ({numFramesMap, frameKeysMap} = await server.getAllFrameKeys(connection, neighborhoods));
                 }
@@ -352,7 +354,8 @@ export function Screen(props) {
                             let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
                             let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
                             
-                            for (let frame_i = 0; frame_i < numFramesMap[JSON.stringify({n_x, n_y})]; frame_i++){
+                            n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
+                            for (let frame_i = 0; frame_i < n_frames; frame_i++){
                                 changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, spaceMint}));
                             }
                         }
@@ -364,7 +367,7 @@ export function Screen(props) {
                 }
                 try {
                     let ixs = await changeColorInstructions(connection, wallet, BASE, changes, frameKeysMap);
-                    sendInstructionsGreedyBatch(connection, wallet, ixs, "change colors");
+                    sendInstructionsGreedyBatch(connection, wallet, ixs, "change colors", true, n_frames);
                 }
                 catch (e) {
                     console.log(e)
@@ -559,6 +562,7 @@ export function Screen(props) {
                 let neighborhoods = server.getNeighborhoods(spaces);
                 let numFramesMap = {};
                 let frameKeysMap = {};
+                let n_frames = -1;
                 if (frame == -1){
                     ({numFramesMap, frameKeysMap} = await server.getAllFrameKeys(connection, neighborhoods));
                 }
@@ -585,7 +589,8 @@ export function Screen(props) {
                                 let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
                                 let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
                                 
-                                for (let frame_i = 0; frame_i < numFramesMap[JSON.stringify({n_x, n_y})]; frame_i++){
+                                n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
+                                for (let frame_i = 0; frame_i < n_frames; frame_i++){
                                     changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, spaceMint}));
                                 }
                             }
@@ -598,7 +603,7 @@ export function Screen(props) {
                 }
                 try {
                     let ixs = await changeColorInstructions(connection, wallet, BASE, changes, frameKeysMap);
-                    sendInstructionsGreedyBatch(connection, wallet, ixs, "change color");
+                    sendInstructionsGreedyBatch(connection, wallet, ixs, "change color", true, n_frames);
                 }
                 catch (e) {
                     console.log(e)
@@ -632,6 +637,7 @@ export function Screen(props) {
                 let neighborhoods = server.getNeighborhoods(spaces);
                 let {numFramesMap, frameKeysMap} = await server.getAllFrameKeys(connection, neighborhoods);
 
+                let n_frames = -1;
                 for (let i = 0; i < gif[0].length; ++i) {
                     for (let j = 0; j < gif[0][0].length; ++j){
                         const x = init_x+j;
@@ -647,7 +653,8 @@ export function Screen(props) {
                             // n_frames = await getNumFrames(n_x, n_y, clusters_expl);
                             // clusters_expl[ JSON.stringify({n_x, n_y}) ] = n_frames;
 
-                            for (let frame = 0; frame < Math.min(gif.length, numFramesMap[JSON.stringify({n_x, n_y})]); frame++) {
+                            n_frames = Math.min(gif.length, numFramesMap[JSON.stringify({n_x, n_y})]);
+                            for (let frame = 0; frame < n_frames; frame++) {
                                 let r: number = gif[frame][i][j][0];
                                 let g: number = gif[frame][i][j][1];
                                 let b: number = gif[frame][i][j][2];
@@ -660,7 +667,7 @@ export function Screen(props) {
 
                 try {
                     let ixs = await changeColorInstructions(connection, wallet, BASE, changes, frameKeysMap);
-                    sendInstructionsGreedyBatch(connection, wallet, ixs, "change color");
+                    sendInstructionsGreedyBatch(connection, wallet, ixs, "change color", true, n_frames);
                 }
                 catch (e) {
                     console.log(e)

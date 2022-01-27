@@ -35,6 +35,7 @@ export const sendInstructionsGreedyBatch = async (
     instructions: TransactionInstruction[],
     name: string,
     showNotify: boolean = true,
+    frames: number = -1,
 ) => {
 
     let transactions: TransactionInstruction[][] = [];
@@ -117,6 +118,12 @@ export const sendInstructionsGreedyBatch = async (
     for (let i = 0; i < responses.length; i++) {
         spacesSucceed += Number(responses[i]) * ixPerTx[i];
         totalSpaces += ixPerTx[i];
+    }
+
+    console.log(frames)
+    if (frames !== -1) { // if multiple frames, divide by frame number
+        spacesSucceed = Math.floor(spacesSucceed / frames);
+        totalSpaces = Math.floor(totalSpaces / frames);
     }
 
     if (showNotify) {
