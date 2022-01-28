@@ -3,11 +3,19 @@ use solana_program::{
     borsh::try_from_slice_unchecked,
     entrypoint::ProgramResult,
     msg,
+    program::invoke,
     program_error::ProgramError,
     program_pack::Pack,
     pubkey::Pubkey,
+    clock::Clock,
+    system_instruction,
+    sysvar::{Sysvar},
 };
-use std::str::FromStr;
+use std::{
+    str::FromStr,
+    mem::size_of,
+    convert::TryInto,
+};
 
 use crate::{
     error::CustomError,
@@ -23,6 +31,9 @@ use crate::{
         SpaceMetadata,
         NeighborhoodFrameBase,
         NeighborhoodFramePointer,
+        INACTIVITY_THRESHOLD_OWNER,
+        INACTIVITY_THRESHOLD_ARBITRARY,
+        ARBITRARY_CHANGER_FEE,
     },
     processor::processor_utils::{get_neighborhood_xy},
     validation_utils::{assert_is_ata, assert_keys_equal},
@@ -42,9 +53,12 @@ pub fn process(
     let space_metadata = next_account_info(account_info_iter)?;
     let owner = next_account_info(account_info_iter)?;
     let space_ata = next_account_info(account_info_iter)?;
+    let time_cluster = next_account_info(account_info_iter)?;
+    let fee_payer = next_account_info(account_info_iter)?;
+    let system_program = next_account_info(account_info_iter)?;
 
-    // check owner is signer
-    if !owner.is_signer {
+    // check fee payer is signer
+    if !fee_payer.is_signer {
         return Err(ProgramError::MissingRequiredSignature);
     }
 
@@ -125,11 +139,51 @@ pub fn process(
         *frame.key,
     )?;
 
-    // change color
-    let mut frame_data = frame.data.borrow_mut();
+    // get indices
     let n = NEIGHBORHOOD_SIZE as i64;
     let x_mod = (args.space_x % n + n) % n;
     let y_mod = (args.space_y % n + n) % n;
+
+    // inactivity checks for non-owner fee payer
+    let now_ts = Clock::get().unwrap().unix_timestamp as u64;
+    let mut time_cluster_data = time_cluster.data.borrow_mut();
+    let idx_time_start = (8 * n * x_mod + 8 * y_mod) as usize;
+    let idx_time_end = idx_time_start + 8;
+    let time_thresh = u64::from_le_bytes( time_cluster_data[idx_time_start..idx_time_end].try_into().expect("incorrect") );
+    if time_thresh > now_ts {
+        msg!("Cannot change unowned space's color until inactivity period");
+        return Err(ProgramError::IllegalOwner);
+    }
+    let thresh_add;
+    if *fee_payer.key == *owner.key {
+        thresh_add = INACTIVITY_THRESHOLD_OWNER as u64;
+    }
+    else {
+        thresh_add = INACTIVITY_THRESHOLD_ARBITRARY as u64;
+        // transfer fee
+        let fee = ARBITRARY_CHANGER_FEE;
+        invoke(
+            &system_instruction::transfer(
+                fee_payer.key,
+                owner.key,
+                fee,
+            ),
+            &[
+                fee_payer.clone(),
+                owner.clone(),
+                system_program.clone(),
+            ],
+        )?;
+    }
+
+    let fut_thresh_bytes = u64::to_le_bytes(now_ts + thresh_add);
+    for i in 0..size_of::<u64>(){
+        time_cluster_data[idx_time_start + i] = fut_thresh_bytes[i]; 
+    }
+
+
+    // change color
+    let mut frame_data = frame.data.borrow_mut();    
     let idx = (3 * n * x_mod + 3 * y_mod) as usize;
     frame_data[idx] = args.r;
     frame_data[idx + 1] = args.g;

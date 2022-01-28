@@ -40,6 +40,8 @@ pub enum ColorInstruction {
     1. account of the color frame cluster
     2. [Signer] fee payer
     3. The system program
+    
+    time cluster account
     */
     InitFrame,
 
@@ -50,8 +52,12 @@ pub enum ColorInstruction {
     1. [Writable] Color cluster account
     2. space metadata
     2. neighborhood metadata
-    3. [Signer, Writable] Owner = fee payer
+    3. [Writable] Owner
     4. Ata of owner
+
+    time cluster account
+    [Writable, signer] fee payer
+    system program
     */
     ChangeColor,
     ChangeColorBrief,
