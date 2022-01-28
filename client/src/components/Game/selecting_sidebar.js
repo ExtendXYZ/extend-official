@@ -301,7 +301,8 @@ export class SelectingSidebar extends React.Component {
                             Upload
                           </Button>
                         </Tooltip>
-                      </ListItem>            
+                        &nbsp;
+                      </ListItem>           
                   </TabPanel>
 
 
@@ -310,80 +311,83 @@ export class SelectingSidebar extends React.Component {
                       {sidebarHeader}
                           
                       {/* Purchase info */}
-
-                      <Divider className="sidebarDivider">
-                          Modify Listing
-                      </Divider>
-                      <ListItem className="info" style={{ display: "block" }}>
-                        {/* <Box className="infoText2">
-                          Estimated Cost:{" "}
-                          {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
-                        </Box> */}
-                        <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
-                          <Box className="infoHeader">PRICE</Box>
-                        </Tooltip>
-                        <TextField
-                          hiddenLabel
-                          id="price-textfield"
-                          value={
-                            this.props.selecting.price === null
-                              ? ""
-                              : this.props.selecting.price
-                          }
-                          onChange={(e) => this.props.handleChangeSelectingPrice(e)}
-                          style={{
-                            width: "100%",
-                            height: "30px",
-                          }}
-                          variant="filled"
-                          size="small"
-                          disabled={!this.state.ownedSelection.size}
-                          InputProps={{
-                            endAdornment: (
-                              <InputAdornment position="end">SOL</InputAdornment>
-                            ),
-                          }}
-                        />
-                        <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            onClick={() => {
-                              this.props.changePrices();
-                            }}
-                            style={{
-                              width: "100%",
-                              marginTop: "20px",
-                              color: "#FFFFFF",
-                              background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                            }}
-                            disabled={
-                              !this.state.ownedSelection.size ||
+                      {this.state.ownedSelection.size > 0 ? 
+                        <div>
+                        <Divider className="sidebarDivider">
+                            Modify Listing
+                        </Divider>
+                        <ListItem className="info" style={{ display: "block" }}>
+                          {/* <Box className="infoText2">
+                            Estimated Cost:{" "}
+                            {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
+                          </Box> */}
+                          <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
+                            <Box className="infoHeader">PRICE</Box>
+                          </Tooltip>
+                          <TextField
+                            hiddenLabel
+                            id="price-textfield"
+                            value={
                               this.props.selecting.price === null
+                                ? ""
+                                : this.props.selecting.price
                             }
-                          >
-                            Set Price
-                          </Button>
-                        </Tooltip>
-                        <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            onClick={() => {
-                              this.props.delistSpaces();
-                            }}
+                            onChange={(e) => this.props.handleChangeSelectingPrice(e)}
                             style={{
                               width: "100%",
-                              marginTop: "10px",
-                              color: "#FFFFFF",
-                              background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                              height: "30px",
                             }}
+                            variant="filled"
+                            size="small"
                             disabled={!this.state.ownedSelection.size}
-                          >
-                            Delist
-                          </Button>
-                        </Tooltip>
-                      </ListItem>
+                            InputProps={{
+                              endAdornment: (
+                                <InputAdornment position="end">SOL</InputAdornment>
+                              ),
+                            }}
+                          />
+                          <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={() => {
+                                this.props.changePrices();
+                              }}
+                              style={{
+                                width: "100%",
+                                marginTop: "20px",
+                                color: "#FFFFFF",
+                                background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                              }}
+                              disabled={
+                                !this.state.ownedSelection.size ||
+                                this.props.selecting.price === null
+                              }
+                            >
+                              Set Price
+                            </Button>
+                          </Tooltip>
+                          <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={() => {
+                                this.props.delistSpaces();
+                              }}
+                              style={{
+                                width: "100%",
+                                marginTop: "10px",
+                                color: "#FFFFFF",
+                                background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                              }}
+                              disabled={!this.state.ownedSelection.size}
+                            >
+                              Delist
+                            </Button>
+                          </Tooltip>
+                        </ListItem>
+                        </div> : null
+                      }
                       <Divider className="sidebarDivider" style={{marginTop: "20px"}}>
                           Purchase Spaces
                       </Divider>
@@ -562,6 +566,7 @@ export class SelectingSidebar extends React.Component {
                             Buy Now
                           </Button>
                         </Tooltip>
+                        &nbsp;
                       </ListItem>
                   </TabPanel>
 
@@ -620,6 +625,7 @@ export class SelectingSidebar extends React.Component {
                                 </Button>
                               </Tooltip>
                             </Typography>
+                            &nbsp;
                         </ListItem>
                         </>
                     </TabPanel>

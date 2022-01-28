@@ -108,6 +108,111 @@ export class FocusSidebar extends React.Component {
         </List> : (
         <>
         <List id="focusSidebarPrefix">
+            {/* <ListItem className="info" style={{ display: "block" }}>
+                <Box className="infoHeader">POSITION</Box>
+                <Box>
+                <b>
+                    <font color="#82CBC5">
+                    X={this.props.focus.x}, Y={this.props.focus.y}
+                    </font>
+                </b>
+                </Box>
+            </ListItem> */}
+            {/* <ListItem className="info" style={{ display: "block" }}>
+                <Box className="infoHeader">NEIGHBORHOOD</Box>
+                <Box>
+                <b>
+                    <font color="#82CBC5">
+                    {this.props.focus.neighborhood_name ? this.props.focus.neighborhood_name : "NONE"}
+                    </font>
+                </b>
+                </Box>
+            </ListItem> */}
+            <ListItem className="info" style={{ display: "block" }}>
+                <Box className="infoHeader">
+                    {this.state.owned ? "OWNER (YOU)" : "OWNER"}
+                </Box>
+                <Box>
+                <Button
+                    size="small"
+                    variant="text"
+                    onClick={async () => {
+                    if (this.props.focus.owner) {
+                        navigator.clipboard.writeText(this.props.focus.owner.toBase58());
+                        notify({
+                            description: "Address copied to clipboard",
+                        });
+                    }
+                    }}
+                    style={{ padding: 0 }}
+                    disabled={!this.props.focus.owner}
+                >
+                    {this.props.focus.owner ? (
+                    <>
+                        <CopyOutlined />
+                        {shortenAddress(this.props.focus.owner.toBase58())}
+                    </>
+                    ) : (
+                    "NONE"
+                    )}
+                </Button>
+                </Box>
+            </ListItem>
+            {/* <ListItem className="info" style={{ display: "block" }}>
+                <Box className="infoHeader">
+                    MINT
+                </Box>
+                <Box>
+                <Button
+                    size="small"
+                    variant="text"
+                    onClick={async () => {
+                    if (this.props.focus.mint) {
+                        navigator.clipboard.writeText(this.props.focus.mint.toBase58());
+                        notify({
+                            description: "Address copied to clipboard",
+                        });
+                    }
+                    }}
+                    style={{ padding: 0 }}
+                    disabled={!this.props.focus.mint}
+                >
+                    {this.props.focus.mint ? (
+                    <>
+                        <CopyOutlined />
+                        {shortenAddress(this.props.focus.mint.toBase58())}
+                    </>
+                    ) : (
+                    "NONE"
+                    )}
+                </Button>
+                </Box>
+            </ListItem> */}
+        </List>
+        </>)}
+        </>;
+
+    const advancedSidebar = <>
+        <List>
+            <ListItem>
+            <div style={{display: 'flex',  justifyContent:'center', alignItems:'center'}}>
+                <img
+                    src={`https://metadata.extend.xyz/api/artwork?ext=png&x=${this.props.focus.x}&y=${this.props.focus.y}`}
+                    style={this.props.focus.infoLoaded && this.props.focus.imgLoaded ? {maxWidth: "30%"} : {display: 'none'}}
+                    className="center"
+                    onLoad={() => this.props.handleOnImgLoad()}
+                ></img>
+            </div>
+            </ListItem>
+        </List>
+        {(!this.props.focus.infoLoaded || !this.props.focus.imgLoaded) ? 
+        <List>
+            <ListItem className="info" style={{ display: "block"}}>
+            <Spin size="large" style={{ marginTop: "50px", width: "100%"}} />
+            </ListItem>
+        </List> : (
+        <>
+        <List id="focusSidebarPrefix">
             <ListItem className="info" style={{ display: "block" }}>
                 <Box className="infoHeader">POSITION</Box>
                 <Box>
@@ -117,7 +222,7 @@ export class FocusSidebar extends React.Component {
                     </font>
                 </b>
                 </Box>
-            </ListItem>
+            </ListItem> 
             <ListItem className="info" style={{ display: "block" }}>
                 <Box className="infoHeader">NEIGHBORHOOD</Box>
                 <Box>
@@ -277,6 +382,7 @@ export class FocusSidebar extends React.Component {
                                     </Button>
                                     </div>
                                 </ListItem>
+                                &nbsp;
                             </List>)
                         }
                     </TabPanel>
@@ -333,6 +439,7 @@ export class FocusSidebar extends React.Component {
                                     Buy Now
                                     </Button>
                                 </ListItem>
+                                &nbsp;
                                 </>
                             : 
                                 (!this.state.owned && !this.props.focus.hasPrice ?
@@ -402,6 +509,7 @@ export class FocusSidebar extends React.Component {
                                     </Button>
                                     ) : null}
                                 </ListItem>
+                                &nbsp;
                                 </>
                             ) : null}
                             </>
@@ -409,7 +517,7 @@ export class FocusSidebar extends React.Component {
                     </TabPanel>
 
                     <TabPanel value={this.state.value} index={2}>
-                        {sidebarHeader}
+                        {advancedSidebar}
 
                         {/* Advanced */}
 
@@ -468,6 +576,7 @@ export class FocusSidebar extends React.Component {
                                     </Tooltip>
                                 </Typography>
                             </ListItem>
+                            &nbsp;
                             </>
                         }
                     </TabPanel>
