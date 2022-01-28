@@ -131,8 +131,11 @@ export function Screen(props) {
             setUser(wallet.publicKey ? wallet.publicKey : undefined);
             if (!wallet.publicKey) { // if wallet is disconnected, set address to null 
                 server.setAddress(null); 
+                setOwnedSpaces(new Set());
+                setOwnedMints({});
             }
-            if (!wallet.disconnecting && wallet.publicKey && user === wallet.publicKey) {
+            // update owned tokens
+            else if (!wallet.disconnecting && wallet.publicKey && user === wallet.publicKey) {
                 //server.refreshCache(wallet.publicKey.toBase58());
                 server.setAddress(user);
                 // const data = await server.getSpacesByOwner(connection, wallet.publicKey.toBase58(), false);
