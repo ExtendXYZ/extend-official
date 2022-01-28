@@ -8,7 +8,7 @@ import { Server } from "ws";
 
 export const ACCEPT_OFFER_INSTRUCTION_ID = 4;
 export class AcceptOfferInstructionData {
-  instruction: number = 4;
+  instruction: number = 4; // don't use constant to allow serialization
   x: number;
   y: number;
   price: BN;
@@ -31,11 +31,11 @@ export class AcceptOfferInstructionData {
   constructor(args: {
     x: number;
     y: number;
-    price: BN;
+    price: number;
   }) {
     this.x = args.x;
     this.y = args.y;
-    this.price = args.price;
+    this.price = new BN(Math.floor(args.price));
   }
 }
 
@@ -104,7 +104,7 @@ export const acceptOfferInstruction = async (
       SPACE_PROGRAM_ID
     );
 
-  const alice_NFT_ATA = await Token.getAssociatedTokenAddress(
+  const alice_space_ATA = await Token.getAssociatedTokenAddress(
     ASSOCIATED_TOKEN_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
     mint,
@@ -112,7 +112,7 @@ export const acceptOfferInstruction = async (
     false
   );
 
-  const seller_NFT_ATA = await Token.getAssociatedTokenAddress(
+  const seller_space_ATA = await Token.getAssociatedTokenAddress(
     ASSOCIATED_TOKEN_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
     mint,
@@ -123,7 +123,7 @@ export const acceptOfferInstruction = async (
   const args = new AcceptOfferInstructionData({
     x,
     y,
-    price: new BN(Math.round(price)),
+    price,
   });
 
   const keys = [
@@ -158,7 +158,7 @@ export const acceptOfferInstruction = async (
       isWritable: true,
     },
     {
-      pubkey: alice_NFT_ATA,
+      pubkey: alice_space_ATA,
       isSigner: false,
       isWritable: true,
     },
@@ -168,7 +168,7 @@ export const acceptOfferInstruction = async (
       isWritable: true,
     },
     {
-      pubkey: seller_NFT_ATA,
+      pubkey: seller_space_ATA,
       isSigner: false,
       isWritable: true,
     },

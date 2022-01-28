@@ -132,6 +132,7 @@ export class SelectingSidebar extends React.Component {
 
     handleTabChange(event, newValue) {
         this.setState({value: newValue});
+        this.props.resetTargets();
     };
 
     render() {
@@ -174,6 +175,7 @@ export class SelectingSidebar extends React.Component {
                       <Tab label="Modify" {...a11yProps(0)} />
                       <Tab label="Price Info" {...a11yProps(1)} />
                       <Tab label="Advanced" {...a11yProps(2)} />
+                      {/* <Tab label="Rent Info" {...a11yProps(3)} /> */}
                     </Tabs>
                   </AppBar>
 
@@ -445,7 +447,7 @@ export class SelectingSidebar extends React.Component {
                           size="small"
                           variant="contained"
                           onClick={() => {
-                            this.props.loadPrice();
+                            this.props.loadPurchasableInfo();
                           }}
                           style={{
                             width: "100%",
@@ -463,7 +465,7 @@ export class SelectingSidebar extends React.Component {
                             size="small"
                             variant="contained"
                             onClick={() => {
-                              this.props.handleShowAllPurchasable();
+                              this.props.handleTargetAll();
                             }}
                 
                             disabled={this.props.selecting.loadingPricesStatus != 2}
@@ -509,7 +511,7 @@ export class SelectingSidebar extends React.Component {
                               size="small"
                               variant="contained"
                               onClick={() => {
-                                this.props.handleShowFloor();
+                                this.props.handleTargetFloor();
                               }}
                               disabled={this.props.selecting.loadingPricesStatus != 2}
                               style={{
@@ -529,7 +531,7 @@ export class SelectingSidebar extends React.Component {
                                         <FormControlLabel
                                             control={
                                                 <Switch 
-                                                onChange={(e) => this.handleShowFloor(e)} 
+                                                onChange={(e) => this.handleTargetFloor(e)} 
                                                 checked={this.props.floor}
                                                 disabled={this.props.selecting.loadingPricesStatus != 2}
                                                 />
@@ -621,6 +623,267 @@ export class SelectingSidebar extends React.Component {
                         </ListItem>
                         </>
                     </TabPanel>
+
+
+
+                    <TabPanel value={this.state.value} index={3}>
+                      {sidebarHeader}
+                          
+                      {/* Purchase info */}
+
+                      <Divider className="sidebarDivider">
+                          Modify Rent
+                      </Divider>
+                      <ListItem className="info" style={{ display: "block" }}>
+                        {/* <Box className="infoText2">
+                          Estimated Cost:{" "}
+                          {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
+                        </Box> */}
+                        <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
+                          <Box className="infoHeader">PRICE (per day)</Box>
+                        </Tooltip>
+                        <TextField
+                          hiddenLabel
+                          id="price-textfield"
+                          value={
+                            this.props.selecting.rentPrice === null
+                              ? ""
+                              : this.props.selecting.rentPrice
+                          }
+                          onChange={(e) => this.props.handleChangeSelectingRentPrice(e)}
+                          style={{
+                            width: "100%",
+                            height: "30px",
+                          }}
+                          variant="filled"
+                          size="small"
+                          disabled={!this.state.ownedSelection.size}
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">SOL</InputAdornment>
+                            ),
+                          }}
+                        />
+                        <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={() => {
+                              this.props.changeRents();
+                            }}
+                            style={{
+                              width: "100%",
+                              marginTop: "20px",
+                              color: "#FFFFFF",
+                              background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                            }}
+                            disabled={
+                              !this.state.ownedSelection.size ||
+                              this.props.selecting.rentPrice === null
+                            }
+                          >
+                            Set Rent
+                          </Button>
+                        </Tooltip>
+                        <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
+                          <Button
+                            size="small"
+                            variant="contained"ent
+                            onClick={() => {
+                              this.props.delistRents();
+                            }}
+                            style={{
+                              width: "100%",
+                              marginTop: "10px",
+                              color: "#FFFFFF",
+                              background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                            }}
+                            disabled={!this.state.ownedSelection.size}
+                          >
+                            Delist Rent
+                          </Button>
+                        </Tooltip>
+                      </ListItem>
+                      <Divider className="sidebarDivider" style={{marginTop: "20px"}}>
+                          Rent Spaces
+                      </Divider>
+                      <ListItem className="info" style={{ display: "block" }}>
+                        <Box className="infoText1">
+                          Targeted cells count
+                        </Box>
+                        <Box
+                          style={{
+                            filter:
+                              this.props.selecting.loadingPricesStatus === 1
+                                ? "blur(0.5rem)"
+                                : "blur(0)",
+                            transition: "0.5s",
+                          }}
+                        >
+                          <b>
+                            <font color="#82CBC5" style={{ marginLeft: "5px" }}>
+                              {
+                              this.props.selecting.loadingRentStatus !== 2
+                                ? "not loaded"
+                              :
+                                this.props.selecting.rentableInfo.length +
+                                "/" +
+                                this.props.selecting.poses.size}
+                            </font>
+                          </b>
+                        </Box>
+                      </ListItem>
+                      <ListItem className="info" style={{ display: "block" }}>
+                        <Box className="infoText1">Total Price (per day)</Box>
+                        <Box
+                          style={{
+                            filter:
+                              this.props.selecting.loadingRentStatus === 1
+                                ? "blur(0.5rem)"
+                                : "blur(0)",
+                            transition: "0.5s",
+                          }}
+                        >
+                          <img
+                            src={
+                              require("../../assets/images/solana-transparent.svg").default
+                            }
+                            alt="SOL"
+                          />
+                          <b>
+                            <font color="#82CBC5" style={{ marginLeft: "5px" }}>
+                              { 
+                              this.props.selecting.loadingRentStatus !== 2
+                                ? "not loaded"
+                                :
+                                formatPrice(this.props.selecting.totalRentPrice)
+                              }
+                            </font>
+                          </b>
+                        </Box>
+                      </ListItem>
+                      <ListItem className="info" style={{ display: "block" }}>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          onClick={() => {
+                            this.props.loadRentableInfo();
+                          }}
+                          style={{
+                            width: "100%",
+                            marginLeft: "5px",
+                            color: "#FFFFFF",
+                            background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                          }}
+                        >
+                          Load Rent Info
+                        </Button>
+                      </ListItem>
+                      <ListItem className="info" style={{ display: "block" }}>
+                        <Tooltip placement={'right'} title="Select all purchasable Spaces in your selection to prepare to purchase them.">
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={() => {
+                              this.props.handleTargetRentAll();
+                            }}
+                
+                            disabled={this.props.selecting.loadingRentStatus != 2}
+                            style={{
+                              width: "100%",
+                              marginLeft: "5px",
+                              color: "#FFFFFF",
+                              background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                            }}
+                          >
+                            Target All Rentable
+                          </Button>
+                        </Tooltip>
+                      </ListItem>
+                      <ListItem className="info" style={{ display: "block" }}>
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                          <TextField
+                            required
+                            id="outlined-required"
+                            label="width"
+                            type="number"
+                            defaultValue={1}
+                            onChange={(e) => this.props.handleChangeFloorM(e)}
+                            value={this.props.selecting.floorM}
+                            disabled={this.props.selecting.loadingRentStatus != 2}
+                            style={{ width: "25%" }}
+                            size="small"
+                          />
+                          <TextField
+                            required
+                            id="outlined-required"
+                            label="height"
+                            type="number"
+                            defaultValue={1}
+                            onChange={(e) => this.props.handleChangeFloorN(e)}
+                            value={this.props.selecting.floorN}
+                            disabled={this.props.selecting.loadingRentStatus != 2}
+                            style={{ width: "25%" }}
+                            size="small"
+                          />
+                          <Tooltip placement={'right'} title="Select the cheapest rectangle in your selection of the specified width and height dimensions.">
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={() => {
+                                this.props.handleTargetRentFloor();
+                              }}
+                              disabled={this.props.selecting.loadingRentStatus != 2}
+                              style={{
+                                width: "45%",
+                                marginLeft: "10px",
+                                marginTop: "5px",
+                                marginLeft: "5px",
+                                color: "#FFFFFF",
+                                background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                              }}
+                            >
+                              Target Floor
+                            </Button>
+                          </Tooltip>
+                        </div>
+                        {/* <FormControl style={{alignItems: "center"}}>
+                                        <FormControlLabel
+                                            control={
+                                                <Switch 
+                                                onChange={(e) => this.handleTargetFloor(e)} 
+                                                checked={this.props.floor}
+                                                disabled={this.props.selecting.loadingPricesStatus != 2}
+                                                />
+                                            } 
+                                            label="SHOW FLOOR"
+                                        />
+                                    </FormControl> */}
+                      </ListItem>
+                      <ListItem className="info" style={{ display: "block" }}>
+                        <Tooltip placement={'right'} title={tooltipBuyTitle}>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={() => {
+                              this.props.rentSpaces();
+                            }}
+                            style={{
+                              width: "100%",
+                              color: "#FFFFFF",
+                              background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                            }}
+                            disabled={
+                              !this.props.user ||
+                              this.props.selecting.loadingRentStatus != 2 ||
+                              this.props.selecting.rentable.size === 0
+                            }
+                          >
+                            Rent Now
+                          </Button>
+                        </Tooltip>
+                      </ListItem>
+                  </TabPanel>
                 </div>
         )
     }

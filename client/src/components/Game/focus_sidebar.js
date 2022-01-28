@@ -206,6 +206,7 @@ export class FocusSidebar extends React.Component {
                         <Tab label="Modify" {...a11yProps(0)} />
                         <Tab label={priceInfoName} {...a11yProps(1)} />
                         <Tab label="Advanced" {...a11yProps(2)} />
+                        {/* <Tab label="Rent" {...a11yProps(3)} /> */}
                       </Tabs>
                     </AppBar>
 
@@ -407,9 +408,6 @@ export class FocusSidebar extends React.Component {
                         }
                     </TabPanel>
 
-
-
-
                     <TabPanel value={this.state.value} index={2}>
                         {sidebarHeader}
 
@@ -470,6 +468,131 @@ export class FocusSidebar extends React.Component {
                                     </Tooltip>
                                 </Typography>
                             </ListItem>
+                            </>
+                        }
+                    </TabPanel>
+
+                    <TabPanel value={this.state.value} index={3}>
+                        {sidebarHeader}
+
+                        {/* rent info */}
+                        
+                        {(!this.props.focus.infoLoaded || !this.props.focus.imgLoaded) ?
+                            null
+                            :
+                            <>
+                            {!this.state.owned && this.props.focus.hasRentPrice ? 
+                                <>
+                                <Divider className="sidebarDivider">
+                                    Rent Space
+                                </Divider>
+                                <ListItem className="info" style={{ display: "block" }}>
+                                    <Box className="infoHeader">PRICE (per day)</Box>
+                                    <Box>
+                                    <img
+                                        src={
+                                        require("../../assets/images/solana-transparent.svg")
+                                            .default
+                                        }
+                                        alt="SOL"
+                                    />
+                                    <b>
+                                        <font color="#82CBC5" style={{ marginLeft: "5px" }}>
+                                        {this.props.focus.hasRentPrice
+                                            ? formatPrice(this.props.focus.rentPrice)
+                                            : "NONE"}
+                                        </font>
+                                    </b>
+                                    </Box>
+                                </ListItem>
+                                <ListItem className="info" style={{ display: "block" }}>
+                                    <Button
+                                    size="small"
+                                    variant="contained"
+                                    onClick={() => {
+                                        this.props.rentSpace();
+                                    }}
+                                    style={{
+                                        width: "100%",
+                                        color: "#FFFFFF",
+                                        background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                                    }}
+                                    disabled={!this.props.user}
+                                    >
+                                    Rent Now
+                                    </Button>
+                                </ListItem>
+                                </>
+                            : 
+                                (!this.state.owned && !this.props.focus.hasRentPrice ?
+                                    (<Divider className="sidebarDivider">
+                                        Space Not Listed for Rent
+                                    </Divider>) : null
+                                )
+                            }
+                            {this.state.owned ? (
+                                // <Box sx={{ display: 'flex', color: '#173A5E', bgcolor: 'black' }}>
+                                <>
+                                <Divider className="sidebarDivider">
+                                    Modify Listing
+                                </Divider>
+                                <ListItem className="info" style={{ display: "block" }}>
+                                    <Box className="infoHeader">PRICE (per day)</Box>
+                                    <TextField
+                                    hiddenLabel
+                                    id="price-textfield"
+                                    value={
+                                        this.props.focus.rentPrice === null ? "" : this.props.focus.rentPrice
+                                    }
+                                    onChange={(e) => this.props.handleChangeFocusRentPrice(e)}
+                                    style={{
+                                        width: "100%",
+                                        height: "30px",
+                                    }}
+                                    variant="filled"
+                                    size="small"
+                                    InputProps={{
+                                        endAdornment: (
+                                        <InputAdornment position="end">SOL</InputAdornment>
+                                        ),
+                                    }}
+                                    />
+                                    <Button
+                                    size="small"
+                                    variant="contained"
+                                    onClick={() => {
+                                        this.props.changeRent();
+                                    }}
+                                    style={{
+                                        width: "100%",
+                                        marginTop: "20px",
+                                        color: "#FFFFFF",
+                                        background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                                    }}
+                                    disabled={this.props.focus.price === null}
+                                    >
+                                    Set Price
+                                    </Button>
+                                    {this.props.focus.hasPrice ? (
+                                    <Button
+                                        size="small"
+                                        variant="contained"
+                                        onClick={() => {
+                                        this.props.delistRent();
+                                        }}
+                                        style={{
+                                        width: "100%",
+                                        marginTop: "10px",
+                                        color: "#FFFFFF",
+                                        background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                                        }}
+                                    >
+                                        Delist
+                                    </Button>
+                                    ) : null}
+                                </ListItem>
+                                </>
+                            ) : null}
                             </>
                         }
                     </TabPanel>

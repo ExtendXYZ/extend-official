@@ -115,6 +115,9 @@ export function shuffle(array, indexArray) {
 }
 
 export function formatPrice(x){
+  if (x === null){
+    return ""
+  }
   return x.toFixed(3) > 0 ? x.toFixed(3) : x.toPrecision(2);
 }
 

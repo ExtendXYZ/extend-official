@@ -18,7 +18,13 @@ import {
     initNeighborhoodMetadataInstruction,
     createColorClusterInstruction,
     InitFrameInstruction,
-    initVoucherSystemInstruction
+    initVoucherSystemInstruction,
+    SetRentArgs,
+    setRentInstruction,
+    setRentInstructions,
+    AcceptRentArgs,
+    acceptRentInstruction,
+    acceptRentInstructions,
 } from "../../actions";
 import { sendSignedTransaction } from '../../contexts/ConnectionContext'
 import {
@@ -68,6 +74,10 @@ export function Screen(props) {
     const [registerMints, setRegisterMints] = useState<{}>();
     const [newNeighborhoodTrigger, setNewNeighborhoodTrigger] = useState<any>({});
     const [newFrameTrigger, setNewFrameTrigger] = useState<any>({});
+    const [changeRentTrigger, setChangeRentTrigger] = useState({});
+    const [changeRentsTrigger, setChangeRentsTrigger] = useState({});
+    const [acceptRentTrigger, setAcceptRentTrigger] = useState({});
+    const [acceptRentsTrigger, setAcceptRentsTrigger] = useState({});
     const [viewer, setViewer] = useState(0);
 
     const game = useRef<Game>(null);
@@ -133,6 +143,7 @@ export function Screen(props) {
                 server.setAddress(null); 
                 setOwnedSpaces(new Set());
                 setOwnedMints({});
+                // game.current?.resetTargets();
             }
             // update owned tokens
             else if (!wallet.disconnecting && wallet.publicKey && user === wallet.publicKey) {
@@ -150,6 +161,7 @@ export function Screen(props) {
                     setOwnedSpaces(data.spaces);
                     setOwnedMints(data.mints);
                     setLoadedOwned(true);
+                    // game.current?.resetTargets();
                 }
             }
         }
@@ -283,7 +295,7 @@ export function Screen(props) {
                 const frame = changeColorTrigger["frame"];
                 const position = JSON.stringify({x, y});
 
-                const spaceMint = changeColorTrigger["mint"];
+                const mint = changeColorTrigger["mint"];
                 let changes: ChangeColorArgs[] = [];
 
                 let numFramesMap = {};
@@ -297,11 +309,11 @@ export function Screen(props) {
 
                     n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
                     for (let frame_i = 0; frame_i < n_frames; frame_i++){
-                        changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, spaceMint}));
+                        changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, mint}));
                     }
                 }
                 else{
-                    let change = new ChangeColorArgs({x, y, frame, r, g, b, spaceMint});
+                    let change = new ChangeColorArgs({x, y, frame, r, g, b, mint});
                     changes.push(change);
                 }
                 try {
@@ -351,7 +363,7 @@ export function Screen(props) {
                         let p = JSON.parse(s);
                         const x = p.x;
                         const y = p.y;
-                        const spaceMint = ownedMints[s];
+                        const mint = ownedMints[s];
 
                         if (frame == -1){
                             let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
@@ -359,11 +371,11 @@ export function Screen(props) {
                             
                             n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
                             for (let frame_i = 0; frame_i < n_frames; frame_i++){
-                                changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, spaceMint}));
+                                changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, mint}));
                             }
                         }
                         else{
-                            let change = new ChangeColorArgs({x, y, frame, r, g, b, spaceMint});
+                            let change = new ChangeColorArgs({x, y, frame, r, g, b, mint});
                             changes.push(change);
                         }
                     }
@@ -386,17 +398,17 @@ export function Screen(props) {
     useEffect(() => {
         const asyncSetPrice = async() => {
             const price = changePriceTrigger["price"];
-            const delist = changePriceTrigger["delist"];
-            if ((price || delist) && wallet.publicKey) {
+            const create = changePriceTrigger["create"];
+            if ((price || !create) && wallet.publicKey) {
                 const x = changePriceTrigger["x"];
                 const y = changePriceTrigger["y"];
                 const position = JSON.stringify({x, y});
-                const spaceMint = changePriceTrigger["mint"];
+                const mint = changePriceTrigger["mint"];
                 try {
-                    let change = new ChangeOfferArgs({x, y, mint: spaceMint, price, create: !delist});
+                    let change = new ChangeOfferArgs({x, y, mint, price, create});
                     let ix = await changeOfferInstruction(wallet, BASE, change);
                     let name = "Set space price"
-                    if (delist) {
+                    if (!create) {
                         name = "Delist"
                     }
                     sendTransaction(connection, wallet, ix, name);
@@ -414,9 +426,9 @@ export function Screen(props) {
     useEffect(() => {
         const asyncSetPrices = async() => {
             const price = changePricesTrigger["price"];
-            const delist = changePricesTrigger["delist"];
+            const create = changePricesTrigger["create"];
             const spaces = changePricesTrigger["spaces"];
-            if ((price || delist) && wallet.publicKey) {
+            if ((price || !create) && wallet.publicKey && spaces) {
 
                 let changes: ChangeOfferArgs[] = [];
                 const spaceGrid = ownedSpaces;
@@ -425,15 +437,15 @@ export function Screen(props) {
                         let p = JSON.parse(space);
                         const x = p.x;
                         const y = p.y;
-                        const spaceMint = ownedMints[space];
-                        let change = new ChangeOfferArgs({x, y, mint: spaceMint, price, create: !delist});
+                        const mint = ownedMints[space];
+                        let change = new ChangeOfferArgs({x, y, mint: mint, price, create});
                         changes.push(change);
                     }
                 }
                 try{
                     let ixs = await changeOfferInstructions(wallet, BASE, changes);
                     let name = "Set space prices"
-                    if (delist) {
+                    if (!create) {
                         name = "Delist"
                     }
                     sendInstructionsGreedyBatch(connection, wallet, ixs, name);
@@ -449,7 +461,7 @@ export function Screen(props) {
     );
 
     useEffect(() => {
-        const asyncBuySpace = async() => {
+        const asyncPurchaseSpace = async() => {
             let price = purchaseSpaceTrigger["price"];
             if (price) {
                 if (wallet.publicKey) {
@@ -458,16 +470,16 @@ export function Screen(props) {
                     const y = purchaseSpaceTrigger["y"];
                     const bob = purchaseSpaceTrigger["owner"];
                     const position = JSON.stringify({x, y});
-                    const spaceMint = purchaseSpaceTrigger["mint"];
+                    const mint = purchaseSpaceTrigger["mint"];
                     try {
-                        let change = new AcceptOfferArgs({x, y, mint: spaceMint, price, seller: bob});
+                        let change = new AcceptOfferArgs({x, y, mint: mint, price, seller: bob});
                         let ix = await acceptOfferInstruction(server, connection, wallet, BASE, change);
                         const response = await sendTransaction(connection, wallet, ix, "Buy space");
                         if (response) {
                             let finalOwnedSpaces = new Set(ownedSpaces);
                             let newOwnedMints = {};
                             finalOwnedSpaces.add(position);
-                            newOwnedMints[position] = spaceMint;
+                            newOwnedMints[position] = mint;
                             // refresh focus if not changed
                             const focus = game.current?.state.focus;
                             if (focus && focus.focus && focus.x == x && focus.y == y){
@@ -489,13 +501,13 @@ export function Screen(props) {
                 }
             }
         }
-        asyncBuySpace();
+        asyncPurchaseSpace();
     },
         [purchaseSpaceTrigger]
     );
 
     useEffect(() => {
-        const asyncBuySpaces = async() => {
+        const asyncPurchaseSpaces = async() => {
             if (purchaseSpacesTrigger["purchasableInfo"]) {
                 if (wallet.publicKey) {
                     let currentUser = wallet.publicKey;
@@ -519,10 +531,10 @@ export function Screen(props) {
                                 for (let j = 0; j < ixPerTx[i]; j++) {
                                     let x = changes[ind+j].x;
                                     let y = changes[ind+j].y;
-                                    let spaceMint = changes[ind+j].mint;
+                                    let mint = changes[ind+j].mint;
                                     let position = JSON.stringify({x, y});
                                     finalOwnedSpaces.add(position);
-                                    newOwnedMints[position] = spaceMint;
+                                    newOwnedMints[position] = mint;
                                 }
                             }
                         }
@@ -541,7 +553,7 @@ export function Screen(props) {
                 }
             }
         }
-        asyncBuySpaces();
+        asyncPurchaseSpaces();
     },
         [purchaseSpacesTrigger]
     );    
@@ -586,7 +598,7 @@ export function Screen(props) {
                             const r = image[i][j][0];
                             const g = image[i][j][1];
                             const b = image[i][j][2];
-                            const spaceMint = ownedMints[position];
+                            const mint = ownedMints[position];
                            
                             if (frame == -1){
                                 let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
@@ -594,11 +606,11 @@ export function Screen(props) {
                                 
                                 n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
                                 for (let frame_i = 0; frame_i < n_frames; frame_i++){
-                                    changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, spaceMint}));
+                                    changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, mint}));
                                 }
                             }
                             else{
-                                let change = new ChangeColorArgs({x, y, frame, r, g, b, spaceMint});
+                                let change = new ChangeColorArgs({x, y, frame, r, g, b, mint});
                                 changes.push(change);
                             }
                         }
@@ -648,7 +660,7 @@ export function Screen(props) {
 
                         const position = JSON.stringify({x, y});
                         if (spaces.has(position) && spaceGrid.has(position)) {
-                            const spaceMint = ownedMints[position];
+                            const mint = ownedMints[position];
 
                             // To get num frames
                             n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
@@ -662,7 +674,7 @@ export function Screen(props) {
                                 let g: number = gif[frame][i][j][1];
                                 let b: number = gif[frame][i][j][2];
                                 
-                                changes.push(new ChangeColorArgs({x, y, frame, r, g, b, spaceMint}));
+                                changes.push(new ChangeColorArgs({x, y, frame, r, g, b, mint}));
                             }
                         }
                     }
@@ -885,6 +897,177 @@ export function Screen(props) {
         [newFrameTrigger]
     );
 
+    useEffect(() => {
+        const asyncChangeRent = async() => {
+            const price = changeRentTrigger["price"];
+            const create = changeRentTrigger["create"];
+            if ((price || !create) && wallet.publicKey) {
+                const x = changeRentTrigger["x"];
+                const y = changeRentTrigger["y"];
+                const min_duration = changeRentTrigger["min_duration"];
+                const max_duration = changeRentTrigger["max_duration"];
+                const max_timestamp = changeRentTrigger["max_timestamp"];
+                const position = JSON.stringify({x, y});
+                const mint = changeRentTrigger["mint"];
+                try {
+                    let change = new SetRentArgs({x, y, mint, price, min_duration, max_duration, max_timestamp, create});
+                    let ix = await setRentInstruction(wallet, BASE, change);
+                    let name = "Set rent";
+                    if (!create) {
+                        name = "Delist rent";
+                    }
+                    sendTransaction(connection, wallet, ix, name);
+                }
+                catch (e) {
+                    return;
+                }
+            }
+        }
+        asyncChangeRent();
+    },
+        [changeRentTrigger]
+    );
+
+    useEffect(() => {
+        const asyncChangeRents = async() => {
+            const price = changeRentsTrigger["price"];
+            const create = changeRentsTrigger["create"];
+            const spaces = changeRentsTrigger["spaces"];
+            if ((price || !create) && wallet.publicKey && spaces) {
+
+                const min_duration = changeRentsTrigger["min_duration"];
+                const max_duration = changeRentsTrigger["max_duration"];
+                const max_timestamp = changeRentsTrigger["max_timestamp"];
+                let changes: SetRentArgs[] = [];
+                const spaceGrid = ownedSpaces;
+                for (let space of spaces){
+                    if (spaceGrid.has(space)) {
+                        let p = JSON.parse(space);
+                        const x = p.x;
+                        const y = p.y;
+                        const mint = ownedMints[space];
+                        let change = new SetRentArgs({x, y, mint, price, min_duration, max_duration, max_timestamp, create});
+                        changes.push(change);
+                    }
+                }
+                try{
+                    let ixs = await setRentInstructions(wallet, BASE, changes);
+                    let name = "Set rent"
+                    if (!create) {
+                        name = "Delist rent"
+                    }
+                    sendInstructionsGreedyBatch(connection, wallet, ixs, name);
+                }
+                catch (e) {
+                    return;
+                }
+            }
+        }
+        asyncChangeRents();
+    },
+        [changeRentsTrigger]
+    );
+
+    useEffect(() => {
+        const asyncAcceptRent = async() => {
+            let price = acceptRentTrigger["price"];
+            if (price) {
+                if (wallet.publicKey) {
+                    let currentUser = wallet.publicKey;
+                    const x = acceptRentTrigger["x"];
+                    const y = acceptRentTrigger["y"];
+                    const rent_time = acceptRentTrigger["rent_time"];
+                    const renter = acceptRentTrigger["owner"];
+                    const position = JSON.stringify({x, y});
+                    const mint = acceptRentTrigger["mint"];
+                    try {
+                        let change = new AcceptRentArgs({x, y, mint, price, rent_time, renter});
+                        let ix = await acceptRentInstruction(server, connection, wallet, BASE, change);
+                        const response = await sendTransaction(connection, wallet, ix, "Rent space");
+                        // if (response) {
+                        //     let finalOwnedSpaces = new Set(ownedSpaces);
+                        //     let newOwnedMints = {};
+                        //     finalOwnedSpaces.add(position);
+                        //     newOwnedMints[position] = mint;
+                        //     // refresh focus if not changed
+                        //     const focus = game.current?.state.focus;
+                        //     if (focus && focus.focus && focus.x == x && focus.y == y){
+                        //         game.current?.handleFocusRefresh();
+                        //     }
+                        //     // if wallet is unchanged, update state
+                        //     if (wallet.publicKey == currentUser){
+                        //         setOwnedSpaces(finalOwnedSpaces);
+                        //         setOwnedMints({...ownedMints, ...newOwnedMints});
+                        //     }
+                        //     database.register(wallet.publicKey, newOwnedMints);
+                        // }
+                    }
+                    catch (e) {
+                        return;
+                    }
+                } else { // user isn't logged in
+                    notify({ message: "Not logged in" });
+                }
+            }
+        }
+        asyncAcceptRent();
+    },
+        [acceptRentTrigger]
+    );
+
+    useEffect(() => {
+        const asyncAcceptRents = async() => {
+            if (acceptRentsTrigger["rentableInfo"]) {
+                if (wallet.publicKey) {
+                    let currentUser = wallet.publicKey;
+                    const rent_time = acceptRentsTrigger["rent_time"];
+                    let changes = acceptRentsTrigger["rentableInfo"].map(x => new AcceptRentArgs({...x, rent_time}));
+
+                    try {
+                        let ixs = await acceptRentInstructions(server, connection, wallet, BASE, changes);
+                        const inter = await sendInstructionsGreedyBatch(connection, wallet, ixs, "Rent spaces");
+                        // let responses = inter.responses;
+                        // let ixPerTx = inter.ixPerTx;
+                        // let ind = 0;
+                        // let finalOwnedSpaces = new Set(ownedSpaces);
+                        // let newOwnedMints = {};
+                        // for (let i = 0; i < responses.length; i++) {
+                            
+                        //     if (i != 0) {
+                        //         ind += ixPerTx[i-1];
+                        //     }
+
+                        //     if (responses[i]) {
+                        //         for (let j = 0; j < ixPerTx[i]; j++) {
+                        //             let x = changes[ind+j].x;
+                        //             let y = changes[ind+j].y;
+                        //             let mint = changes[ind+j].mint;
+                        //             let position = JSON.stringify({x, y});
+                        //             finalOwnedSpaces.add(position);
+                        //             newOwnedMints[position] = mint;
+                        //         }
+                        //     }
+                        // }
+                        // // if wallet is unchanged, update state
+                        // if (wallet.publicKey == currentUser){
+                        //     setOwnedSpaces(finalOwnedSpaces);
+                        //     setOwnedMints({...ownedMints, ...newOwnedMints});
+                        // }
+                        // database.register(wallet.publicKey, newOwnedMints);
+                    }
+                    catch (e) {
+                        return;
+                    }
+                } else { // user isn't logged in
+                    notify({ message: "Not logged in" });
+                }
+            }
+        }
+        asyncAcceptRents();
+    },
+        [acceptRentsTrigger]
+    );    
+
     return (
         <Game
             ref={game}
@@ -906,6 +1089,10 @@ export function Screen(props) {
             setGifUploadTrigger={setGifUploadTrigger}
             setNewNeighborhoodTrigger={setNewNeighborhoodTrigger}
             setNewFrameTrigger={setNewFrameTrigger}
+            setChangeRentTrigger={setChangeRentTrigger}
+            setChangeRentsTrigger={setChangeRentsTrigger}
+            setAcceptRentTrigger={setAcceptRentTrigger}
+            setAcceptRentsTrigger={setAcceptRentsTrigger}
             locator={props.locator}
             database={database}
             server={server}

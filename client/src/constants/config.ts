@@ -19,6 +19,7 @@ export const SELL_DELEGATE_SEED = "sell_delegate"
 export const SPACE_METADATA_SEED = "space_metadata";
 export const VOUCHER_MINT_SEED = "voucher_mint";
 export const VOUCHER_SINK_SEED = "voucher_sink";
+export const RENT_ACCOUNT_SEED = "rent_account";
 
 export const BATCH_TX_SIZE = 200;
 export const BATCH_LOAD_PRICE_SIZE = 600;
@@ -45,6 +46,9 @@ export const COLOR_PROGRAM_ID = new PublicKey(
 );
 export const SPACE_PROGRAM_ID = new PublicKey(
   "XSPCZghPXkWTWpvrfQ34Szpx3rwmUjsxebRFf5ckbMD"
+);
+export const RENT_PROGRAM_ID = new PublicKey(
+  "XRNTtrxNf3Y2pAyi2bKkngYpuRxRouTkTQ1bNro3KGx"
 );
 export const METADATA_PROGRAM_ID = new PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"

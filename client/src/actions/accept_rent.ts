@@ -1,21 +1,21 @@
-import {PublicKey, TransactionInstruction,} from "@solana/web3.js";
+import {PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction,} from "@solana/web3.js";
 import BN from "bn.js";
 import {Schema, serialize} from "borsh";
-import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID,} from "@solana/spl-token";
-import {SPACE_METADATA_SEED, SPACE_PROGRAM_ID, SELL_DELEGATE_SEED,} from "../constants";
+import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID, u64,} from "@solana/spl-token";
+import {NEIGHBORHOOD_SIZE, NEIGHBORHOOD_METADATA_SEED, SPACE_METADATA_SEED, SPACE_PROGRAM_ID, SELL_DELEGATE_SEED, RENT_ACCOUNT_SEED, RENT_PROGRAM_ID} from "../constants";
 import {correct_negative_serialization, twoscomplement_i2u} from "../utils/borsh";
+import { Server } from "ws";
 
-export const CHANGE_OFFER_INSTRUCTION_ID = 3;
-export class ChangeOfferInstructionData {
-  instruction: number = 3;
+export class AcceptRentInstructionData {
+  instruction: number = 1;
   x: number;
   y: number;
   price: BN;
-  create: boolean;
+  rent_time: BN;
 
   static schema: Schema = new Map([
     [
-      ChangeOfferInstructionData,
+      AcceptRentInstructionData,
       {
         kind: "struct",
         fields: [
@@ -23,7 +23,7 @@ export class ChangeOfferInstructionData {
           ["x", "u64"],
           ["y", "u64"],
           ["price", "u64"],
-          ["create", "u8"],
+          ["rent_time", "u64"],
         ],
       },
     ],
@@ -33,47 +33,55 @@ export class ChangeOfferInstructionData {
     x: number;
     y: number;
     price: number;
-    create: boolean;
+    rent_time: number;
   }) {
     this.x = args.x;
     this.y = args.y;
     this.price = new BN(Math.floor(args.price));
-    this.create = args.create;
+    this.rent_time = new BN(Math.floor(args.rent_time));
   }
 }
 
-export class ChangeOfferArgs{
+export class AcceptRentArgs{
   x: number;
   y: number;
   mint: PublicKey;
   price: number;
-  create: boolean;
+  rent_time: number;
+  renter: PublicKey;
+
   constructor(args: {
     x: number;
     y: number;
     mint: PublicKey;
     price: number;
-    create: boolean;
+    rent_time: number;
+    renter: PublicKey;
   }) {
     this.x = args.x;
     this.y = args.y;
     this.mint = args.mint;
     this.price = args.price;
-    this.create = args.create;
+    this.rent_time = args.rent_time;
+    this.renter = args.renter;
   }
 }
 
-export const changeOfferInstruction = async (
+export const acceptRentInstruction = async (
+  server,
+  connection,
   wallet: any,
   base: PublicKey,
-  change: ChangeOfferArgs,
+  change: AcceptRentArgs,
 ) => {
-  const {x, y, mint, price, create} = change;
+
+  const {x, y, mint, price, rent_time, renter} = change;
+  console.log(change);
 
   const space_x = twoscomplement_i2u(x);
   const space_y = twoscomplement_i2u(y);
   const [space_metadata_account,] =
-    await PublicKey.findProgramAddress(
+      await PublicKey.findProgramAddress(
       [
         base.toBuffer(),
         Buffer.from(SPACE_METADATA_SEED),
@@ -83,25 +91,30 @@ export const changeOfferInstruction = async (
       SPACE_PROGRAM_ID
     );
 
-  const [sell_delegate_account,] =
+  const [rent_account,] =
     await PublicKey.findProgramAddress(
-      [base.toBuffer(), Buffer.from(SELL_DELEGATE_SEED)],
-      SPACE_PROGRAM_ID
+      [
+        base.toBuffer(),
+        Buffer.from(RENT_ACCOUNT_SEED),
+        Buffer.from(space_x),
+        Buffer.from(space_y),
+      ],
+      RENT_PROGRAM_ID
     );
 
-  const spaceATA = await Token.getAssociatedTokenAddress(
+  const renter_space_ATA = await Token.getAssociatedTokenAddress(
     ASSOCIATED_TOKEN_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
     mint,
-    wallet.publicKey,
-    false
+    renter,
+    false,
   );
-  
-  const args = new ChangeOfferInstructionData({
+
+  const args = new AcceptRentInstructionData({
     x,
     y,
     price,
-    create,
+    rent_time,
   });
 
   const keys = [
@@ -113,56 +126,65 @@ export const changeOfferInstruction = async (
     {
       pubkey: space_metadata_account,
       isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: rent_account,
+      isSigner: false,
       isWritable: true,
     },
     {
       pubkey: wallet.publicKey,
       isSigner: true,
-      isWritable: false,
+      isWritable: true,
     },
     {
-      pubkey: spaceATA,
+      pubkey: renter,
       isSigner: false,
       isWritable: true,
     },
     {
-      pubkey: sell_delegate_account,
+      pubkey: renter_space_ATA,
       isSigner: false,
-      isWritable: false,
+      isWritable: true,
     },
     {
-      pubkey: TOKEN_PROGRAM_ID,
+      pubkey: SystemProgram.programId,
       isSigner: false,
       isWritable: false,
     },
   ];
 
-  let data = Buffer.from(serialize(ChangeOfferInstructionData.schema, args));
+  let data = Buffer.from(serialize(AcceptRentInstructionData.schema, args));
   // borsh JS sucks, need to be able to serialize negative numbers
   data = correct_negative_serialization(data, 1, 9, space_x);
   data = correct_negative_serialization(data, 9, 17, space_y);
 
-  let Ix = 
+  let Ix =
     [new TransactionInstruction({
       keys,
-      programId: SPACE_PROGRAM_ID,
+      programId: RENT_PROGRAM_ID,
       data,
     })];
 
   return Ix;
 };
 
-export const changeOfferInstructions = async (
+export const acceptRentInstructions = async (
+  server,
+  connection,
   wallet: any,
   base: PublicKey,
-  changes: ChangeOfferArgs[],
+  changes: AcceptRentArgs[],
 ) => {
 
   let Ixs: TransactionInstruction[] = [];
 
   for (let change of changes) {
 
-    let Ix = await changeOfferInstruction(
+    let Ix = await acceptRentInstruction(
+      server,
+      connection,
       wallet,
       base,
       change,

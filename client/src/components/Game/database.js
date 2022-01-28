@@ -2,6 +2,12 @@ import { RPC, DATABASE_SERVER_URL } from "../../constants";
 import {PublicKey, LAMPORTS_PER_SOL} from "@solana/web3.js";
 const axios = require('axios');
 
+/*c
+Database functions with name identical to server functions have identical documentation
+see Server comments
+*/
+
+
 export class Database {
     constructor() {
         const prefix = RPC?.includes("mainnet") ? "mainnet" : "devnet";
@@ -13,8 +19,8 @@ export class Database {
         const data = results.data;
 
         // fill spaces and mints
-        const spaces = new Set();
-        const mints = {};
+        let spaces = new Set();
+        let mints = {};
         for (let arr of data) {
             const [x, y, mint] = arr;
             const position = {x, y};
@@ -28,7 +34,7 @@ export class Database {
         const results = await axios.get(this.mysql + '/listed/' + address.toBase58());
         const data = results.data;
 
-        const spaces = new Set();
+        let spaces = new Set();
         for (let arr of data) {
             const [x, y] = arr;
             const position = {x, y};
@@ -43,7 +49,41 @@ export class Database {
         const data = results.data[0];
         const [mint, owner, price, forSale] = data;
 
-        return {mint: new PublicKey(mint), owner: new PublicKey(owner), price: Number(price), has_price: Boolean(forSale)}
+        return {
+            mint: new PublicKey(mint),
+            owner: new PublicKey(owner),
+            price: Number(price),
+            hasPrice: Boolean(forSale)
+        }
+    }
+
+    async getSpaceInfoWithRent(x, y){
+        const results = await axios.get(this.mysql + '/infoWithRent/' + x + '/' + y);
+        const data = results.data[0];
+        console.log(data);
+        let [mint, owner, price, forSale, rentPrice, minDuration, maxDuration, maxTimestamp, rentEnd, renter, rentee] = data;
+
+        let hasRentPrice = true;
+            let now = Date.now() / 1000;
+            if (rentPrice == 0 || (owner !== renter) || (maxTimestamp > 0 && now > maxTimestamp) || now < rentEnd) {
+                hasRentPrice = false;
+                rentPrice = 0;
+            }
+
+        return {
+            mint: mint ? new PublicKey(mint) : null,
+            owner: owner? new PublicKey(owner) : null,
+            price,
+            hasPrice: Boolean(forSale),
+            rentPrice,
+            minDuration,
+            maxDuration,
+            maxTimestamp,
+            rentEnd,
+            renter: renter ? new PublicKey(renter) : null,
+            rentee: rentee ? new PublicKey(rentee) : null,
+            hasRentPrice,
+        }
     }
 
     async getPurchasableInfo(user, poses) {
@@ -75,6 +115,49 @@ export class Database {
         purchasableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
 
         return purchasableInfo;
+    }
+
+    async getRentableInfo(user, poses) {
+        const newPoses = [...poses];
+        let posesX = [];
+        let posesY = [];
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        for (let pose of newPoses) {
+            let pos = JSON.parse(pose);
+            minX = Math.min(minX, pos.x);
+            minY = Math.min(minY, pos.y);
+            maxX = Math.max(maxX, pos.x);
+            maxY = Math.max(maxY, pos.y);
+        }
+
+        const results = await axios.get(this.mysql + '/rentableSpaces/' + minX + '/' + minY + '/' + maxX + '/' + maxY);
+        const data = results.data;
+
+        let rentableInfo = [];
+        for (let arr of data) {
+            let [x, y, mint, owner, rentPrice, minDuration, maxDuration, maxTimestamp, rentEnd, renter] = arr;
+            console.log(arr);
+            if (poses.has(JSON.stringify({x, y})) && (!user || user.toBase58() != owner)) { // if in poses, not owned by curr user, and for Sale 
+                rentableInfo.push(
+                    {
+                        x,
+                        y,
+                        mint: mint ? new PublicKey(mint) : null,
+                        price: Number(rentPrice),
+                        minDuration: Number(minDuration),
+                        maxDuration: Number(maxDuration),
+                        maxTimestamp: Number(maxTimestamp),
+                        renter: renter ? new PublicKey(renter) : null,
+                    }
+                );
+            }
+        }
+        rentableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
+
+        return rentableInfo;
     }
 
     async connect() {
@@ -131,7 +214,7 @@ export class Database {
         await axios.post(this.mysql + '/register', {owner: owner.toBase58(), mints: mintsStrings});
     }
 
-    async update(owners, mints){
+    async updateSpaceInfo(owners, mints){
         let ownersStrings = {};
         let mintsStrings = {};
         for(let key in owners){

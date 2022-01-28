@@ -11,3 +11,9 @@ export function priceToColor(price : number){
     const price_log = Math.log10(price);
     return solanaGradient.colorAt(price_log, 7, 10);
 }
+
+// returns color (without # in front)
+export function rentPriceToColor(price : number){
+    const price_log = Math.log10(price);
+    return solanaGradient.colorAt(price_log, 7, 10);
+}

@@ -65,7 +65,7 @@ export class ChangeColorArgs {
   r: number;
   g: number;
   b: number;
-  spaceMint: PublicKey;
+  mint: PublicKey;
 
   constructor(args: {
     x: number;
@@ -74,7 +74,7 @@ export class ChangeColorArgs {
     r: number;
     g: number;
     b: number;
-    spaceMint: PublicKey;
+    mint: PublicKey;
   }) {
     this.x = args.x;
     this.y = args.y;
@@ -82,7 +82,7 @@ export class ChangeColorArgs {
     this.r = args.r;
     this.g = args.g;
     this.b = args.b;
-    this.spaceMint = args.spaceMint;
+    this.mint = args.mint;
   }
 }
 
@@ -94,7 +94,7 @@ export const changeColorInstruction = async (
   colorCluster_input: any = null,
 ) => {
 
-  const {x, y, frame, r, g, b, spaceMint} = change;
+  const {x, y, frame, r, g, b, mint} = change;
 
   const space_x_bytes = twoscomplement_i2u(x);
   const space_y_bytes = twoscomplement_i2u(y);
@@ -112,7 +112,7 @@ export const changeColorInstruction = async (
       [
         wallet.publicKey.toBuffer(),
         TOKEN_PROGRAM_ID.toBuffer(),
-        spaceMint.toBuffer(),
+        mint.toBuffer(),
       ],
       ASSOCIATED_TOKEN_PROGRAM_ID
     );

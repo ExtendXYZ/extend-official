@@ -2,7 +2,7 @@ import React from "react";
 import { PublicKey } from "@solana/web3.js";
 import "./index.css";
 import { Captcha } from "./captcha.js";
-import { priceToColor, colorHighlight } from "../../utils";
+import { priceToColor, rentPriceToColor, colorHighlight } from "../../utils";
 import { NEIGHBORHOOD_SIZE, UPPER } from "../../constants";
 import {
     Button,
@@ -582,12 +582,43 @@ export class Board extends React.Component {
                 currentRef.style.border = 0.1 * scale + "px solid " + color;
                 currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(color);
             });
+            this.props.selecting.purchasableInfo.forEach((info) => {
+                // purchasable spaces
+                const { x, y, mint, price} = info;
+                const pos = JSON.stringify({ x, y });
+                const deltax = x * scale + this.x;
+                const deltay = y * scale + this.y;
+                const currentRef = document.getElementById(`boxTracker${pos}`);
+                const color = "#" + priceToColor(price);
+                currentRef.style.left = deltax + 0.1 * scale + "px";
+                currentRef.style.top = deltay + 0.1 * scale + "px";
+                currentRef.style.width = scale - 0.2 * scale + "px";
+                currentRef.style.height = scale - 0.2 * scale + "px";
+                currentRef.style.border = 0.1 * scale + "px solid " + color;
+                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(color);
+            });
+            this.props.selecting.rentableInfo.forEach((info) => {
+                // purchasable spaces
+                const { x, y, mint, price} = info;
+                const pos = JSON.stringify({ x, y });
+                const deltax = x * scale + this.x;
+                const deltay = y * scale + this.y;
+                const currentRef = document.getElementById(`boxTracker${pos}`);
+                const color = "#" + rentPriceToColor(price);
+                currentRef.style.left = deltax + 0.1 * scale + "px";
+                currentRef.style.top = deltay + 0.1 * scale + "px";
+                currentRef.style.width = scale - 0.2 * scale + "px";
+                currentRef.style.height = scale - 0.2 * scale + "px";
+                currentRef.style.border = 0.1 * scale + "px solid " + color;
+                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(color);
+            });
 
             this.props.selecting.poses.forEach((pos) => {
                 // remaining selected spaces
                 if (
                     this.props.ownedSpaces.has(pos) ||
-                    this.props.selecting.purchasable.has(pos)
+                    this.props.selecting.purchasable.has(pos) ||
+                    this.props.selecting.rentable.has(pos)
                 ) {
                     return;
                 }
@@ -856,12 +887,39 @@ export class Board extends React.Component {
                 })
             );
             boxTracker.push(
+                Array.from(this.props.selecting.rentableInfo).map((info) => {
+                    // draw purchasable spaces
+                    const { x, y, mint, price } = info;
+                    const pos = JSON.stringify({ x, y });
+                    const deltax = x * scale + this.x;
+                    const deltay = y * scale + this.y;
+                    const color = "#" + rentPriceToColor(price);
+                    return (
+                        <div
+                            className="boxTracker"
+                            id={`boxTracker${pos}`}
+                            style={{
+                                left: deltax + 0.1 * scale,
+                                top: deltay + 0.1 * scale,
+                                width: scale - 0.2 * scale,
+                                height: scale - 0.2 * scale,
+                                border: 0.1 * scale + "px solid " + color,
+                                outline: 0.1 * scale + "px solid " + colorHighlight(color)
+                            }}
+                            key={pos}
+                        >
+                        </div>
+                    );
+                })
+            );
+            boxTracker.push(
                 // draw remaining selected spaces
                 Array.from(this.props.selecting.poses)
                     .map((pos) => {
                         if (
                             this.props.ownedSpaces.has(pos) ||
-                            this.props.selecting.purchasable.has(pos)
+                            this.props.selecting.purchasable.has(pos) ||
+                            this.props.selecting.rentable.has(pos)
                         ) {
                             return null;
                         }
