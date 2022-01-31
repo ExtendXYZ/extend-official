@@ -493,6 +493,47 @@ const Home: NextPage = () => {
 
       <section className={`${styles.sectionMain}`}>
         <Row className={styles.roadMapContent}>
+          <h1>Supported by</h1>
+        </Row>
+        <Row className={styles.socialMediaBar}>
+          {/* <img src={"/images/twitter.svg"} className={styles.socialMediaButton}/> */}
+          <a
+            href="https://www.metaplex.com/"
+            className={styles.supporterButton}
+          >
+            <img className={styles.supporterImage}
+              src={"/images/supporters/9up.jpeg"}
+            />
+          </a>
+          <a
+            href="https://www.metaplex.com/"
+            className={styles.supporterButton}
+          >
+            <img className={styles.supporterImage}
+              src={"/images/supporters/jumpcrypto.webp"}
+            />
+          </a>
+          <a
+            href="https://www.metaplex.com/"
+            className={styles.supporterButton}
+          >
+            <img className={styles.supporterImage}
+              src={"/images/supporters/ImpossibleFinance.svg"}
+            />
+          </a>
+          <a
+            href="https://www.metaplex.com/"
+            className={styles.supporterButton}
+          >
+            <img className={styles.supporterImage}
+              src={"/images/supporters/Metaplex Stacked_White.svg"}
+            />
+          </a>
+        </Row>
+      </section>
+
+      <section className={`${styles.sectionMain}`}>
+        <Row className={styles.roadMapContent}>
           <h1>Stay tuned</h1>
         </Row>
         <Row className={styles.socialMediaBar}>

@@ -220,6 +220,14 @@
     justify-content: center;
 }
 
+.supporterButton{
+    width : 20%;
+}
+
+.supporterImage{
+    width: 100%;
+}
+
 .socialMediaButton {
     padding-left : 10px;
     padding-right : 10px;
@@ -255,8 +263,8 @@
 
     .socialMediaBar {
         flex-direction: row;
-        justify-content: center;
         align-items: center;   
+        justify-content: center;
     }
 
     .sectionMain {
@@ -275,6 +283,10 @@
 }
 
 @media (max-width: 768px) {
+
+    .supporterButton{
+        width :40%;
+    }
 
     .titleImageContainer{
         min-height: 20em;
