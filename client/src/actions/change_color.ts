@@ -1,4 +1,4 @@
-import {PublicKey, TransactionInstruction,} from "@solana/web3.js";
+import {PublicKey, TransactionInstruction, SystemProgram} from "@solana/web3.js";
 import {Schema, serialize} from "borsh";
 import {ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID,} from "@solana/spl-token";
 import {
@@ -66,6 +66,7 @@ export class ChangeColorArgs {
   g: number;
   b: number;
   mint: PublicKey;
+  owner: PublicKey;
 
   constructor(args: {
     x: number;
@@ -75,6 +76,7 @@ export class ChangeColorArgs {
     g: number;
     b: number;
     mint: PublicKey;
+    owner: PublicKey;
   }) {
     this.x = args.x;
     this.y = args.y;
@@ -83,6 +85,7 @@ export class ChangeColorArgs {
     this.g = args.g;
     this.b = args.b;
     this.mint = args.mint;
+    this.owner = args.owner;
   }
 }
 
@@ -92,9 +95,10 @@ export const changeColorInstruction = async (
   base: PublicKey,
   change: ChangeColorArgs,
   colorCluster_input: any = null,
+  timeCluster_input: any = null,
 ) => {
 
-  const {x, y, frame, r, g, b, mint} = change;
+  const {x, y, frame, r, g, b, mint, owner} = change;
 
   const space_x_bytes = twoscomplement_i2u(x);
   const space_y_bytes = twoscomplement_i2u(y);
@@ -119,15 +123,15 @@ export const changeColorInstruction = async (
   const n_x_bytes = twoscomplement_i2u(Math.floor(x / NEIGHBORHOOD_SIZE));
   const n_y_bytes = twoscomplement_i2u(Math.floor(y / NEIGHBORHOOD_SIZE));
   const [neighborhoodFrameBase,] =
-  await PublicKey.findProgramAddress(
-    [
-      base.toBuffer(),
-      Buffer.from(NEIGHBORHOOD_FRAME_BASE_SEED),
-      Buffer.from(n_x_bytes),
-      Buffer.from(n_y_bytes),
-    ],
-    COLOR_PROGRAM_ID
-  );
+    await PublicKey.findProgramAddress(
+      [
+        base.toBuffer(),
+        Buffer.from(NEIGHBORHOOD_FRAME_BASE_SEED),
+        Buffer.from(n_x_bytes),
+        Buffer.from(n_y_bytes),
+      ],
+      COLOR_PROGRAM_ID
+    );
 
   const frame_bytes = new BN(frame).toArray('le', 8);
   const [neighborhoodFrameKeyAccount,] =
@@ -159,6 +163,15 @@ export const changeColorInstruction = async (
   }
   else {
     colorCluster = colorCluster_input;
+  }
+
+  var timeCluster;
+  if (!timeCluster_input) {
+    const neighborhoodFrameBaseData = await connection.getAccountInfo(neighborhoodFrameBase);
+    timeCluster = new PublicKey(neighborhoodFrameBaseData.data.slice(9, 41));
+  }
+  else {
+    timeCluster = timeCluster_input;
   }
 
   const keys = [
@@ -193,12 +206,27 @@ export const changeColorInstruction = async (
       isWritable: false,
     },
     {
+      pubkey: owner,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: spaceATA,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: timeCluster,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
       pubkey: wallet.publicKey,
       isSigner: true,
       isWritable: false,
     },
     {
-      pubkey: spaceATA,
+      pubkey: SystemProgram.programId,
       isSigner: false,
       isWritable: false,
     },
@@ -235,6 +263,7 @@ export const changeColorInstructions = async (
   base: PublicKey,
   changes: ChangeColorArgs[],
   frameKeyMap: any,
+  timeClusterMap: any,
 ) => {
 
   let Ixs: TransactionInstruction[] = [];
@@ -250,6 +279,7 @@ export const changeColorInstructions = async (
       base,
       change,
       frameKeyMap[JSON.stringify({n_x, n_y, frame: change.frame})],
+      timeClusterMap[JSON.stringify({n_x, n_y})],
     );
 
     

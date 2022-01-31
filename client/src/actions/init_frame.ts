@@ -2,6 +2,7 @@ import {Keypair, PublicKey, SystemProgram, TransactionInstruction,} from "@solan
 import {Schema, serialize} from "borsh";
 import {
     COLOR_CLUSTER_SIZE,
+    TIME_CLUSTER_SIZE,
     COLOR_PROGRAM_ID,
     SPACE_PROGRAM_ID,
     NEIGHBORHOOD_FRAME_BASE_SEED,
@@ -53,6 +54,23 @@ export const createColorClusterInstruction = async (
   return {keypair: colorClusterKeypair, ix: Ix};
 };
 
+export const createTimeClusterInstruction = async (
+  connection,
+  wallet: any,
+) => {
+  const timeClusterKeypair = new Keypair();
+
+  const lamports = await connection.getMinimumBalanceForRentExemption(TIME_CLUSTER_SIZE);
+  let Ix = [SystemProgram.createAccount({
+    fromPubkey: wallet.publicKey,
+    newAccountPubkey: timeClusterKeypair.publicKey,
+    lamports: lamports,
+    space: TIME_CLUSTER_SIZE,
+    programId: COLOR_PROGRAM_ID,
+  })];
+  return {keypair: timeClusterKeypair, ix: Ix};
+};
+
 export const InitFrameInstruction = async (
   connection,
   wallet: any,
@@ -60,6 +78,7 @@ export const InitFrameInstruction = async (
   n_x: number,
   n_y: number,
   colorFrameCluster: PublicKey,
+  timeCluster: PublicKey,
 ) => {
   const n_x_bytes = twoscomplement_i2u(n_x);
   const n_y_bytes = twoscomplement_i2u(n_y);
@@ -136,6 +155,11 @@ export const InitFrameInstruction = async (
       pubkey: SystemProgram.programId,
       isSigner: false,
       isWritable: false,
+    },
+    {
+      pubkey: timeCluster,
+      isSigner: false,
+      isWritable: true,
     },
   ];
 

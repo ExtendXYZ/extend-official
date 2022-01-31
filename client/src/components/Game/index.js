@@ -489,6 +489,7 @@ export class Game extends React.Component {
             y: this.state.focus.y,
             frame: this.state.colorApplyAll ? -1 : this.state.frame,
             mint: this.state.focus.mint,
+            owner: this.state.focus.owner,
         });
         notify({
             message: "Changing color...",
@@ -889,7 +890,6 @@ export class Game extends React.Component {
     }
 
     rentSpaces = () => {
-        console.log(this.state.selecting.rentableInfo);
         this.props.setAcceptRentsTrigger({
             rentableInfo: this.state.selecting.rentableInfo,
             rent_time: 500, // TODO: make a input for this
@@ -1658,8 +1658,6 @@ export class Game extends React.Component {
             neighborhood_name = this.viewport.neighborhood_names[key];
         }
 
-        console.log(info);
-
         if (!this.state.focus.focus || this.state.focus.x !== x || this.state.focus.y !== y) { // sidebar changed
             return;
         }
@@ -1704,7 +1702,6 @@ export class Game extends React.Component {
             numFrames = 0;
             trades = {};
         }
-        console.log("NEIGHBOR SIDEBAR");
         if (!this.state.neighborhood.focused){ // sidebar changed
             return;
         }

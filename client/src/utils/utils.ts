@@ -68,7 +68,7 @@ export function compact_u16_len (x) {
   return 3;
 }
 
-export function convertToInt(arr) {
+export function bytesToUInt(arr) {
   var length = arr.length;
 
   let buffer = Buffer.from(arr);
