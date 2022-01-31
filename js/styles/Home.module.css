@@ -14,6 +14,14 @@
     
 }
 
+.arrowContainer{
+    display:flex;
+    justify-content: center;
+    padding-top: 10px;
+}
+.arrowBetweenSections{
+    width: 10% !important;
+}
 .myVideo{
     width: 100%; 
     border-style:solid;
@@ -460,7 +468,7 @@
 
 @media (min-width: 1200px) {
     .titleImageContainer, .extendsImageContainer, .spaceImageContainer, .arrowImageContainer {
-        min-height: 50rem;
+        min-height: 38rem;
         background-position-x: center;
     }
 }
