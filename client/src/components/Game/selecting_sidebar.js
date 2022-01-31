@@ -447,7 +447,7 @@ export class SelectingSidebar extends React.Component {
                         </Box>
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
-                        <Button
+                        {/* <Button
                           size="small"
                           variant="contained"
                           onClick={() => {
@@ -461,7 +461,7 @@ export class SelectingSidebar extends React.Component {
                           }}
                         >
                           Load Price Info
-                        </Button>
+                        </Button> */}
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
                         <Tooltip placement={'right'} title="Select all purchasable Spaces in your selection to prepare to purchase them.">
