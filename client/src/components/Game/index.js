@@ -148,18 +148,18 @@ export class Game extends React.Component {
             mySpacesMenuOpen: false,
             mySpacesMenuAnchorEl: null,
         };
-        this.clusters_expl = {};
-        this.subIds = [];
 
         this.viewport = {
             neighborhood_start: [-1, -1], // inclusive
             neighborhood_end: [2, 2], // exclusive
             neighborhood_colors: {},
             neighborhood_colors_all_frames: {},
+            neighborhood_censors: {},
             neighborhood_names: {},
             neighborhood_prices: {},
             view: 0,
         };
+        this.censors = null;
         this.board = React.createRef();
         this.captchaResponse = null;
         this.mobile = window.innerWidth < 500;
@@ -179,10 +179,20 @@ export class Game extends React.Component {
         return this.props.server.filterExistingNeighborhoods(this.props.connection, neighborhoods);
     }
 
+    fetch_censors = (frame, {n_x, n_y}) => {
+        const key = `${n_x}, ${n_y}`;
+        if (key in this.censors) {
+            if (frame in this.censors[key]) {
+                return this.censors[key][frame];
+            }
+        }
+        return [];
+    }
+
     // pull color data for a specific frame into viewport
     fetch_colors = async (frame) => {
         const connection = this.props.connection;
-        let neighborhoods = await this.getViewportNeighborhoods();
+        const neighborhoods = await this.getViewportNeighborhoods();
 
         const frameKeysMap = await this.props.server.getFrameKeys(
             connection,
@@ -222,8 +232,14 @@ export class Game extends React.Component {
                 return n_meta[0];
             })
         );
-
         this.viewport.neighborhood_colors = tmp_neighborhood_colors;
+        const tmp_neighborhood_censors = {};
+        neighborhoods.forEach(value => {
+            tmp_neighborhood_censors[JSON.stringify(value)] = this.fetch_censors(frame, value);
+        })
+        this.viewport.neighborhood_censors = tmp_neighborhood_censors;
+        console.log(this.viewport.neighborhood_censors);
+        
         this.setState({ maxFrame: newMax });
         return frameKeys;
     }
@@ -232,7 +248,7 @@ export class Game extends React.Component {
     fetch_colors_all_frames = async () => {
         const connection = this.props.connection;
 
-        let neighborhoods = await this.getViewportNeighborhoods();
+        const neighborhoods = await this.getViewportNeighborhoods();
 
         let { numFramesMap, frameKeysMap } = await this.props.server.getAllFrameKeys(
             connection,
@@ -276,7 +292,7 @@ export class Game extends React.Component {
     fetch_neighborhood_names = async() => {
         const connection = this.props.connection;
 
-        let neighborhoods = await this.getViewportNeighborhoods();
+        const neighborhoods = await this.getViewportNeighborhoods();
         
         const neighborhood_accounts = await Promise.all(
             neighborhoods.map(async (value, i) => {
@@ -305,7 +321,7 @@ export class Game extends React.Component {
     }
 
     fetch_neighborhood_prices = async() => {
-        let neighborhoods = await this.getViewportNeighborhoods();
+        const neighborhoods = await this.getViewportNeighborhoods();
         let poses = new Set();
         for(let {n_x, n_y} of neighborhoods){ // loop through all spaces
             for(let x = n_x * NEIGHBORHOOD_SIZE; x < (n_x + 1) * NEIGHBORHOOD_SIZE; x++){
@@ -341,6 +357,11 @@ export class Game extends React.Component {
         }
     }
 
+    fetch_censors_all_frames = async() => {
+        const response = await fetch("censor.json");
+        this.censors = await response.json();
+    }
+
     // updateAccount = async (account) => {
     //     if (account) {
     //         let nx = account.data.slice(
@@ -369,6 +390,7 @@ export class Game extends React.Component {
             this.fetch_colors(this.state.frame),
             this.fetch_neighborhood_names(this.state.frame),
             this.fetch_neighborhood_prices(),
+            this.fetch_censors_all_frames()
         ]);
         this.setState({
             initialFetchStatus: 1,
@@ -390,14 +412,6 @@ export class Game extends React.Component {
                 await this.fetch_neighborhood_prices();
             }
         }, FETCH_PRICES_INTERVAL);
-
-        // open websocket to listen to color cluster accounts
-        // for (let j = 0; j < colorClusterKeys.length; j++) {
-        //     if (colorClusterKeys[j]) {
-        //         const id = connection.onAccountChange(colorClusterKeys[j], this.updateAccount.bind(this));
-        //         this.subIds.push(id);
-        //     }
-        // }
         
         if ("address" in this.props.locator) {
             try {
@@ -470,11 +484,6 @@ export class Game extends React.Component {
         clearInterval(this.intervalFetchNeighborhoodNames);
         clearInterval(this.intervalChangeFrame);
         clearInterval(this.intervalFetchPrices);
-        // remove account listeners
-        // const connection = this.props.connection;
-        // for (const id of this.subIds) {
-        //     connection.removeAccountChangeListener(id);
-        // }
     }
 
     closeSideNav = () => {
@@ -1402,24 +1411,21 @@ export class Game extends React.Component {
             loading(null, "Loading frames", null);
             await this.fetch_colors_all_frames();
             loading(null, "Loading frames", "success");
+            const neighborhoods = await this.getViewportNeighborhoods();
             this.intervalChangeFrame = setInterval(() => {
                 if (document.hidden){
                     return;
                 }
-                const start = this.viewport.neighborhood_start;
-                const end = this.viewport.neighborhood_end;
-
-                for (let n_x = start[0]; n_x < end[0]; n_x++) {
-                    for (let n_y = start[1]; n_y < end[1]; n_y++) {
-                        let key = JSON.stringify({ n_x, n_y });
-                        if (key in this.viewport.neighborhood_colors_all_frames) {
-                            let datalen =
-                                this.viewport.neighborhood_colors_all_frames[key].length;
-                            this.viewport.neighborhood_colors[key] =
-                                this.viewport.neighborhood_colors_all_frames[key][k % datalen];
-                        }
+                neighborhoods.forEach((value) => {
+                    const key = JSON.stringify(value);
+                    if (key in this.viewport.neighborhood_colors_all_frames) {
+                        const datalen = this.viewport.neighborhood_colors_all_frames[key].length;
+                        const frame = k % datalen;
+                        this.viewport.neighborhood_colors[key] =
+                            this.viewport.neighborhood_colors_all_frames[key][frame];
+                        this.viewport.neighborhood_censors[key] = this.fetch_censors(frame, value);
                     }
-                }
+                });
                 requestAnimationFrame(() => {
                     this.board.current.drawCanvas();
                 });
@@ -2100,6 +2106,7 @@ export class Game extends React.Component {
                     ownedSpaces={this.props.ownedSpaces}
                     ref={this.board}
                     getMap={() => this.viewport.view == 0 ? this.viewport.neighborhood_colors : this.viewport.neighborhood_prices}
+                    getCensors={() => this.viewport.view == 0 ? this.viewport.neighborhood_censors : {}}
                     getNeighborhoodNames={() => this.viewport.neighborhood_names}
                     user={this.props.user}
                     onViewportChange={(startx, starty, endx, endy) => {
