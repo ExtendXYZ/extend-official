@@ -93,32 +93,31 @@ export class Game extends React.Component {
                 infoLoaded: false,
                 imgLoaded: false,
                 neighborhood_name: null,
-                hasRentPrice: false,
-                rentPrice: null,
-                minDuration: null,
-                maxDuration: null,
-                maxTimestamp: null,
-                renter: null,
-                rentEnd: null,
-                rentee: null,
+                // hasRentPrice: false,
+                // rentPrice: null,
+                // minDuration: null,
+                // maxDuration: null,
+                // maxTimestamp: null,
+                // renter: null,
+                // rentEnd: null,
+                // rentee: null,
             },
             selecting: {
                 selecting: false,
                 poses: new Set(),
                 color: "#000000",
                 price: null,
-                loadingPricesStatus: 0,
                 targetStatus: 0,
                 purchasableInfoAll: new Array(),
                 purchasableInfo: new Array(),
                 purchasable: new Set(),
-                totalPrice: NaN,
-                rentPrice: null,
-                loadingRentStatus: 0,
-                rentableInfoAll: new Array(),
-                rentableInfo: new Array(),
-                rentable: new Set(),
-                totalRentPrice: NaN,
+                totalPrice: null,
+                // rentPrice: null,
+                // loadingRentStatus: 0,
+                // rentableInfoAll: new Array(),
+                // rentableInfo: new Array(),
+                // rentable: new Set(),
+                // totalRentPrice: null,
                 floorM: 1,
                 floorN: 1,
             },
@@ -910,7 +909,6 @@ export class Game extends React.Component {
         this.setState({
             selecting: {
                 ...this.state.selecting,
-                loadingPricesStatus: 1,
                 purchasableInfoAll: [],
                 purchasableInfo: [],
                 purchasable: new Set(),
@@ -932,7 +930,6 @@ export class Game extends React.Component {
         this.setState({
             selecting: {
                 ...this.state.selecting,
-                loadingPricesStatus: 2,
                 purchasableInfoAll,
             },
         });
@@ -1548,14 +1545,14 @@ export class Game extends React.Component {
                 infoLoaded: false,
                 imgLoaded: false,
                 neighborhood_name: null,
-                hasRentPrice: false,
-                rentPrice: null,
-                minDuration: null,
-                maxDuration: null,
-                maxTimestamp: null,
-                renter: null,
-                rentEnd: null,
-                rentee: null,
+                // hasRentPrice: false,
+                // rentPrice: null,
+                // minDuration: null,
+                // maxDuration: null,
+                // maxTimestamp: null,
+                // renter: null,
+                // rentEnd: null,
+                // rentee: null,
             },
         });
     }
@@ -1580,17 +1577,16 @@ export class Game extends React.Component {
                 poses: new Set(),
                 color: "#000000",
                 price: null,
-                loadingPricesStatus: 0,
                 purchasableInfoAll: new Array(),
                 purchasableInfo: new Array(),
                 purchasable: new Set(),
                 totalPrice: NaN,
                 rentPrice: null,
-                loadingRentStatus: 0,
-                rentableInfoAll: new Array(),
-                rentableInfo: new Array(),
-                rentable: new Set(),
-                totalRentPrice: NaN,
+                // loadingRentStatus: 0,
+                // rentableInfoAll: new Array(),
+                // rentableInfo: new Array(),
+                // rentable: new Set(),
+                // totalRentPrice: NaN,
                 floorM: 1,
                 floorN: 1,
             },
@@ -1718,26 +1714,52 @@ export class Game extends React.Component {
         });
     }
 
-    setSelecting = (poses) => {
+    setSelecting = async (poses) => {
         this.resetNeighborhood();
         this.resetFocus();
-        if (poses.size === 0) {
+        if (!poses.size) {
             this.resetSelecting();
             this.setState({showNav: false});
         } else {
+
             this.setState({
                 showNav: true,
                 selecting: {
                     ...this.state.selecting,
                     selecting: true,
                     poses,
-                    loadingPricesStatus: 0,
-                    targetStatus: 0,
+                    infoLoaded: false,
+                    purchasableInfoAll: new Array(),
                     purchasableInfo: new Array(),
                     purchasable: new Set(),
-                    totalPrice: NaN,
+                    totalPrice: null,
                     floorM: 1,
                     floorN: 1,
+                },
+            });
+
+            let purchasableInfoAll;
+            try{
+                purchasableInfoAll = await this.props.database.getPurchasableInfo(this.props.user, poses);
+            } catch(e){
+                console.error(e);
+                purchasableInfoAll = [];
+            }
+
+            // TODO: use better check to tell if selection changed
+            if (this.state.selecting.poses.size != poses.size){
+                return; // selection changed
+            }
+
+            this.setState({
+                showNav: true,
+                selecting: {
+                    ...this.state.selecting,
+                    selecting: true,
+                    poses,
+                    infoLoaded: true,
+                    targetStatus: 0,
+                    purchasableInfoAll,
                 },
                 img_upl: null,
                 has_img: false,
