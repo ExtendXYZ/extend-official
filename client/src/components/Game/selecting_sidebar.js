@@ -407,8 +407,8 @@ export class SelectingSidebar extends React.Component {
                           <b>
                             <font color="#82CBC5" style={{ marginLeft: "5px" }}>
                               {
-                              this.props.selecting.loadingPricesStatus !== 2
-                                ? "not loaded"
+                              this.props.selecting.totalPrice === null
+                              ? "no spaces targeted"
                               :
                                 this.props.selecting.purchasableInfo.length +
                                 "/" +
@@ -437,8 +437,8 @@ export class SelectingSidebar extends React.Component {
                           <b>
                             <font color="#82CBC5" style={{ marginLeft: "5px" }}>
                               { 
-                              this.props.selecting.loadingPricesStatus !== 2
-                                ? "not loaded"
+                              this.props.selecting.totalPrice === null
+                                ? "no spaces targeted"
                                 :
                                 formatPrice(this.props.selecting.totalPrice)
                               }
