@@ -4,7 +4,7 @@ use solana_program::{
     borsh::try_from_slice_unchecked,
     entrypoint::ProgramResult,
     msg,
-    program::invoke_signed,
+    program::{invoke_signed},
     program_error::ProgramError,
     pubkey::Pubkey,
     system_instruction, system_program,
@@ -44,6 +44,7 @@ pub fn process(
     let neighborhood_metadata = next_account_info(account_info_iter)?;
     let fee_payer = next_account_info(account_info_iter)?;
     let system_program = next_account_info(account_info_iter)?;
+    let time_cluster = next_account_info(account_info_iter)?;
 
     // check signers
     if !fee_payer.is_signer {
@@ -71,6 +72,7 @@ pub fn process(
     ];
     let mut neighborhood_frame_base_data: NeighborhoodFrameBase;
     if neighborhood_frame_base.data_len() == 0{
+        // create NeighborhoodFrameBase account
         let required_lamports = Rent::default()
             .minimum_balance(NEIGHBORHOOD_FRAME_BASE_RESERVE)
             .max(1)
@@ -94,6 +96,30 @@ pub fn process(
         neighborhood_frame_base_data = try_from_slice_unchecked(&neighborhood_frame_base.data.borrow_mut())?;
         neighborhood_frame_base_data.bump = neighborhood_frame_base_bump;
         neighborhood_frame_base_data.length = 0;
+
+        
+        // zero out data in time cluster
+        let mut time_cluster_data = time_cluster.data.borrow_mut();
+        for val in time_cluster_data.iter_mut() {
+            *val = 0;
+        }
+        // write other data into time cluster account
+        let buffer_x = args.neighborhood_x.try_to_vec().unwrap();
+        let buffer_y = args.neighborhood_y.try_to_vec().unwrap();
+        let start_x = size_of::<u64>() * NEIGHBORHOOD_SIZE * NEIGHBORHOOD_SIZE;
+        let start_y = start_x + size_of::<i64>();
+        let start_initialized = start_y + size_of::<i64>();
+        if time_cluster_data[start_initialized] != 0 {
+            return Err(ProgramError::InvalidAccountData);
+        }
+        for i in 0..size_of::<i64>(){
+            time_cluster_data[start_x + i] = buffer_x[i]; 
+        }
+        for i in 0..size_of::<i64>(){
+            time_cluster_data[start_y + i] = buffer_y[i]; 
+        }
+        time_cluster_data[start_initialized] = 1;
+
     }
     else{
         neighborhood_frame_base_data = try_from_slice_unchecked(&neighborhood_frame_base.data.borrow_mut())?;
@@ -163,6 +189,7 @@ pub fn process(
 
     // update frame base
     neighborhood_frame_base_data.length += 1;
+    neighborhood_frame_base_data.time_cluster_account = *time_cluster.key;
     neighborhood_frame_base_data.serialize(&mut *neighborhood_frame_base.data.borrow_mut())?;
 
     // zero out data in color cluster

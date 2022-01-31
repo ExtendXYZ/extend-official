@@ -30,6 +30,20 @@ pub struct ChangeColorBriefArgs {
     pub b: u8,
 }
 
+#[repr(C)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+pub struct MakeEditableArgs {
+    pub space_x: i64,
+    pub space_y: i64,
+}
+
+#[repr(C)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+pub struct MakeEditableBriefArgs {
+    pub space_x: i16,
+    pub space_y: i16,
+}
+
 pub enum ColorInstruction {
 
 
@@ -40,6 +54,8 @@ pub enum ColorInstruction {
     1. account of the color frame cluster
     2. [Signer] fee payer
     3. The system program
+    
+    time cluster account
     */
     InitFrame,
 
@@ -50,14 +66,27 @@ pub enum ColorInstruction {
     1. [Writable] Color cluster account
     2. space metadata
     2. neighborhood metadata
-    3. [Signer, Writable] Owner = fee payer
+    3. [Writable] Owner
     4. Ata of owner
+    time cluster account
+    [Writable, signer] fee payer
+    system program
+
     */
     ChangeColor,
     ChangeColorBrief,
 
-
-
+    /*
+    Makes owned space color-editable
+    Accounts expected:
+    0. Base account
+    1. space metadata
+    2. [Signer] owner
+    3. space_ata
+    4. [Writable] time cluster account
+    */
+    MakeEditable,
+    MakeEditableBrief,
 
 }
 
@@ -67,6 +96,8 @@ impl ColorInstruction {
             0 => Self::InitFrame,
             1 => Self::ChangeColor,
             2 => Self::ChangeColorBrief,
+            3 => Self::MakeEditable,
+            4 => Self::MakeEditableBrief,
             _ => return Err(ProgramError::InvalidInstructionData),
         })
     }

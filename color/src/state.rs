@@ -2,6 +2,9 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::pubkey::Pubkey;
 use std::mem::size_of;
 
+pub const INACTIVITY_THRESHOLD_OWNER: usize = 3600*24*14;
+pub const INACTIVITY_THRESHOLD_ARBITRARY: usize = 30;
+pub const ARBITRARY_CHANGER_FEE: u64 = 1000;
 pub const NEIGHBORHOOD_SIZE: usize = 200;
 pub const MARKETPLACE_FEE: f64 = 0.01;
 pub const EXTEND_TOKEN_MINT: &str = "PLACEHOLDER";
@@ -78,6 +81,7 @@ pub const NEIGHBORHOOD_FRAME_BASE_RESERVE: usize = 256;
 pub struct NeighborhoodFrameBase {
     pub bump: u8,
     pub length: u64,
+    pub time_cluster_account: Pubkey,
 }
 
 impl NeighborhoodFrameBase {
@@ -109,3 +113,15 @@ impl Frame {
     pub const LEN: usize = 3 * NEIGHBORHOOD_SIZE * NEIGHBORHOOD_SIZE + size_of::<i64>() + size_of::<i64>() + size_of::<bool>();
 }
 
+pub const TIME_CLUSTER_RESERVE: usize = 400000;
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+pub struct TimeCluster {
+    pub timestamps: [u64; NEIGHBORHOOD_SIZE * NEIGHBORHOOD_SIZE],
+    pub neighborhood_x: i64,
+    pub neighborhood_y: i64,
+    pub initialized: bool,
+}
+impl TimeCluster {
+    pub const LEN: usize = size_of::<u64>() * NEIGHBORHOOD_SIZE * NEIGHBORHOOD_SIZE + size_of::<i64>() + size_of::<i64>();
+}

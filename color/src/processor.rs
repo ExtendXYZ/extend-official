@@ -6,12 +6,13 @@ use solana_program::{
 
 use crate::{
     instruction::{
-        ColorInstruction, InitFrameArgs, ChangeColorArgs, ChangeColorBriefArgs
+        ColorInstruction, InitFrameArgs, ChangeColorArgs, ChangeColorBriefArgs, MakeEditableArgs, MakeEditableBriefArgs
     },
 };
 
 pub mod init_frame;
 pub mod change_color;
+pub mod make_editable;
 
 pub mod processor_utils;
 
@@ -41,6 +42,16 @@ impl Processor {
                 let args = ChangeColorBriefArgs::try_from_slice(rest)?;
                 msg!("Instruction: changing color");
                 change_color::process_brief(program_id, accounts, &args)
+            }
+            ColorInstruction::MakeEditable => {
+                let args = MakeEditableArgs::try_from_slice(rest)?;
+                msg!("Instruction: making editable");
+                make_editable::process(program_id, accounts, &args)
+            }
+            ColorInstruction::MakeEditableBrief => {
+                let args = MakeEditableBriefArgs::try_from_slice(rest)?;
+                msg!("Instruction: making editable");
+                make_editable::process_brief(program_id, accounts, &args)
             }
         }
     }
