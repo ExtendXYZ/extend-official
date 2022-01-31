@@ -610,13 +610,13 @@ export class Server {
                 ))[0];
             frameBaseAccounts.push(frameBase);
         }
-        let frameBaseDatas = this.batchGetMultipleAccountsInfo(connection, frameBaseAccounts);
+        let frameBaseDatas = await this.batchGetMultipleAccountsInfo(connection, frameBaseAccounts);
         for (let i = 0; i < frameBaseDatas.length; i++){
             if (!frameBaseDatas[i]){
                 continue;
             }
             const {n_x, n_y} = neighborhoods[i];
-            let key = bytesToUInt(frameBaseDatas[i].data.slice(9, 9 + 32));
+            let key = new PublicKey(frameBaseDatas[i].data.slice(9, 9 + 32));
             let hash = JSON.stringify({n_x, n_y});
             window.editableTimeClusterKeyCache[hash] = key;
             keyMap[hash] = key;
