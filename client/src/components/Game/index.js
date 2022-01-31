@@ -916,7 +916,7 @@ export class Game extends React.Component {
                 purchasableInfoAll: [],
                 purchasableInfo: [],
                 purchasable: new Set(),
-                totalPrice: NaN,
+                totalPrice: null,
             },
         });
         
@@ -947,7 +947,7 @@ export class Game extends React.Component {
                 rentableInfoAll: [],
                 rentableInfo: [],
                 rentable: new Set(),
-                totalRentPrice: NaN,
+                totalRentPrice: null,
             },
         });
         
@@ -1002,7 +1002,7 @@ export class Game extends React.Component {
         }
 
         if (purchasable.size === 0) {
-            totalPrice = NaN;
+            totalPrice = null;
             notify({
                 message: "No Spaces available to buy",
             });
@@ -1035,7 +1035,7 @@ export class Game extends React.Component {
         }
 
         if (rentable.size === 0) {
-            totalPrice = NaN;
+            totalPrice = null;
             notify({
                 message: "No Spaces available to rent",
             });
@@ -1068,7 +1068,7 @@ export class Game extends React.Component {
 
         if (m > r || n > c || m <= 0 || n <= 0) {
             let purchasable = new Set();
-            let floor = NaN;
+            let floor = null;
             return {purchasable, purchasableInfo, floor};
         }
 
@@ -1091,8 +1091,8 @@ export class Game extends React.Component {
         }
 
         let floor = Number.MAX_VALUE;
-        let floorX = NaN;
-        let floorY = NaN;
+        let floorX = null;
+        let floorY = null;
         for (let i = m; i <= r; i++) {
             // find floor
             for (let j = n; j <= c; j++) {
@@ -1116,9 +1116,9 @@ export class Game extends React.Component {
         }
 
         let purchasable = new Set();
-        if (isNaN(floorX) && isNaN(floorY)) {
+        if (floorX === null && floorY === null) {
             // if no m x n block is all listed
-            floor = NaN;
+            floor = null;
         } else {
             // update purchasable
             for (let i = floorX - m + 1; i <= floorX; i++) {
@@ -1141,7 +1141,12 @@ export class Game extends React.Component {
             },
         });
         let {spaces, info, floor} = this.getFloor(this.state.selecting.purchasableInfoAll, this.state.selecting.floorN, this.state.selecting.floorM);
-
+        if (spaces.size === 0) {
+            floor = null;
+            notify({
+                message: "No Spaces available to buy",
+            });
+        }
         this.setState({
             selecting: {
                 ...this.state.selecting,
@@ -1161,7 +1166,12 @@ export class Game extends React.Component {
             },
         });
         let {spaces, info, floor} = this.getFloor(this.state.selecting.rentableInfoAll, this.state.selecting.floorN, this.state.selecting.floorM);
-
+        if (spaces.size === 0) {
+            floor = null;
+            notify({
+                message: "No Spaces available to rent",
+            });
+        }
         this.setState({
             selecting: {
                 ...this.state.selecting,
@@ -1585,13 +1595,13 @@ export class Game extends React.Component {
                 purchasableInfo: new Array(),
                 purchasable: new Set(),
                 owners: {},
-                totalPrice: NaN,
+                totalPrice: null,
                 rentPrice: null,
                 // loadingRentStatus: 0,
                 // rentableInfoAll: new Array(),
                 // rentableInfo: new Array(),
                 // rentable: new Set(),
-                // totalRentPrice: NaN,
+                // totalRentPrice: null,
                 floorM: 1,
                 floorN: 1,
             },
