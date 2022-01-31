@@ -111,6 +111,7 @@ export class Game extends React.Component {
                 purchasableInfoAll: new Array(),
                 purchasableInfo: new Array(),
                 purchasable: new Set(),
+                owners: {},
                 totalPrice: null,
                 // rentPrice: null,
                 // loadingRentStatus: 0,
@@ -499,6 +500,7 @@ export class Game extends React.Component {
             color: this.state.selecting.color,
             spaces: this.state.selecting.poses,
             frame: this.state.colorApplyAll ? -1 : this.state.frame,
+            owners: this.state.selecting.owners,
         });
         notify({
             message: "Changing colors...",
@@ -561,6 +563,7 @@ export class Game extends React.Component {
                         init_x: bounds.left,
                         init_y: bounds.top,
                         frame: this.state.colorApplyAll === "true" ? -1 : this.state.frame,
+                        owners: this.state.selecting.owners,
                     });
                     notify({
                         message: "Uploading image...",
@@ -625,6 +628,7 @@ export class Game extends React.Component {
                         spaces: this.state.selecting.poses,
                         init_x: bounds.left,
                         init_y: bounds.top,
+                        owners: this.state.selecting.owners,
                     });
                     notify({
                         message: "Uploading gif...",
@@ -1580,6 +1584,7 @@ export class Game extends React.Component {
                 purchasableInfoAll: new Array(),
                 purchasableInfo: new Array(),
                 purchasable: new Set(),
+                owners: {},
                 totalPrice: NaN,
                 rentPrice: null,
                 // loadingRentStatus: 0,
@@ -1731,6 +1736,7 @@ export class Game extends React.Component {
                     purchasableInfoAll: new Array(),
                     purchasableInfo: new Array(),
                     purchasable: new Set(),
+                    owners: {},
                     totalPrice: null,
                     floorM: 1,
                     floorN: 1,
@@ -1743,6 +1749,14 @@ export class Game extends React.Component {
             } catch(e){
                 console.error(e);
                 purchasableInfoAll = [];
+            }
+
+            let owners = {};
+            // find owners and store in dict
+            for (let data of purchasableInfoAll) {
+                const x = data.x;
+                const y = data.y;
+                owners[JSON.stringify({x, y})] = data.seller;
             }
 
             // TODO: use better check to tell if selection changed
@@ -1759,6 +1773,7 @@ export class Game extends React.Component {
                     infoLoaded: true,
                     targetStatus: 0,
                     purchasableInfoAll,
+                    owners,
                 },
                 img_upl: null,
                 has_img: false,

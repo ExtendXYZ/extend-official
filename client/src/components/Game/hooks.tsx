@@ -340,6 +340,7 @@ export function Screen(props) {
             const color = changeColorsTrigger["color"];
             const spaces = changeColorsTrigger["spaces"];
             const frame = changeColorsTrigger["frame"];
+            const owners = changeColorsTrigger["owners"];
 
             if (color != null && wallet.publicKey) {
                 const r = parseInt(color.slice(1, 3), 16);
@@ -368,6 +369,7 @@ export function Screen(props) {
                         const x = p.x;
                         const y = p.y;
                         const mint = ownedMints[s];
+                        const owner = owners[s];
 
                         if (frame == -1){
                             let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
@@ -569,6 +571,7 @@ export function Screen(props) {
             const init_x = imgUploadTrigger["init_x"];
             const init_y = imgUploadTrigger["init_y"];
             const frame = imgUploadTrigger["frame"];
+            const owners = imgUploadTrigger["owners"];
             if (image != null && wallet.publicKey) {
 
                 const spaceGrid = ownedSpaces;
@@ -604,7 +607,8 @@ export function Screen(props) {
                             const g = image[i][j][1];
                             const b = image[i][j][2];
                             const mint = ownedMints[position];
-                           
+                            const owner = owners[position];
+
                             if (frame == -1){
                                 let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
                                 let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
@@ -642,6 +646,7 @@ export function Screen(props) {
             const spaces = gifUploadTrigger["spaces"];
             const init_x = gifUploadTrigger["init_x"];
             const init_y = gifUploadTrigger["init_y"];
+            const owners = gifUploadTrigger["owners"];
             if (gif != null && wallet.publicKey) {
 
                 console.log("GIF Length", gif.length)
@@ -667,6 +672,7 @@ export function Screen(props) {
                         const position = JSON.stringify({x, y});
                         if (spaces.has(position) && spaceGrid.has(position)) {
                             const mint = ownedMints[position];
+                            const owner = owners[position];
 
                             // To get num frames
                             n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
