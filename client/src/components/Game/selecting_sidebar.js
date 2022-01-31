@@ -407,8 +407,8 @@ export class SelectingSidebar extends React.Component {
                           <b>
                             <font color="#82CBC5" style={{ marginLeft: "5px" }}>
                               {
-                              this.props.selecting.loadingPricesStatus !== 2
-                                ? "not loaded"
+                              this.props.selecting.totalPrice === null
+                              ? "no spaces targeted"
                               :
                                 this.props.selecting.purchasableInfo.length +
                                 "/" +
@@ -437,8 +437,8 @@ export class SelectingSidebar extends React.Component {
                           <b>
                             <font color="#82CBC5" style={{ marginLeft: "5px" }}>
                               { 
-                              this.props.selecting.loadingPricesStatus !== 2
-                                ? "not loaded"
+                              this.props.selecting.totalPrice === null
+                                ? "no spaces targeted"
                                 :
                                 formatPrice(this.props.selecting.totalPrice)
                               }
@@ -447,7 +447,7 @@ export class SelectingSidebar extends React.Component {
                         </Box>
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
-                        <Button
+                        {/* <Button
                           size="small"
                           variant="contained"
                           onClick={() => {
@@ -461,7 +461,7 @@ export class SelectingSidebar extends React.Component {
                           }}
                         >
                           Load Price Info
-                        </Button>
+                        </Button> */}
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
                         <Tooltip placement={'right'} title="Select all purchasable Spaces in your selection to prepare to purchase them.">
@@ -471,8 +471,8 @@ export class SelectingSidebar extends React.Component {
                             onClick={() => {
                               this.props.handleTargetAll();
                             }}
-                
-                            disabled={this.props.selecting.loadingPricesStatus != 2}
+                            // disabled={this.props.selecting.loadingPricesStatus != 2}
+                            disabled={!this.props.selecting.infoLoaded}
                             style={{
                               width: "100%",
                               marginLeft: "5px",
@@ -494,7 +494,7 @@ export class SelectingSidebar extends React.Component {
                             defaultValue={1}
                             onChange={(e) => this.props.handleChangeFloorM(e)}
                             value={this.props.selecting.floorM}
-                            disabled={this.props.selecting.loadingPricesStatus != 2}
+                            // disabled={this.props.selecting.loadingPricesStatus != 2}
                             style={{ width: "25%" }}
                             size="small"
                           />
@@ -506,7 +506,7 @@ export class SelectingSidebar extends React.Component {
                             defaultValue={1}
                             onChange={(e) => this.props.handleChangeFloorN(e)}
                             value={this.props.selecting.floorN}
-                            disabled={this.props.selecting.loadingPricesStatus != 2}
+                            // disabled={this.props.selecting.loadingPricesStatus != 2}
                             style={{ width: "25%" }}
                             size="small"
                           />
@@ -517,7 +517,7 @@ export class SelectingSidebar extends React.Component {
                               onClick={() => {
                                 this.props.handleTargetFloor();
                               }}
-                              disabled={this.props.selecting.loadingPricesStatus != 2}
+                              disabled={!this.props.selecting.infoLoaded}
                               style={{
                                 width: "45%",
                                 marginLeft: "10px",
@@ -558,9 +558,9 @@ export class SelectingSidebar extends React.Component {
                               background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                             }}
                             disabled={
-                              !this.props.user ||
-                              this.props.selecting.loadingPricesStatus != 2 ||
-                              this.props.selecting.purchasable.size === 0
+                              !this.props.user
+                              || !this.props.selecting.infoLoaded
+                              || this.props.selecting.purchasable.size === 0
                             }
                           >
                             Buy Now

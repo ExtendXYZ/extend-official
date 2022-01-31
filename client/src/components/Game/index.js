@@ -93,32 +93,31 @@ export class Game extends React.Component {
                 infoLoaded: false,
                 imgLoaded: false,
                 neighborhood_name: null,
-                hasRentPrice: false,
-                rentPrice: null,
-                minDuration: null,
-                maxDuration: null,
-                maxTimestamp: null,
-                renter: null,
-                rentEnd: null,
-                rentee: null,
+                // hasRentPrice: false,
+                // rentPrice: null,
+                // minDuration: null,
+                // maxDuration: null,
+                // maxTimestamp: null,
+                // renter: null,
+                // rentEnd: null,
+                // rentee: null,
             },
             selecting: {
                 selecting: false,
                 poses: new Set(),
                 color: "#000000",
                 price: null,
-                loadingPricesStatus: 0,
                 targetStatus: 0,
                 purchasableInfoAll: new Array(),
                 purchasableInfo: new Array(),
                 purchasable: new Set(),
-                totalPrice: NaN,
-                rentPrice: null,
-                loadingRentStatus: 0,
-                rentableInfoAll: new Array(),
-                rentableInfo: new Array(),
-                rentable: new Set(),
-                totalRentPrice: NaN,
+                totalPrice: null,
+                // rentPrice: null,
+                // loadingRentStatus: 0,
+                // rentableInfoAll: new Array(),
+                // rentableInfo: new Array(),
+                // rentable: new Set(),
+                // totalRentPrice: null,
                 floorM: 1,
                 floorN: 1,
             },
@@ -919,11 +918,10 @@ export class Game extends React.Component {
         this.setState({
             selecting: {
                 ...this.state.selecting,
-                loadingPricesStatus: 1,
                 purchasableInfoAll: [],
                 purchasableInfo: [],
                 purchasable: new Set(),
-                totalPrice: NaN,
+                totalPrice: null,
             },
         });
         
@@ -941,7 +939,6 @@ export class Game extends React.Component {
         this.setState({
             selecting: {
                 ...this.state.selecting,
-                loadingPricesStatus: 2,
                 purchasableInfoAll,
             },
         });
@@ -955,7 +952,7 @@ export class Game extends React.Component {
                 rentableInfoAll: [],
                 rentableInfo: [],
                 rentable: new Set(),
-                totalRentPrice: NaN,
+                totalRentPrice: null,
             },
         });
         
@@ -1010,7 +1007,7 @@ export class Game extends React.Component {
         }
 
         if (purchasable.size === 0) {
-            totalPrice = NaN;
+            totalPrice = null;
             notify({
                 message: "No Spaces available to buy",
             });
@@ -1043,7 +1040,7 @@ export class Game extends React.Component {
         }
 
         if (rentable.size === 0) {
-            totalPrice = NaN;
+            totalPrice = null;
             notify({
                 message: "No Spaces available to rent",
             });
@@ -1076,7 +1073,7 @@ export class Game extends React.Component {
 
         if (m > r || n > c || m <= 0 || n <= 0) {
             let purchasable = new Set();
-            let floor = NaN;
+            let floor = null;
             return {purchasable, purchasableInfo, floor};
         }
 
@@ -1099,8 +1096,8 @@ export class Game extends React.Component {
         }
 
         let floor = Number.MAX_VALUE;
-        let floorX = NaN;
-        let floorY = NaN;
+        let floorX = null;
+        let floorY = null;
         for (let i = m; i <= r; i++) {
             // find floor
             for (let j = n; j <= c; j++) {
@@ -1124,9 +1121,9 @@ export class Game extends React.Component {
         }
 
         let purchasable = new Set();
-        if (isNaN(floorX) && isNaN(floorY)) {
+        if (floorX === null && floorY === null) {
             // if no m x n block is all listed
-            floor = NaN;
+            floor = null;
         } else {
             // update purchasable
             for (let i = floorX - m + 1; i <= floorX; i++) {
@@ -1149,7 +1146,12 @@ export class Game extends React.Component {
             },
         });
         let {spaces, info, floor} = this.getFloor(this.state.selecting.purchasableInfoAll, this.state.selecting.floorN, this.state.selecting.floorM);
-
+        if (spaces.size === 0) {
+            floor = null;
+            notify({
+                message: "No Spaces available to buy",
+            });
+        }
         this.setState({
             selecting: {
                 ...this.state.selecting,
@@ -1169,7 +1171,12 @@ export class Game extends React.Component {
             },
         });
         let {spaces, info, floor} = this.getFloor(this.state.selecting.rentableInfoAll, this.state.selecting.floorN, this.state.selecting.floorM);
-
+        if (spaces.size === 0) {
+            floor = null;
+            notify({
+                message: "No Spaces available to rent",
+            });
+        }
         this.setState({
             selecting: {
                 ...this.state.selecting,
@@ -1554,14 +1561,14 @@ export class Game extends React.Component {
                 infoLoaded: false,
                 imgLoaded: false,
                 neighborhood_name: null,
-                hasRentPrice: false,
-                rentPrice: null,
-                minDuration: null,
-                maxDuration: null,
-                maxTimestamp: null,
-                renter: null,
-                rentEnd: null,
-                rentee: null,
+                // hasRentPrice: false,
+                // rentPrice: null,
+                // minDuration: null,
+                // maxDuration: null,
+                // maxTimestamp: null,
+                // renter: null,
+                // rentEnd: null,
+                // rentee: null,
             },
         });
     }
@@ -1586,17 +1593,16 @@ export class Game extends React.Component {
                 poses: new Set(),
                 color: "#000000",
                 price: null,
-                loadingPricesStatus: 0,
                 purchasableInfoAll: new Array(),
                 purchasableInfo: new Array(),
                 purchasable: new Set(),
-                totalPrice: NaN,
+                totalPrice: null,
                 rentPrice: null,
-                loadingRentStatus: 0,
-                rentableInfoAll: new Array(),
-                rentableInfo: new Array(),
-                rentable: new Set(),
-                totalRentPrice: NaN,
+                // loadingRentStatus: 0,
+                // rentableInfoAll: new Array(),
+                // rentableInfo: new Array(),
+                // rentable: new Set(),
+                // totalRentPrice: null,
                 floorM: 1,
                 floorN: 1,
             },
@@ -1724,26 +1730,52 @@ export class Game extends React.Component {
         });
     }
 
-    setSelecting = (poses) => {
+    setSelecting = async (poses) => {
         this.resetNeighborhood();
         this.resetFocus();
-        if (poses.size === 0) {
+        if (!poses.size) {
             this.resetSelecting();
             this.setState({showNav: false});
         } else {
+
             this.setState({
                 showNav: true,
                 selecting: {
                     ...this.state.selecting,
                     selecting: true,
                     poses,
-                    loadingPricesStatus: 0,
-                    targetStatus: 0,
+                    infoLoaded: false,
+                    purchasableInfoAll: new Array(),
                     purchasableInfo: new Array(),
                     purchasable: new Set(),
-                    totalPrice: NaN,
+                    totalPrice: null,
                     floorM: 1,
                     floorN: 1,
+                },
+            });
+
+            let purchasableInfoAll;
+            try{
+                purchasableInfoAll = await this.props.database.getPurchasableInfo(this.props.user, poses);
+            } catch(e){
+                console.error(e);
+                purchasableInfoAll = [];
+            }
+
+            // TODO: use better check to tell if selection changed
+            if (this.state.selecting.poses.size != poses.size){
+                return; // selection changed
+            }
+
+            this.setState({
+                showNav: true,
+                selecting: {
+                    ...this.state.selecting,
+                    selecting: true,
+                    poses,
+                    infoLoaded: true,
+                    targetStatus: 0,
+                    purchasableInfoAll,
                 },
                 img_upl: null,
                 has_img: false,
