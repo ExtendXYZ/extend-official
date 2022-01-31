@@ -78,6 +78,9 @@ export function bytesToUInt(arr) {
 }
 
 export const solToLamports = (n: any) => {
+  if (n === null){
+    return null;
+  }
   try {
       return Math.floor(parseFloat(n) * Math.pow(10, 9));    
   } catch {
@@ -86,6 +89,9 @@ export const solToLamports = (n: any) => {
 };
 
 export const lamportsToSol = (n: any) => {
+  if (n === null){
+    return null;
+  }
   try {
       return n * Math.pow(10, -9);    
   } catch {
