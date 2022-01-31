@@ -46,7 +46,7 @@ import {
 import { Divider } from "antd";
 
 import { ModalEnum, useModal, useWalletModal } from "../../contexts";
-import { sleep, twoscomplement_i2u, twoscomplement_u2i, convertToInt, loading, notify, register_succeed_notify } from "../../utils";
+import { sleep, twoscomplement_i2u, twoscomplement_u2i, bytesToUInt, loading, notify, register_succeed_notify } from "../../utils";
 import { Server } from "../Game/server.js";
 import { Database } from "../Game/database.js";
 import { initSpaceMetadataInstructions, sendInstructionsGreedyBatch } from "../../actions";
@@ -672,7 +672,7 @@ export const Home = (props: HomeProps) => {
       let goodNeighborhoods: string[] = [];
       const activeNeighborhoods = account.data;
       const preBuffer = 5;
-      const len = convertToInt(activeNeighborhoods.slice(1, preBuffer));
+      const len = bytesToUInt(activeNeighborhoods.slice(1, preBuffer));
       for (let i = 0; i < len; i++) {
         let x, y;
         try {

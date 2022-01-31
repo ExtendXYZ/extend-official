@@ -32,8 +32,7 @@ import { Board } from './canvas.js';
 import { FocusSidebar } from './focus_sidebar.js';
 import { SelectingSidebar } from './selecting_sidebar.js';
 import { NeighborhoodSidebar } from './neighborhood_sidebar.js';
-import { solToLamports, lamportsToSol, xor} from "../../utils";
-import { priceToColor, colorHighlight } from "../../utils";
+import { solToLamports, lamportsToSol, xor, bytesToUInt, priceToColor, colorHighlight} from "../../utils";
 import {loading} from '../../utils/loading';
 import { letterSpacing } from "@mui/system";
 import { InfoOutlined } from "@mui/icons-material";
@@ -1657,8 +1656,6 @@ export class Game extends React.Component {
         if (key in this.viewport.neighborhood_names) {
             neighborhood_name = this.viewport.neighborhood_names[key];
         }
-
-        console.log(info);
 
         if (!this.state.focus.focus || this.state.focus.x !== x || this.state.focus.y !== y) { // sidebar changed
             return;

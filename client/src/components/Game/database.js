@@ -14,6 +14,44 @@ export class Database {
         this.mysql = DATABASE_SERVER_URL + `/${prefix}`;
     }
 
+    async connect() {
+        console.log("connecting:");
+        return await axios.post(this.mysql + "/connect/", "connect", {
+            headers: { 'Content-Type': 'text/plain' }
+          });
+    }
+
+    async disconnect() {
+        await fetch(this.mysql + "/connect", {
+            method: "POST",
+            headers: {
+                "Content-Type": "text/plain"
+            }, 
+            body: "disconnect",
+            keepalive: true
+        });
+    }
+
+    async connectNew(id) {
+        const currTime = Date.now();
+        const result = await axios.post(this.mysql + "/connectId/", {type: "connect", id: id, time: Date.now()});
+        return result.data[0][0];
+    }
+
+    async disconnectNew(id) {
+        return await axios.post(this.mysql + "/connectId/", {type: "disconnect", id: id, time: Date.now()});
+    }
+
+    async getNumViewers() {
+        const result = await axios.get(this.mysql + '/connectId');
+        return result.data[0][0];
+    }
+
+    async getOnline() {
+        const result = await axios.get(this.mysql + '/connect');
+        console.log(result);
+    }
+
     async getSpacesByOwner(address) {
         const results = await axios.get(this.mysql + '/owner/' + address.toBase58());
         const data = results.data;
@@ -57,35 +95,6 @@ export class Database {
         }
     }
 
-    async getSpaceInfoWithRent(x, y){
-        const results = await axios.get(this.mysql + '/infoWithRent/' + x + '/' + y);
-        const data = results.data[0];
-        console.log(data);
-        let [mint, owner, price, forSale, rentPrice, minDuration, maxDuration, maxTimestamp, rentEnd, renter, rentee] = data;
-
-        let hasRentPrice = true;
-            let now = Date.now() / 1000;
-            if (rentPrice == 0 || (owner !== renter) || (maxTimestamp > 0 && now > maxTimestamp) || now < rentEnd) {
-                hasRentPrice = false;
-                rentPrice = 0;
-            }
-
-        return {
-            mint: mint ? new PublicKey(mint) : null,
-            owner: owner? new PublicKey(owner) : null,
-            price,
-            hasPrice: Boolean(forSale),
-            rentPrice,
-            minDuration,
-            maxDuration,
-            maxTimestamp,
-            rentEnd,
-            renter: renter ? new PublicKey(renter) : null,
-            rentee: rentee ? new PublicKey(rentee) : null,
-            hasRentPrice,
-        }
-    }
-
     async getPurchasableInfo(user, poses) {
         const newPoses = [...poses];
         let posesX = [];
@@ -115,87 +124,6 @@ export class Database {
         purchasableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
 
         return purchasableInfo;
-    }
-
-    async getRentableInfo(user, poses) {
-        const newPoses = [...poses];
-        let posesX = [];
-        let posesY = [];
-        let minX = Infinity;
-        let minY = Infinity;
-        let maxX = -Infinity;
-        let maxY = -Infinity;
-        for (let pose of newPoses) {
-            let pos = JSON.parse(pose);
-            minX = Math.min(minX, pos.x);
-            minY = Math.min(minY, pos.y);
-            maxX = Math.max(maxX, pos.x);
-            maxY = Math.max(maxY, pos.y);
-        }
-
-        const results = await axios.get(this.mysql + '/rentableSpaces/' + minX + '/' + minY + '/' + maxX + '/' + maxY);
-        const data = results.data;
-
-        let rentableInfo = [];
-        for (let arr of data) {
-            let [x, y, mint, owner, rentPrice, minDuration, maxDuration, maxTimestamp, rentEnd, renter] = arr;
-            console.log(arr);
-            if (poses.has(JSON.stringify({x, y})) && (!user || user.toBase58() != owner)) { // if in poses, not owned by curr user, and for Sale 
-                rentableInfo.push(
-                    {
-                        x,
-                        y,
-                        mint: mint ? new PublicKey(mint) : null,
-                        price: Number(rentPrice),
-                        minDuration: Number(minDuration),
-                        maxDuration: Number(maxDuration),
-                        maxTimestamp: Number(maxTimestamp),
-                        renter: renter ? new PublicKey(renter) : null,
-                    }
-                );
-            }
-        }
-        rentableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
-
-        return rentableInfo;
-    }
-
-    async connect() {
-        console.log("connecting:");
-        return await axios.post(this.mysql + "/connect/", "connect", {
-            headers: { 'Content-Type': 'text/plain' }
-          });
-    }
-
-    async disconnect() {
-        await fetch(this.mysql + "/connect", {
-            method: "POST",
-            headers: {
-                "Content-Type": "text/plain"
-            }, 
-            body: "disconnect",
-            keepalive: true
-        });
-    }
-
-    async connectNew(id) {
-        const currTime = Date.now();
-        const result = await axios.post(this.mysql + "/connectId/", {type: "connect", id: id, time: Date.now()});
-        return result.data[0][0];
-    }
-
-    async disconnectNew(id) {
-        return await axios.post(this.mysql + "/connectId/", {type: "disconnect", id: id, time: Date.now()});
-    }
-
-    async getNumViewers() {
-        const result = await axios.get(this.mysql + '/connectId');
-        return result.data[0][0];
-    }
-
-    async getOnline() {
-        const result = await axios.get(this.mysql + '/connect');
-        console.log(result);
     }
 
     // async refreshPrices(spaces) {
@@ -237,4 +165,76 @@ export class Database {
           listed: data.listed.map( el => JSON.stringify({x : el[0], y: el[1]})),
         };
     } 
+
+    // async getSpaceInfoWithRent(x, y){
+    //     const results = await axios.get(this.mysql + '/infoWithRent/' + x + '/' + y);
+    //     const data = results.data[0];
+    //     console.log(data);
+    //     let [mint, owner, price, forSale, rentPrice, minDuration, maxDuration, maxTimestamp, rentEnd, renter, rentee] = data;
+
+    //     let hasRentPrice = true;
+    //         let now = Date.now() / 1000;
+    //         if (rentPrice == 0 || (owner !== renter) || (maxTimestamp > 0 && now > maxTimestamp) || now < rentEnd) {
+    //             hasRentPrice = false;
+    //             rentPrice = 0;
+    //         }
+
+    //     return {
+    //         mint: mint ? new PublicKey(mint) : null,
+    //         owner: owner? new PublicKey(owner) : null,
+    //         price,
+    //         hasPrice: Boolean(forSale),
+    //         rentPrice,
+    //         minDuration,
+    //         maxDuration,
+    //         maxTimestamp,
+    //         rentEnd,
+    //         renter: renter ? new PublicKey(renter) : null,
+    //         rentee: rentee ? new PublicKey(rentee) : null,
+    //         hasRentPrice,
+    //     }
+    // }
+
+    // async getRentableInfo(user, poses) {
+    //     const newPoses = [...poses];
+    //     let posesX = [];
+    //     let posesY = [];
+    //     let minX = Infinity;
+    //     let minY = Infinity;
+    //     let maxX = -Infinity;
+    //     let maxY = -Infinity;
+    //     for (let pose of newPoses) {
+    //         let pos = JSON.parse(pose);
+    //         minX = Math.min(minX, pos.x);
+    //         minY = Math.min(minY, pos.y);
+    //         maxX = Math.max(maxX, pos.x);
+    //         maxY = Math.max(maxY, pos.y);
+    //     }
+
+    //     const results = await axios.get(this.mysql + '/rentableSpaces/' + minX + '/' + minY + '/' + maxX + '/' + maxY);
+    //     const data = results.data;
+
+    //     let rentableInfo = [];
+    //     for (let arr of data) {
+    //         let [x, y, mint, owner, rentPrice, minDuration, maxDuration, maxTimestamp, rentEnd, renter] = arr;
+    //         console.log(arr);
+    //         if (poses.has(JSON.stringify({x, y})) && (!user || user.toBase58() != owner)) { // if in poses, not owned by curr user, and for Sale 
+    //             rentableInfo.push(
+    //                 {
+    //                     x,
+    //                     y,
+    //                     mint: mint ? new PublicKey(mint) : null,
+    //                     price: Number(rentPrice),
+    //                     minDuration: Number(minDuration),
+    //                     maxDuration: Number(maxDuration),
+    //                     maxTimestamp: Number(maxTimestamp),
+    //                     renter: renter ? new PublicKey(renter) : null,
+    //                 }
+    //             );
+    //         }
+    //     }
+    //     rentableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
+
+    //     return rentableInfo;
+    // }
 }
