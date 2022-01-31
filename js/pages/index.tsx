@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Button, Col, Row } from "antd";
 import Head from "next/head";
 import { Accordion } from "react-bootstrap";
+import { useEffect, useState } from "react";
 
 const Home: NextPage = () => {
   // const [active, setActive] = useState(false);
@@ -18,6 +19,20 @@ const Home: NextPage = () => {
   // const toggleAccordion = () => {
   // setActive(!active);
   // };
+
+  const [bottom, setBottom] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setBottom( (window.innerHeight + window.pageYOffset >= document.body.scrollHeight) );
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
     <div className={styles.container}>
       <Head>
@@ -58,6 +73,12 @@ const Home: NextPage = () => {
           content="https://metadata.extend.xyz/assets/space-1.png"
         />
       </Head>
+        {  !bottom ? 
+        <img
+        src={"/images/arrow.svg"}
+        className={styles.scrollArrow}
+        /> : <img />
+        }
       <section className={`${styles.logoAndSocial}`}>
         <Row>
           <Col xs={24} sm={24} md={12} lg={12} xl={11}>
@@ -146,12 +167,6 @@ const Home: NextPage = () => {
               </svg>
             </div>
           </Col>
-        </Row>
-        <Row className={styles.arrowContainer}>
-          <img
-            src={"/images/arrow.svg"}
-            className={styles.arrowBetweenSections}
-          />
         </Row>
       </section>
 
@@ -502,7 +517,7 @@ const Home: NextPage = () => {
             className={styles.supporterButton}
           >
             <img className={styles.supporterImage}
-              src={"/images/supporters/9up.jpeg"}
+              src={"/images/supporters/9up_logo.svg"}
             />
           </a>
           <a
@@ -510,7 +525,7 @@ const Home: NextPage = () => {
             className={styles.supporterButton}
           >
             <img className={styles.supporterImage}
-              src={"/images/supporters/jumpcrypto.webp"}
+              src={"/images/supporters/JumpCrypto_logo_FullKO_RGB.svg"}
             />
           </a>
           <a
