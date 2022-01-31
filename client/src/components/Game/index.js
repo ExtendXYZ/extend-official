@@ -1733,6 +1733,12 @@ export class Game extends React.Component {
                     selecting: true,
                     poses,
                     infoLoaded: false,
+                    purchasableInfoAll: new Array(),
+                    purchasableInfo: new Array(),
+                    purchasable: new Set(),
+                    totalPrice: null,
+                    floorM: 1,
+                    floorN: 1,
                 },
             });
 
@@ -1742,6 +1748,11 @@ export class Game extends React.Component {
             } catch(e){
                 console.error(e);
                 purchasableInfoAll = [];
+            }
+
+            // TODO: use better check to tell if selection changed
+            if (this.state.selecting.poses.size != poses.size){
+                return; // selection changed
             }
 
             this.setState({
@@ -1754,15 +1765,6 @@ export class Game extends React.Component {
                     loadingPricesStatus: 2, // TODO remove this field, for now set to 2 to enable buttons
                     targetStatus: 0,
                     purchasableInfoAll,
-                    purchasableInfo: new Array(),
-                    purchasable: new Set(),
-                    totalPrice: NaN,
-                    // rentableInfoAll: new Array(),
-                    // rentableInfo: new Array(),
-                    // rentable: new Set(),
-                    // totalRentPrice: NaN,
-                    floorM: 1,
-                    floorN: 1,
                 },
                 img_upl: null,
                 has_img: false,
