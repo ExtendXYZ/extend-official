@@ -150,7 +150,7 @@ pub fn process(
     let idx_time_start = (8 * n * x_mod + 8 * y_mod) as usize;
     let idx_time_end = idx_time_start + 8;
     let time_thresh = u64::from_le_bytes( time_cluster_data[idx_time_start..idx_time_end].try_into().expect("incorrect") );
-    if time_thresh > now_ts {
+    if (*fee_payer.key != *owner.key) && (time_thresh > now_ts) {
         msg!("Cannot change unowned space's color until inactivity period");
         return Err(ProgramError::IllegalOwner);
     }
