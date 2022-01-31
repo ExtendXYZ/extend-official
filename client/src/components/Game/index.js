@@ -107,7 +107,6 @@ export class Game extends React.Component {
                 poses: new Set(),
                 color: "#000000",
                 price: null,
-                loadingPricesStatus: 0,
                 targetStatus: 0,
                 purchasableInfoAll: new Array(),
                 purchasableInfo: new Array(),
@@ -910,7 +909,6 @@ export class Game extends React.Component {
         this.setState({
             selecting: {
                 ...this.state.selecting,
-                loadingPricesStatus: 1,
                 purchasableInfoAll: [],
                 purchasableInfo: [],
                 purchasable: new Set(),
@@ -932,7 +930,6 @@ export class Game extends React.Component {
         this.setState({
             selecting: {
                 ...this.state.selecting,
-                loadingPricesStatus: 2,
                 purchasableInfoAll,
             },
         });
@@ -1580,7 +1577,6 @@ export class Game extends React.Component {
                 poses: new Set(),
                 color: "#000000",
                 price: null,
-                loadingPricesStatus: 0,
                 purchasableInfoAll: new Array(),
                 purchasableInfo: new Array(),
                 purchasable: new Set(),
@@ -1762,7 +1758,6 @@ export class Game extends React.Component {
                     selecting: true,
                     poses,
                     infoLoaded: true,
-                    loadingPricesStatus: 2, // TODO remove this field, for now set to 2 to enable buttons
                     targetStatus: 0,
                     purchasableInfoAll,
                 },
