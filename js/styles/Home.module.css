@@ -10,9 +10,30 @@
     top:0;
     left:0;
     z-index: 3;
-    width : 100%;
-    
+    width : 100%;   
 }
+
+.scrollArrow{
+    position: fixed;
+    top: calc(100vh - 60px);
+    left: calc(50% - 70px);
+    height: 30px;
+    z-index: 10;
+    animation: jumpInfinite 1.5s infinite;
+}
+
+@keyframes jumpInfinite {
+    0% {
+      margin-top: 0;
+    }
+    50% {
+      margin-top: 20px;
+    }
+    100% {
+      margin-top: 0;
+    }
+  }
+
 
 .myVideo{
     width: 100%; 
@@ -212,6 +233,14 @@
     justify-content: center;
 }
 
+.supporterButton{
+    width : 20%;
+}
+
+.supporterImage{
+    width: 100%;
+}
+
 .socialMediaButton {
     padding-left : 10px;
     padding-right : 10px;
@@ -247,8 +276,8 @@
 
     .socialMediaBar {
         flex-direction: row;
-        justify-content: center;
         align-items: center;   
+        justify-content: center;
     }
 
     .sectionMain {
@@ -267,6 +296,14 @@
 }
 
 @media (max-width: 768px) {
+
+    .scrollArrow{
+        display : none;
+    }
+
+    .supporterButton{
+        width :40%;
+    }
 
     .titleImageContainer{
         min-height: 20em;
@@ -460,7 +497,7 @@
 
 @media (min-width: 1200px) {
     .titleImageContainer, .extendsImageContainer, .spaceImageContainer, .arrowImageContainer {
-        min-height: 50rem;
+        min-height: 38rem;
         background-position-x: center;
     }
 }
