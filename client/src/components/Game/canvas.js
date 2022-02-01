@@ -511,10 +511,10 @@ export class Board extends React.Component {
         currentMouse.style.width = neighborhood_scale + "px";
         currentMouse.style.height = neighborhood_scale + "px";
         let key = JSON.stringify({ n_x, n_y });
-        let neighborhood_names = this.props.getNeighborhoodNames();
+        let neighborhoodNames = this.props.getNeighborhoodNames();
         const currentNeighborhood = document.getElementById("neighborhood");
-        if (neighborhood_names && (key in neighborhood_names)) {
-            this.neighborhood_name = neighborhood_names[key];
+        if (neighborhoodNames && (key in neighborhoodNames)) {
+            this.neighborhood_name = neighborhoodNames[key];
             if (this.scale <= this.fit - 1) {
                 currentNeighborhood.innerHTML = "<h1>" + this.neighborhood_name + "</h1>";
             } else {
