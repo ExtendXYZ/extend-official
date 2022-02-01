@@ -43,7 +43,7 @@ import Search from "antd/es/input/Search";
 const SIDE_NAV_WIDTH = 400;
 const FETCH_COLORS_INTERVAL = 10 * 1000;
 const FETCH_NAMES_INTERVAL = 60 * 1000;
-const FETCH_PRICES_INTERVAL = 3 * 60 * 1000;
+const FETCH_PRICES_INTERVAL = 20 * 1000;
 const FETCH_EDITABLE_INTERVAL = 10 * 1000;
 const ANIMATION_INTERVAL = 300;
 
