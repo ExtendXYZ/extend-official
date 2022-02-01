@@ -2007,7 +2007,7 @@ export class Game extends React.Component {
         loading(null, "refreshing", "success");
     }
 
-    setColorView = () => {
+    setColiew = () => {
         this.resetViews();
         this.state.view = 0;
         this.board.current.resetCanvas();
@@ -2277,7 +2277,11 @@ export class Game extends React.Component {
                             marginLeft: "20px", // TODO
                         }}
                     >
-
+                        <Tooltip title="Number of viewers">
+                            <Box sx={{marginLeft: "10px"}}>
+                                <VisibilityIcon/> {this.props.viewer}
+                            </Box>
+                        </Tooltip>
                         <Tooltip title="Refresh canvas">
                             <Button
                                 variant="contained"
@@ -2289,12 +2293,6 @@ export class Game extends React.Component {
                             >
                                 <ReloadOutlined />
                             </Button>
-                        </Tooltip>
-
-                        <Tooltip title="Number of viewers">
-                            <Box sx={{marginLeft: "10px"}}>
-                                <VisibilityIcon/> {this.props.viewer}
-                            </Box>
                         </Tooltip>
                         <Tooltip title="Change view">
                             <Button
