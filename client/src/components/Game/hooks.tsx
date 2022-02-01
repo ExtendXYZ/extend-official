@@ -20,6 +20,9 @@ import {
     createTimeClusterInstruction,
     initFrameInstruction,
     initVoucherSystemInstruction,
+    MakeEditableArgs,
+    makeEditableInstruction,
+    makeEditableInstructions,
     SetRentArgs,
     setRentInstruction,
     setRentInstructions,
@@ -64,6 +67,7 @@ export function Screen(props) {
     const [loadedOwned, setLoadedOwned] = useState(false);
     const [changeColorTrigger, setChangeColorTrigger] = useState({});
     const [changeColorsTrigger, setChangeColorsTrigger] = useState({});
+    const [makeEditableTrigger, setMakeEditableTrigger] = useState({});
     const [changePriceTrigger, setChangePriceTrigger] = useState({});
     const [changePricesTrigger, setChangePricesTrigger] = useState({});
     const [purchaseSpaceTrigger, setPurchaseSpaceTrigger] = useState({});
@@ -403,6 +407,29 @@ export function Screen(props) {
         asyncChangeColors();
     },
         [changeColorsTrigger]
+    );
+
+    useEffect(() => {
+        const asyncMakeEditable = async() => {
+            const editable = makeEditableTrigger["editable"];
+            if (editable !== null && wallet.publicKey) {
+                const x = makeEditableTrigger["x"];
+                const y = makeEditableTrigger["y"];
+                const position = JSON.stringify({x, y});
+                const mint = makeEditableTrigger["mint"];
+                try {
+                    let change = new MakeEditableArgs({x, y, mint});
+                    let ix = await makeEditableInstruction(connection, wallet, BASE, change);
+                    sendTransaction(connection, wallet, ix, "Make editable");
+                }
+                catch (e) {
+                    return;
+                }
+            }
+        }
+        asyncMakeEditable();
+    },
+        [makeEditableTrigger]
     );
 
     useEffect(() => {
@@ -1150,6 +1177,7 @@ export function Screen(props) {
             setOwnedMints={setOwnedMints}
             setChangeColorTrigger={setChangeColorTrigger}
             setChangeColorsTrigger={setChangeColorsTrigger}
+            setMakeEditableTrigger={setMakeEditableTrigger}
             setChangePriceTrigger={setChangePriceTrigger}
             setChangePricesTrigger={setChangePricesTrigger}
             setPurchaseSpaceTrigger={setPurchaseSpaceTrigger}
