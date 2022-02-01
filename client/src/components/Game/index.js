@@ -159,6 +159,7 @@ export class Game extends React.Component {
             neighborhoodNames: {},
             neighborhoodPriceView: {},
             neighborhoodEditableView: {},
+            neighborhoodEditableTimes: {},
             view: 0,
         };
         this.censors = null;
@@ -369,6 +370,7 @@ export class Game extends React.Component {
             editableClusterKeys
         );
         let tmpNeighborhoodEditableView = {};
+        this.viewport.neighborhoodEditableTimes = {};
         let newMax = this.state.maxFrame;
         let now = Date.now() / 1000;
         const neighborhood_accounts = await Promise.all(
@@ -2290,7 +2292,7 @@ export class Game extends React.Component {
                             <MenuItem onClick={(e) => this.setColorView()}>Colors</MenuItem>
                             <MenuItem onClick={(e) => this.setPriceView()}>Prices</MenuItem>
                             <MenuItem onClick={(e) => this.setEditableView()}>Editable</MenuItem>
-                        </Menu>
+git                         </Menu>
                         <FormControl>
                             <FormControlLabel
                                 disabled={!this.state.animsInfoLoaded || this.viewport.view != 0}
