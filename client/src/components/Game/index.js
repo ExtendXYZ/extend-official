@@ -238,7 +238,6 @@ export class Game extends React.Component {
             tmp_neighborhood_censors[JSON.stringify(value)] = this.fetch_censors(frame, value);
         })
         this.viewport.neighborhood_censors = tmp_neighborhood_censors;
-        console.log(this.viewport.neighborhood_censors);
         
         this.setState({ maxFrame: newMax });
         return frameKeys;
