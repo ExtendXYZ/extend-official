@@ -315,17 +315,19 @@ export class FocusSidebar extends React.Component {
                                     />
                                     </RadioGroup>
                                     <Box className="infoHeader">
-                                        <div style={{width: "70%", float: "left"}}>
+                                        <div style={{width: "65%", float: "left"}}>
                                             COLOR
                                         </div>
                                         {this.state.editable && !this.state.owned && this.props.focus.owner ?
-                                        <div style={{width: "30%", float: "right"}}>
+                                        <Tooltip placement={'right'} title="Pay a fixed price to edit the color of this space. After changing color, the color will be able to be edited again in 30 seconds.">
+                                        <div style={{width: "35%", float: "right"}}>
                                             EDIT PRICE
-                                        </div> 
+                                        </div>
+                                        </Tooltip> 
                                         : null
                                         }
                                     </Box>
-                                    <div style={{ display: "flex", alignItems: "center", width: "70%", float: "left"}}>
+                                    <div style={{ display: "flex", alignItems: "center", width: "65%", float: "left"}}>
                                     <input
                                         className="newColor"
                                         type="color"
@@ -350,8 +352,8 @@ export class FocusSidebar extends React.Component {
                                     </Button>
                                     </div>
                                     {(!this.state.owned && this.state.editable && this.props.focus.owner) ? 
-                                        <div style={{ display: "flex", alignItems: "center", width: "30%", float: "right"}}>
-                                            0.0002 SOL
+                                        <div style={{ display: "flex", alignItems: "center", width: "35%", float: "right"}}>
+                                            0.000001 SOL
                                         </div>
                                     : null
                                     }
