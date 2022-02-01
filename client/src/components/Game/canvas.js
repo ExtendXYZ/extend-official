@@ -81,6 +81,7 @@ export class Board extends React.Component {
         this.onTouchMove = this.onTouchMove.bind(this);
         this.onWheel = this.onWheel.bind(this);
         this.map = null;
+        this.censors = null;
         this.neighborhood_name = null;
         this.pinchCanche = null;
     }
@@ -678,17 +679,18 @@ export class Board extends React.Component {
         const starty = Math.floor(-this.y / neighborhood_scale);
         const endx = Math.ceil((-this.x + width) / neighborhood_scale);
         const endy = Math.ceil((-this.y + height) / neighborhood_scale);
-        const currentMap = this.props.getMap();
-        this.map = currentMap;
+        this.map = this.props.getMap();
+        this.censors = this.props.getCensors();
         for (let n_x = startx; n_x < endx; ++n_x) {
             for (let n_y = starty; n_y < endy; ++n_y) {
                 let key = JSON.stringify({ n_x, n_y });
-                if (key in currentMap) {
+                if (key in this.map) {
                     if (!(key in this.canvasCache)) {
                         this.canvasCache[key] = document.createElement("canvas");
                     }
-                    const tmpCanvas = this.drawNeighborhood(
-                        currentMap[key],
+                    this.drawNeighborhood(
+                        this.map[key],
+                        this.censors[key],
                         this.canvasCache[key]
                     );
                 }
@@ -801,7 +803,7 @@ export class Board extends React.Component {
         }
     }
 
-    drawNeighborhood(map, tmpCanvas) {
+    drawNeighborhood(map, censors, tmpCanvas) {
         let scale = Math.min(this.scale, 50);
         if (this.width < 500) {
             scale = Math.min(this.scale, 20);
@@ -818,6 +820,17 @@ export class Board extends React.Component {
                 tmpContext.fillStyle = map[y][x];
                 tmpContext.fillRect(x * scale, y * scale, scale, scale);
             }
+        }
+        if (censors) {
+            censors.forEach(rect => {
+                tmpContext.fillStyle = "#FFFFFF";
+                tmpContext.fillRect(
+                    rect.left * scale, 
+                    rect.top * scale, 
+                    (rect.right - rect.left) * scale, 
+                    (rect.bottom - rect.top) * scale
+                );
+            })
         }
         return tmpCanvas;
     }
