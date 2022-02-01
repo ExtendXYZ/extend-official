@@ -1768,8 +1768,8 @@ export class Game extends React.Component {
                         ? this.viewport.neighborhoodColors[key][p_y][p_x]
                         : "#000000",
                 time:
-                    key in this.viewport.neighborhood_time_clusters
-                        ? this.viewport.neighborhood_time_clusters[key][p_y][p_x]
+                    key in this.viewport.neighborhoodEditableTimes
+                        ? this.viewport.neighborhoodEditableTimes[key][p_y][p_x]
                         : 0,
                 owned: owned,
                 infoLoaded: true,
