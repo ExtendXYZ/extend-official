@@ -42,6 +42,7 @@ import Search from "antd/es/input/Search";
 
 const SIDE_NAV_WIDTH = 400;
 const FETCH_COLORS_INTERVAL = 10 * 1000;
+const FETCH_TIMES_INTERVAL = 30 * 1000;
 const FETCH_NAMES_INTERVAL = 60 * 1000;
 const FETCH_PRICES_INTERVAL = 20 * 1000;
 const FETCH_EDITABLE_INTERVAL = 10 * 1000;
@@ -557,6 +558,22 @@ export class Game extends React.Component {
         notify({
             message: "Changing colors...",
         });
+    }
+
+    makeEditable = (e) => {
+        let checked = e.target.checked;
+
+        if (checked) {
+            this.props.setMakeEditableTrigger({
+                x: this.state.focus.x,
+                y: this.state.focus.y,
+                mint: this.state.focus.mint,
+                editable: true,
+            });
+            notify({
+                message: "Making editable...",
+            });
+        } // nothing for uncheck case for now
     }
 
     uploadImage = () => {
@@ -1739,6 +1756,10 @@ export class Game extends React.Component {
                     key in this.viewport.neighborhoodColors
                         ? this.viewport.neighborhoodColors[key][p_y][p_x]
                         : "#000000",
+                time:
+                    key in this.viewport.neighborhood_time_clusters
+                        ? this.viewport.neighborhood_time_clusters[key][p_y][p_x]
+                        : 0,
                 owned: owned,
                 infoLoaded: true,
                 neighborhood_name: neighborhood_name,
@@ -2153,6 +2174,7 @@ export class Game extends React.Component {
             handleChangeColorApplyAll={this.handleChangeColorApplyAll}
             handleChangeColor={this.handleChangeColor}
             changeColor={this.changeColor}
+            makeEditable={this.makeEditable}
             purchaseSpace={this.purchaseSpace}
             handleChangeFocusPrice={this.handleChangeFocusPrice}
             changePrice={this.changePrice}
