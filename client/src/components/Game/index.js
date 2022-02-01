@@ -2292,7 +2292,7 @@ export class Game extends React.Component {
                             <MenuItem onClick={(e) => this.setColorView()}>Colors</MenuItem>
                             <MenuItem onClick={(e) => this.setPriceView()}>Prices</MenuItem>
                             <MenuItem onClick={(e) => this.setEditableView()}>Editable</MenuItem>
-git                         </Menu>
+                        </Menu>
                         <FormControl>
                             <FormControlLabel
                                 disabled={!this.state.animsInfoLoaded || this.viewport.view != 0}
