@@ -67,7 +67,8 @@ export function Screen(props) {
     const [loadedOwned, setLoadedOwned] = useState(false);
     const [changeColorTrigger, setChangeColorTrigger] = useState({});
     const [changeColorsTrigger, setChangeColorsTrigger] = useState({});
-    const [makeEditableTrigger, setMakeEditableTrigger] = useState({});
+    const [makeEditableColorTrigger, setMakeEditableColorTrigger] = useState({});
+    const [makeEditableColorsTrigger, setMakeEditableColorsTrigger] = useState({});
     const [changePriceTrigger, setChangePriceTrigger] = useState({});
     const [changePricesTrigger, setChangePricesTrigger] = useState({});
     const [purchaseSpaceTrigger, setPurchaseSpaceTrigger] = useState({});
@@ -406,26 +407,65 @@ export function Screen(props) {
     );
 
     useEffect(() => {
-        const asyncMakeEditable = async() => {
-            const editable = makeEditableTrigger["editable"];
+        const asyncMakeEditableColor = async() => {
+            const editable = makeEditableColorTrigger["editable"];
             if (editable !== null && wallet.publicKey) {
-                const x = makeEditableTrigger["x"];
-                const y = makeEditableTrigger["y"];
+                const x = makeEditableColorTrigger["x"];
+                const y = makeEditableColorTrigger["y"];
                 const position = JSON.stringify({x, y});
-                const mint = makeEditableTrigger["mint"];
+                const mint = makeEditableColorTrigger["mint"];
+
+                const n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
+                const n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
+                const timeClusterKey = await server.getEditableTimeClusterKey(connection, n_x, n_y);
                 try {
                     let change = new MakeEditableArgs({x, y, mint});
-                    let ix = await makeEditableInstruction(connection, wallet, BASE, change);
-                    sendTransaction(connection, wallet, ix, "Make editable");
+                    let ix = await makeEditableInstruction(connection, wallet, BASE, change, timeClusterKey);
+                    sendTransaction(connection, wallet, ix, "Make color editable");
                 }
                 catch (e) {
                     return;
                 }
             }
         }
-        asyncMakeEditable();
+        asyncMakeEditableColor();
     },
-        [makeEditableTrigger]
+        [makeEditableColorTrigger]
+    );
+
+    useEffect(() => {
+        const asyncMakeEditableColors = async() => {
+            const editable = makeEditableColorsTrigger["editable"];
+            const spaces = makeEditableColorsTrigger["spaces"];
+            if (editable !== null && wallet.publicKey && spaces) {
+                const mints = makeEditableColorsTrigger["mints"];
+                let changes: MakeEditableArgs[] = [];
+                const spaceGrid = ownedSpaces;
+                for (let space of spaces) {
+                    if (spaceGrid.has(space)) {
+                        const mint = mints[space];
+                        const p = JSON.parse(space);
+                        const x = p.x;
+                        const y = p.y;
+                        let change = new MakeEditableArgs({x, y, mint});
+                        changes.push(change);
+                    }
+                }
+                let neighborhoods = server.getNeighborhoods(spaces);
+                const timeClusterMap = await server.getEditableTimeClusterKeys(connection, neighborhoods);
+
+                try {
+                    let ixs = await makeEditableInstructions(connection, wallet, BASE, changes, timeClusterMap);
+                    sendInstructionsGreedyBatch(connection, wallet, ixs, "Make colors editable");
+                }
+                catch (e) {
+                    return;
+                }
+            }
+        }
+        asyncMakeEditableColors();
+    },
+        [makeEditableColorsTrigger]
     );
 
     useEffect(() => {
@@ -1170,7 +1210,8 @@ export function Screen(props) {
             setOwnedMints={setOwnedMints}
             setChangeColorTrigger={setChangeColorTrigger}
             setChangeColorsTrigger={setChangeColorsTrigger}
-            setMakeEditableTrigger={setMakeEditableTrigger}
+            setMakeEditableColorTrigger={setMakeEditableColorTrigger}
+            setMakeEditableColorsTrigger={setMakeEditableColorsTrigger}
             setChangePriceTrigger={setChangePriceTrigger}
             setChangePricesTrigger={setChangePricesTrigger}
             setPurchaseSpaceTrigger={setPurchaseSpaceTrigger}
