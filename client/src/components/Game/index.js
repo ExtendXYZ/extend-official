@@ -419,7 +419,7 @@ export class Game extends React.Component {
     //         this.viewport.neighborhoodColors[key] = await this.props.server.getFrameData(
     //             account
     //         );
-    //     }t
+    //     }
     // }
 
     async componentDidMount() {
