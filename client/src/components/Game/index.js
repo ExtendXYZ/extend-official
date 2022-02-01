@@ -129,8 +129,8 @@ export class Game extends React.Component {
             findingSpaces: false,
             refreshingUserSpaces: false,
             colorApplyAll: false,
-            animations: false,
-            animationsInfoLoaded: true,
+            anims: false,
+            animsInfoLoaded: true,
             floor: false,
             frame: 0,
             maxFrame: 1,
@@ -140,7 +140,6 @@ export class Game extends React.Component {
             shareMenuAnchorEl: null,
             mySpacesMenuOpen: false,
             mySpacesMenuAnchorEl: null,
-            view: 0,
         };
 
         this.viewport = {
@@ -153,6 +152,7 @@ export class Game extends React.Component {
             neighborhoodPriceView: {},
             neighborhoodEditableView: {},
             neighborhoodEditableTimes: {},
+            view: 0,
         };
         this.censors = {};
         this.board = React.createRef();
@@ -1457,27 +1457,17 @@ export class Game extends React.Component {
         );
     }
 
-    resetViews = () => { // call when switching between views
-        this.setState({
-            animations: false
-        });
-        clearInterval(this.intervalFetchColors);
-        clearInterval(this.intervalChangeFrame);
-        clearInterval(this.intervalFetchPrices);
-        clearInterval(this.intervalFetchEditable);
-    }
-
     handleChangeAnims = async (e) => {
-        let animations = e.target.checked;
+        let anims = e.target.checked;
 
         this.setState({
-            animations: animations,
-            animationsInfoLoaded: false
+            anims: anims,
+            animsInfoLoaded: false
         });
 
         let k = this.state.frame;
 
-        if (animations) {
+        if (anims) {
             clearInterval(this.intervalFetchColors);
             loading(null, "Loading frames", null);
             await this.fetchColorsAllFrames();
@@ -1517,8 +1507,8 @@ export class Game extends React.Component {
             }, FETCH_COLORS_INTERVAL);
         }
         this.setState({
-            animations: animations,
-            animationsInfoLoaded: true
+            anims: anims,
+            animsInfoLoaded: true
         });
     }
 
@@ -2040,8 +2030,7 @@ export class Game extends React.Component {
     }
 
     setColorView = () => {
-        this.resetViews();
-        this.state.view = 0;
+        this.viewport.view = 0;
         this.board.current.resetCanvas();
         this.setState({
             viewMenuOpen: false,
@@ -2049,19 +2038,35 @@ export class Game extends React.Component {
         });
     }
     setPriceView = () => {
-        this.resetViews();
-        this.state.view = 1;
+        clearInterval(this.intervalChangeFrame);
+        this.intervalFetchColors = setInterval(async () => {
+            if (document.hidden){
+                return;
+            }
+            await this.fetchColors(this.state.frame);
+        }, FETCH_COLORS_INTERVAL);
+        this.viewport.view = 1;
         this.board.current.resetCanvas();
         this.setState({
+            anims: false,
+            animsInfoLoaded: true,
             viewMenuOpen: false,
             viewMenuAnchorEl: null,
         });
     }
     setEditableView = () => {
-        this.resetViews();
-        this.state.view = 2;
+        clearInterval(this.intervalChangeFrame);
+        this.intervalFetchEditable = setInterval(async () => {
+            if (document.hidden){
+                return;
+            }
+            await this.fetchEditableView(this.state.frame);
+        }, FETCH_COLORS_INTERVAL);
+        this.viewport.view = 2;
         this.board.current.resetCanvas();
         this.setState({
+            anims: false,
+            animsInfoLoaded: true,
             viewMenuOpen: false,
             viewMenuAnchorEl: null,
         });
@@ -2231,8 +2236,8 @@ export class Game extends React.Component {
                 <Board
                     ownedSpaces={this.props.ownedSpaces}
                     ref={this.board}
-                    getMap={() => [this.viewport.neighborhoodColors, this.viewport.neighborhoodPriceView, this.viewport.neighborhoodEditableView][this.state.view]}
-                    getCensors={() => this.state.view === 0 ? this.viewport.neighborhoodCensors : {}}
+                    getMap={() => [this.viewport.neighborhoodColors, this.viewport.neighborhoodPriceView, this.viewport.neighborhoodEditableView][this.viewport.view]}
+                    getCensors={() => this.viewport.view == 0 ? this.viewport.neighborhoodCensors : {}}
                     getNeighborhoodNames={() => this.viewport.neighborhoodNames}
                     user={this.props.user}
                     onViewportChange={(startx, starty, endx, endy) => {
@@ -2288,12 +2293,6 @@ export class Game extends React.Component {
                             marginLeft: "20px", // TODO
                         }}
                     >
-
-                        <Tooltip title="Number of viewers">
-                            <Box sx={{marginLeft: "10px"}}>
-                                <VisibilityIcon/> {this.props.viewer}
-                            </Box>
-                        </Tooltip>
                         <Tooltip title="Change view">
                             <Button
                                 variant="contained"
@@ -2305,13 +2304,16 @@ export class Game extends React.Component {
                                 onClick={(e) => this.handleViewMenuOpen(e)}
                                 endIcon={<KeyboardArrowDownIcon />}
 <<<<<<< HEAD
+<<<<<<< HEAD
                                 sx={{marginRight: "5px"}}
 =======
                                 disabled={!this.state.animationsInfoLoaded}
+=======
+>>>>>>> 6f68a50 (Revert "better view selection")
                                 sx={{marginRight: "10px"}}
 >>>>>>> 99a6075 (better view selection)
                             >
-                                {["Colors", "Prices", "Editable"][this.state.view]}
+                                {["Colors", "Prices", "Editable"][this.viewport.view]}
                             </Button>
                         </Tooltip>
                         <Menu
@@ -2325,6 +2327,7 @@ export class Game extends React.Component {
                             <MenuItem onClick={(e) => this.setPriceView()}>Prices</MenuItem>
                             <MenuItem onClick={(e) => this.setEditableView()}>Editable</MenuItem>
                         </Menu>
+<<<<<<< HEAD
 <<<<<<< HEAD
                         <Tooltip title="Toggle animations">
                             <FormControl>
@@ -2342,11 +2345,29 @@ export class Game extends React.Component {
                                 />
                             </FormControl>
                         </Tooltip>
+=======
+                        <FormControl>
+                            <FormControlLabel
+                                disabled={!this.state.animsInfoLoaded || this.viewport.view != 0}
+                                control={
+                                    <Switch
+                                        onChange={(e) => this.handleChangeAnims(e)}
+                                        checked={this.state.anims}
+                                    />
+                                }
+                                label="Animations"
+                            />
+                        </FormControl>
+>>>>>>> 6f68a50 (Revert "better view selection")
                         <Tooltip title="Select frame to view" placement="top">
                             <Select
                                 variant="standard"
                                 value={this.state.frame}
+<<<<<<< HEAD
                                 disabled={this.state.anims || this.viewport.view !== 0}
+=======
+                                disabled={this.state.anims || this.viewport.view != 0}
+>>>>>>> 6f68a50 (Revert "better view selection")
                                 onChange={(e) => {
                                     this.handleChangeFrame(e);
                                 }}
@@ -2361,6 +2382,7 @@ export class Game extends React.Component {
                                 ))}
                             </Select>
                         </Tooltip>
+<<<<<<< HEAD
 =======
                         {this.state.view == 0 ? 
                             <>
@@ -2401,6 +2423,8 @@ export class Game extends React.Component {
                         }
                         
 >>>>>>> 99a6075 (better view selection)
+=======
+>>>>>>> 6f68a50 (Revert "better view selection")
                         {!this.mobile &&
                         <>
                             <div className={"animationsSeparator"}></div>
@@ -2434,6 +2458,11 @@ export class Game extends React.Component {
                             </Button>
                         </Tooltip> */}
                         </>}
+                        <Tooltip title="Number of viewers">
+                            <Box sx={{marginLeft: "10px"}}>
+                                <VisibilityIcon/> {this.props.viewer}
+                            </Box>
+                        </Tooltip>
                     </Box>
                     
 
