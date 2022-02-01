@@ -36,6 +36,8 @@ import { solToLamports, lamportsToSol, xor, bytesToUInt, priceToColor, colorHigh
 import {loading} from '../../utils/loading';
 import { letterSpacing } from "@mui/system";
 import { InfoOutlined } from "@mui/icons-material";
+import { ReloadOutlined } from "@ant-design/icons";
+
 import Search from "antd/es/input/Search";
 
 const SIDE_NAV_WIDTH = 400;
@@ -168,6 +170,7 @@ export class Game extends React.Component {
         this.mobile = window.innerWidth < 500;
     }
 
+
     // gets neighborhoods in viewport with neighborhood metadata created
     getViewportNeighborhoods = async() => {
         const start = this.viewport.neighborhoodsStart;
@@ -180,16 +183,6 @@ export class Game extends React.Component {
             }
         }
         return await this.props.server.filterExistingNeighborhoods(this.props.connection, neighborhoods);
-    }
-
-    fetch_censors = (frame, {n_x, n_y}) => {
-        const key = `${n_x}, ${n_y}`;
-        if (key in this.censors) {
-            if (frame in this.censors[key]) {
-                return this.censors[key][frame];
-            }
-        }
-        return [];
     }
 
     // pull color data for a specific frame into viewport
@@ -229,7 +222,7 @@ export class Game extends React.Component {
         this.viewport.neighborhoodColors = tmpNeighborhoodColors;
         const tmpNeighborhoodCensors = {};
         neighborhoods.forEach(value => {
-            tmpNeighborhoodCensors[JSON.stringify(value)] = this.fetch_censors(frame, value);
+            tmpNeighborhoodCensors[JSON.stringify(value)] = this.fetchCensors(frame, value);
         })
         this.viewport.neighborhoodCensors = tmpNeighborhoodCensors;
         
@@ -397,11 +390,33 @@ export class Game extends React.Component {
         this.viewport.neighborhoodEditableView = tmpNeighborhoodEditableView;
     }
 
-    fetch_censors_all_frames = async() => {
+    fetchCensors = (frame, {n_x, n_y}) => {
+        const key = `${n_x}, ${n_y}`;
+        if (key in this.censors) {
+            if (frame in this.censors[key]) {
+                return this.censors[key][frame];
+            }
+        }
+        return [];
+    }
+
+    fetchCensorsAllFrames = async() => {
         const censor_url = "https://extendxyz.github.io/extend-censorship/censor_" + 
             (RPC?.includes("mainnet") ? "mainnet" : "devnet") + ".json";
         const response = await fetch(censor_url);
         this.censors = await response.json();
+    }
+
+    handleFetchViews = async() => {
+        loading(null, "refreshing", null);
+        await Promise.all([
+            this.fetchColors(this.state.frame),
+            this.fetchNeighborhoodNames(),
+            this.fetchPriceView(),
+            this.fetchEditableView(),
+            this.fetchCensorsAllFrames()
+        ]);
+        loading(null, "refreshing", "success");
     }
 
     // updateAccount = async (account) => {
@@ -428,13 +443,8 @@ export class Game extends React.Component {
     // }
 
     async componentDidMount() {
-        await Promise.all([
-            this.fetchColors(this.state.frame),
-            this.fetchNeighborhoodNames(),
-            this.fetchPriceView(),
-            this.fetchEditableView(),
-            this.fetch_censors_all_frames()
-        ]);
+        await this.handleFetchViews();
+
         this.setState({
             initialFetchStatus: 1,
         });
@@ -1477,7 +1487,7 @@ export class Game extends React.Component {
                         const frame = k % datalen;
                         this.viewport.neighborhoodColors[key] =
                             this.viewport.neighborhoodColorsAllFrames[key][frame];
-                        this.viewport.neighborhoodCensors[key] = this.fetch_censors(frame, value);
+                        this.viewport.neighborhoodCensors[key] = this.fetchCensors(frame, value);
                     }
                 });
                 requestAnimationFrame(() => {
@@ -2267,6 +2277,19 @@ export class Game extends React.Component {
                             marginLeft: "20px", // TODO
                         }}
                     >
+
+                        <Tooltip title="Refresh canvas">
+                            <Button
+                                variant="contained"
+                                className={"defaultButton"}
+                                id="reload-button"
+                                onClick={(e) => this.handleFetchViews(e)}
+                                disabled={!this.state.animationsInfoLoaded}
+                                sx={{marginRight: "10px"}}
+                            >
+                                <ReloadOutlined />
+                            </Button>
+                        </Tooltip>
 
                         <Tooltip title="Number of viewers">
                             <Box sx={{marginLeft: "10px"}}>
