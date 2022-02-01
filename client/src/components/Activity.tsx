@@ -9,6 +9,7 @@ import {
   GridFilterInputValue,
   getGridStringOperators,
 } from "@mui/x-data-grid";
+import BN from 'bn.js';
 import Button from "@mui/material/Button";
 import {
   useConnection,
@@ -27,7 +28,7 @@ import {
   PublicKey,
 } from "@solana/web3.js";
 import Moment from "react-moment";
-import { chunks, rgbToHex } from "../utils/utils";
+import { chunks, rgbToHex, twoscomplement_u2i } from "../utils";
 import base58 from "bs58";
 import {
   CHANGE_COLOR_INSTRUCTION_ID,
@@ -257,14 +258,14 @@ export function Activity() {
 
       const res = await connection.getSignaturesForAddress(
         sell_delegate_account,
-        undefined,
+        {limit: 100},
         "confirmed"
       );
 
       res.push(
         ...(await connection.getSignaturesForAddress(
           COLOR_PROGRAM_ID,
-          undefined,
+          {limit: 100},
           "confirmed"
         ))
       );
@@ -297,8 +298,8 @@ export function Activity() {
                 txns.push({
                   signature: element.transaction.signatures[0],
                   time: element.blockTime,
-                  x: parsed.res["x"],
-                  y: parsed.res["y"],
+                  x: twoscomplement_u2i(new BN(parsed.res["x"]).toArray('le', 8)),
+                  y: twoscomplement_u2i(new BN(parsed.res["y"]).toArray('le', 8)),
                   frame: parsed.res["frame"],
                   r: parsed.res["r"],
                   g: parsed.res["g"],
