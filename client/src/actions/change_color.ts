@@ -114,7 +114,7 @@ export const changeColorInstruction = async (
   const [spaceATA,] =
     await PublicKey.findProgramAddress(
       [
-        wallet.publicKey.toBuffer(),
+        owner.toBuffer(),
         TOKEN_PROGRAM_ID.toBuffer(),
         mint.toBuffer(),
       ],
@@ -208,7 +208,7 @@ export const changeColorInstruction = async (
     {
       pubkey: owner,
       isSigner: false,
-      isWritable: false,
+      isWritable: true,
     },
     {
       pubkey: spaceATA,
