@@ -57,21 +57,32 @@ function TabPanel(props) {
 export class SelectingSidebar extends React.Component {
     constructor(props) {
       super(props);
-      this.state = {value: 0, ownedSelection: new Set()};
+      this.state = {value: 0, ownedSelection: new Set(), editableSelection: new Set()};
       this.handleTabChange = this.handleTabChange.bind(this);
       this.selectionSize = 0;
     }
 
     componentDidMount(){
-        this.setState({ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses)});
+        this.setState({
+          ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses),
+          editableSelection: this.props.selecting.editable,
+        });
         this.selectionSize = this.props.selecting.poses.size;
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.selecting.poses !== prevProps.selecting.poses
-            || this.props.selecting.poses.size !== this.selectionSize) {
-                this.setState({ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses)});
+        if (this.props.ownedSpaces != prevProps.ownedSpaces || this.props.selecting.poses != prevProps.selecting.poses
+            || this.props.selecting.poses.size != this.selectionSize) {
+                this.setState({
+                  ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses),
+                  editableSelection: this.props.selecting.editable,
+                });
                 this.selectionSize = this.props.selecting.poses.size;
+        }
+        if (this.props.selecting.editable != this.state.editableSelection) {
+          this.setState({
+            editableSelection: this.props.selecting.editable,
+          });
         }
 
         // if new image upload, render preview
@@ -150,6 +161,40 @@ export class SelectingSidebar extends React.Component {
         </ListItem>
         </List>;
 
+        const modifyColorHeader = <List style={{ marginTop: "0px" }}>
+        <ListItem className="info" style={{ display: "block" }}>
+            <Box className="infoHeader">
+            <div style={{ display: "flex", alignItems: "center", width: "50%", float: "left"}}>
+              OWNED SPACES
+            </div>
+            <div style={{ display: "flex", alignItems: "center", width: "50%", float: "right"}}>
+              EDITABLE SPACES
+            </div>
+            </Box>
+            <Box>
+              <div style={{ display: "flex", alignItems: "center", width: "50%", float: "left"}}>
+              <b>
+                <font color="#82CBC5">
+                  {this.state.ownedSelection.size +
+                    "/" +
+                    this.props.selecting.poses.size}
+                </font>
+              </b>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", width: "50%", float: "right"}}>
+              <b>
+                <font color="#82CBC5">
+                  {this.state.editableSelection.size +
+                    "/" +
+                    this.props.selecting.poses.size}
+                </font>
+              </b>
+              </div>
+            </Box>
+            &nbsp;
+        </ListItem>
+        </List>;
+
         let tooltipModifyColorTitle = `Estimated Cost to Change Colors:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
         let tooltipSetPriceTitle = `Estimated Cost to List/Delist:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
         let tooltipBuyTitle = `Batch buying is non-atomic and is available as a convenience feature. Successful purchase of every Space selected is not guaranteed.
@@ -179,10 +224,9 @@ export class SelectingSidebar extends React.Component {
                   
 
                   <TabPanel value={this.state.value} index={0}>
-                      {sidebarHeader}
+                      {modifyColorHeader}
 
                       {/* Color stuff */}
-
                       <Divider className="sidebarDivider">
                           Modify Colors
                       </Divider>
@@ -246,6 +290,28 @@ export class SelectingSidebar extends React.Component {
                           </Button>
                         </Tooltip>
                         </div>
+
+                        {this.state.ownedSelection.size > 0 ?
+                          <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                              <Tooltip placement={'right'} title="Click the checkbox to make your selected spaces editable by others and gain SOL from their color changes on the spaces. To make the spaces uneditable, simply change the color to your desired color.">
+                              <FormControl>
+                              <FormControlLabel
+                                  style={{marginLeft: "2px"}} // fix alignment
+                                  control={
+                                      <Checkbox
+                                          onChange={(e) => this.props.makeEditableColors(e)}
+                                          checked={this.state.ownedSelection.size === this.state.editableSelection.size}
+                                      />
+                                  }
+                                  labelPlacement="start"
+                                  label="EDITABLE"
+                              />
+                              </FormControl>
+                              </Tooltip>
+                          </div>
+                          : 
+                          null
+                        }
 
                         <Box className="infoHeader" style={{marginTop: "10px"}}>IMAGE</Box>
                         <div style={{ display: "flex", alignItems: "center" }}>

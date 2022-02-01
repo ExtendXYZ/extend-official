@@ -110,6 +110,8 @@ export class Game extends React.Component {
                 purchasableInfo: [],
                 purchasable: new Set(),
                 owners: {},
+                mints: {},
+                editable: new Set(),
                 totalPrice: null,
                 // rentPrice: null,
                 // loadingRentStatus: 0,
@@ -557,14 +559,37 @@ export class Game extends React.Component {
         });
     }
 
-    makeEditable = (e) => {
+    makeEditableColor = (e) => {
         let checked = e.target.checked;
 
         if (checked) {
-            this.props.setMakeEditableTrigger({
+            this.props.setMakeEditableColorTrigger({
                 x: this.state.focus.x,
                 y: this.state.focus.y,
                 mint: this.state.focus.mint,
+                editable: true,
+            });
+            notify({
+                message: "Making editable...",
+            });
+        } // nothing for uncheck case for now
+    }
+
+    makeEditableColors = (e) => {
+        let checked = e.target.checked;
+
+        if (checked) {
+            const poses = this.state.selecting.poses;
+            const editable = this.state.selecting.editable;
+            const spaces = new Set();
+            for(let pose of poses) {
+                if(!editable.has(pose)) {
+                    spaces.add(pose);
+                }
+            }
+            this.props.setMakeEditableColorsTrigger({
+                spaces: spaces,
+                mints: this.state.selecting.mints,
                 editable: true,
             });
             notify({
@@ -1682,6 +1707,8 @@ export class Game extends React.Component {
                 purchasableInfo: [],
                 purchasable: new Set(),
                 owners: {},
+                mints: {},
+                editable: new Set(),
                 totalPrice: null,
                 rentPrice: null,
                 // loadingRentStatus: 0,
@@ -1827,6 +1854,20 @@ export class Game extends React.Component {
             this.setState({showNav: false});
         } else {
 
+            const newPoses = [...poses]; // get editable spaces
+            const editable = new Set();
+            for(let pose of newPoses) {
+                let pos = JSON.parse(pose);
+                let n_x = Math.floor(pos.x / NEIGHBORHOOD_SIZE);
+                let n_y = Math.floor(pos.y / NEIGHBORHOOD_SIZE);
+                let key = JSON.stringify({n_x, n_y});
+                let p_x = ((pos.x % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                let p_y = ((pos.y % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                if (!(key in this.viewport.neighborhoodEditableTimes) || this.viewport.neighborhoodEditableTimes[key][p_y][p_x] < (Date.now() / 1000)) {
+                    editable.add(pose);
+                }
+            }
+
             this.setState({
                 showNav: true,
                 selecting: {
@@ -1840,6 +1881,8 @@ export class Game extends React.Component {
                     purchasableInfo: [],
                     purchasable: new Set(),
                     owners: {},
+                    mints: {},
+                    editable: editable,
                     totalPrice: null,
                     floorM: 1,
                     floorN: 1,
@@ -1848,14 +1891,17 @@ export class Game extends React.Component {
 
             let purchasableInfoAll;
             let owners;
+            let mints;
             try{
                 const selectedInfo = await this.props.database.getSelectedInfo(this.props.user, poses);
                 purchasableInfoAll = selectedInfo.purchasableInfo;
                 owners = selectedInfo.owners;
+                mints = selectedInfo.mints;
             } catch(e){
                 console.error(e);
                 purchasableInfoAll = [];
                 owners = {};
+                mints = {};
             }
 
             // TODO: use better check to tell if selection changed
@@ -1873,6 +1919,8 @@ export class Game extends React.Component {
                     targetStatus: 0,
                     purchasableInfoAll,
                     owners,
+                    editable,
+                    mints,
                 },
             });
         }
@@ -2201,7 +2249,7 @@ export class Game extends React.Component {
             handleChangeColorApplyAll={this.handleChangeColorApplyAll}
             handleChangeColor={this.handleChangeColor}
             changeColor={this.changeColor}
-            makeEditable={this.makeEditable}
+            makeEditableColor={this.makeEditableColor}
             purchaseSpace={this.purchaseSpace}
             handleChangeFocusPrice={this.handleChangeFocusPrice}
             changePrice={this.changePrice}
@@ -2234,6 +2282,7 @@ export class Game extends React.Component {
                 handleTargetAll={this.handleTargetAll}
                 handleTargetFloor={this.handleTargetFloor}
                 purchaseSpaces={this.purchaseSpaces}
+                makeEditableColors={this.makeEditableColors}
                 handleSelectingRefresh={this.handleSelectingRefresh}
                 handleChangeSelectingRentPrice={this.handleChangeSelectingRentPrice}
                 changeRents={this.changeRents}
