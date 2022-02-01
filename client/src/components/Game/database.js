@@ -116,6 +116,7 @@ export class Database {
 
         let purchasableInfo = [];
         let owners = {};
+        let mints = {};
         for (let arr of data) {
             const [x, y, mint, owner, price, forSale] = arr;
             const pos = JSON.stringify({x, y});
@@ -123,11 +124,12 @@ export class Database {
                 purchasableInfo.push({x, y, mint: new PublicKey(mint), price: Number(price), seller: new PublicKey(owner)});
             } else if (poses.has(pos)) { // if it is in the poses
                 owners[pos] = new PublicKey(owner);
+                mints[pos] = new PublicKey(mint);
             }   
         }
         purchasableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
 
-        return {purchasableInfo, owners};
+        return {purchasableInfo, owners, mints};
     }
 
     async getPurchasableInfo(user, poses) {

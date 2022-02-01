@@ -365,7 +365,7 @@ export class FocusSidebar extends React.Component {
                                             style={{marginLeft: "2px"}} // fix alignment
                                             control={
                                                 <Checkbox
-                                                    onChange={(e) => this.props.makeEditable(e)}
+                                                    onChange={(e) => this.props.makeEditableColor(e)}
                                                     checked={this.state.editable}
                                                 />
                                             }
