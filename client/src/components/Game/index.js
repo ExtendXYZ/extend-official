@@ -1754,19 +1754,15 @@ export class Game extends React.Component {
             });
 
             let purchasableInfoAll;
+            let owners;
             try{
-                purchasableInfoAll = await this.props.database.getPurchasableInfo(this.props.user, poses);
+                const selectedInfo = await this.props.database.getSelectedInfo(this.props.user, poses);
+                purchasableInfoAll = selectedInfo.purchasableInfo;
+                owners = selectedInfo.owners;
             } catch(e){
                 console.error(e);
                 purchasableInfoAll = [];
-            }
-
-            let owners = {};
-            // find owners and store in dict
-            for (let data of purchasableInfoAll) {
-                const x = data.x;
-                const y = data.y;
-                owners[JSON.stringify({x, y})] = data.seller;
+                owners = {};
             }
 
             // TODO: use better check to tell if selection changed
