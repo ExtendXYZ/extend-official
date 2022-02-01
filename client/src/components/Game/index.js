@@ -377,6 +377,7 @@ export class Game extends React.Component {
                 let editableTimes = await this.props.server.getEditableTimeData(
                     editableClusterDatas[i]
                 );
+                this.viewport.neighborhoodEditableTimes[JSON.stringify({n_x, n_y})] = editableTimes;
                 console.log(n_x, n_y);
                 console.log(editableTimes);
                 let colors = Array.from({ length: NEIGHBORHOOD_SIZE }, () => new Array(NEIGHBORHOOD_SIZE).fill(null));
