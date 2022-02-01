@@ -120,7 +120,6 @@ export const sendInstructionsGreedyBatch = async (
         totalSpaces += ixPerTx[i];
     }
 
-    console.log(frames)
     if (frames !== -1) { // if multiple frames, divide by frame number
         spacesSucceed = Math.floor(spacesSucceed / frames);
         totalSpaces = Math.floor(totalSpaces / frames);

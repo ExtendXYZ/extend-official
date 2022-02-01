@@ -95,6 +95,41 @@ export class Database {
         }
     }
 
+    async getSelectedInfo(user, poses) {
+        const newPoses = [...poses];
+        let posesX = [];
+        let posesY = [];
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        for (let pose of newPoses) {
+            let pos = JSON.parse(pose);
+            minX = Math.min(minX, pos.x);
+            minY = Math.min(minY, pos.y);
+            maxX = Math.max(maxX, pos.x);
+            maxY = Math.max(maxY, pos.y);
+        }
+
+        const results = await axios.get(this.mysql + '/spaces/' + minX + '/' + minY + '/' + maxX + '/' + maxY);
+        const data = results.data;
+
+        let purchasableInfo = [];
+        let owners = {};
+        for (let arr of data) {
+            const [x, y, mint, owner, price, forSale] = arr;
+            const pos = JSON.stringify({x, y});
+            if (poses.has(pos) && (!user || user.toBase58() != owner) && (forSale === 1)) { // if in poses, not owned by curr user, and for Sale 
+                purchasableInfo.push({x, y, mint: new PublicKey(mint), price: Number(price), seller: new PublicKey(owner)});
+            } else if (poses.has(pos)) { // if it is in the poses
+                owners[pos] = new PublicKey(owner);
+            }   
+        }
+        purchasableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
+
+        return {purchasableInfo, owners};
+    }
+
     async getPurchasableInfo(user, poses) {
         const newPoses = [...poses];
         let posesX = [];
@@ -119,7 +154,7 @@ export class Database {
             const [x, y, mint, owner, price] = arr;
             if (poses.has(JSON.stringify({x, y})) && (!user || user.toBase58() != owner)) { // if in poses, not owned by curr user, and for Sale 
                 purchasableInfo.push({x, y, mint: new PublicKey(mint), price: Number(price), seller: new PublicKey(owner)});
-            }
+            } 
         }
         purchasableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
 
