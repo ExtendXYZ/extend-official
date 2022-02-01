@@ -28,7 +28,6 @@ window.neighborhoodCandyMachineCache = {};
 window.neighborhoodCreatedCache = new Set();
 window.myTokens = new Set();
 window.editableTimeClusterKeyCache = {};
-
 let user = null;
 
 export class Server {
@@ -611,13 +610,13 @@ export class Server {
                 ))[0];
             frameBaseAccounts.push(frameBase);
         }
-        let frameBaseDatas = this.batchGetMultipleAccountsInfo(connection, frameBaseAccounts);
+        let frameBaseDatas = await this.batchGetMultipleAccountsInfo(connection, frameBaseAccounts);
         for (let i = 0; i < frameBaseDatas.length; i++){
             if (!frameBaseDatas[i]){
                 continue;
             }
             const {n_x, n_y} = neighborhoods[i];
-            let key = bytesToUInt(frameBaseDatas[i].data.slice(9, 9 + 32));
+            let key = new PublicKey(frameBaseDatas[i].data.slice(9, 9 + 32));
             let hash = JSON.stringify({n_x, n_y});
             window.editableTimeClusterKeyCache[hash] = key;
             keyMap[hash] = key;
@@ -679,6 +678,25 @@ export class Server {
             }
         }
         return data;
+    }
+
+    /* Finds time cluster account from neighborhood frame base. */
+    async getTimeClusterAcc(connection, n_x, n_y) {
+        const n_x_bytes = twoscomplement_i2u(n_x);
+        const n_y_bytes = twoscomplement_i2u(n_y);
+        const [neighborhoodFrameBase,] =
+            await PublicKey.findProgramAddress(
+                [
+                BASE.toBuffer(),
+                Buffer.from(NEIGHBORHOOD_FRAME_BASE_SEED),
+                Buffer.from(n_x_bytes),
+                Buffer.from(n_y_bytes),
+                ],
+                COLOR_PROGRAM_ID
+            );
+        const neighborhoodFrameBaseData = await connection.getAccountInfo(neighborhoodFrameBase);
+        const timeCluster = new PublicKey(neighborhoodFrameBaseData.data.slice(9, 41));
+        return timeCluster;
     }
 
     setAddress(address) { // take address from hooks

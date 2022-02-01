@@ -111,6 +111,7 @@ export class Game extends React.Component {
                 purchasableInfoAll: new Array(),
                 purchasableInfo: new Array(),
                 purchasable: new Set(),
+                owners: {},
                 totalPrice: null,
                 // rentPrice: null,
                 // loadingRentStatus: 0,
@@ -497,6 +498,7 @@ export class Game extends React.Component {
             y: this.state.focus.y,
             frame: this.state.colorApplyAll ? -1 : this.state.frame,
             mint: this.state.focus.mint,
+            owner: this.state.focus.owner,
         });
         notify({
             message: "Changing color...",
@@ -508,6 +510,7 @@ export class Game extends React.Component {
             color: this.state.selecting.color,
             spaces: this.state.selecting.poses,
             frame: this.state.colorApplyAll ? -1 : this.state.frame,
+            owners: this.state.selecting.owners,
         });
         notify({
             message: "Changing colors...",
@@ -570,6 +573,7 @@ export class Game extends React.Component {
                         init_x: bounds.left,
                         init_y: bounds.top,
                         frame: this.state.colorApplyAll === "true" ? -1 : this.state.frame,
+                        owners: this.state.selecting.owners,
                     });
                     notify({
                         message: "Uploading image...",
@@ -634,6 +638,7 @@ export class Game extends React.Component {
                         spaces: this.state.selecting.poses,
                         init_x: bounds.left,
                         init_y: bounds.top,
+                        owners: this.state.selecting.owners,
                     });
                     notify({
                         message: "Uploading gif...",
@@ -897,7 +902,6 @@ export class Game extends React.Component {
     }
 
     rentSpaces = () => {
-        console.log(this.state.selecting.rentableInfo);
         this.props.setAcceptRentsTrigger({
             rentableInfo: this.state.selecting.rentableInfo,
             rent_time: 500, // TODO: make a input for this
@@ -1597,6 +1601,7 @@ export class Game extends React.Component {
                 purchasableInfoAll: new Array(),
                 purchasableInfo: new Array(),
                 purchasable: new Set(),
+                owners: {},
                 totalPrice: null,
                 rentPrice: null,
                 // loadingRentStatus: 0,
@@ -1714,7 +1719,6 @@ export class Game extends React.Component {
             numFrames = 0;
             trades = {};
         }
-        console.log("NEIGHBOR SIDEBAR");
         if (!this.state.neighborhood.focused){ // sidebar changed
             return;
         }
@@ -1749,6 +1753,7 @@ export class Game extends React.Component {
                     purchasableInfoAll: new Array(),
                     purchasableInfo: new Array(),
                     purchasable: new Set(),
+                    owners: {},
                     totalPrice: null,
                     floorM: 1,
                     floorN: 1,
@@ -1756,11 +1761,15 @@ export class Game extends React.Component {
             });
 
             let purchasableInfoAll;
+            let owners;
             try{
-                purchasableInfoAll = await this.props.database.getPurchasableInfo(this.props.user, poses);
+                const selectedInfo = await this.props.database.getSelectedInfo(this.props.user, poses);
+                purchasableInfoAll = selectedInfo.purchasableInfo;
+                owners = selectedInfo.owners;
             } catch(e){
                 console.error(e);
                 purchasableInfoAll = [];
+                owners = {};
             }
 
             // TODO: use better check to tell if selection changed
@@ -1777,6 +1786,7 @@ export class Game extends React.Component {
                     infoLoaded: true,
                     targetStatus: 0,
                     purchasableInfoAll,
+                    owners,
                 },
                 img_upl: null,
                 has_img: false,
