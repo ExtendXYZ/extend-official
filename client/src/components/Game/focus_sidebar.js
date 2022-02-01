@@ -6,6 +6,7 @@ import {
   AppBar,
   Box,
   Button,
+  FormControl,
   FormControlLabel,
   InputAdornment,
   TextField,
@@ -13,7 +14,8 @@ import {
   Typography,
   Radio,
   Tab,
-  Tabs
+  Tabs,
+  Checkbox,
 } from "@mui/material";
 import { Spin, Tooltip } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
@@ -58,14 +60,15 @@ function TabPanel(props) {
 export class FocusSidebar extends React.Component {
     constructor(props) {
       super(props);
-      this.state = {value: 0, owned: false};
+      this.state = {value: 0, owned: false, editable: false};
       this.handleTabChange = this.handleTabChange.bind(this);
     }
 
     componentDidMount(){
         this.setState({
             owned: (this.props.ownedSpaces &&
-                this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })))
+                this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y }))),
+            editable: (this.props.focus.time < (Date.now() / 1000))
         });
     }
     
@@ -74,6 +77,11 @@ export class FocusSidebar extends React.Component {
             this.setState({
                 owned: (this.props.ownedSpaces &&
                     this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })))
+            });
+        }
+        if (this.props.focus.time != prevProps.focus.time) {
+            this.setState({
+                editable: (this.props.focus.time < (Date.now() / 1000))
             });
         }
     }
@@ -108,26 +116,6 @@ export class FocusSidebar extends React.Component {
         </List> : (
         <>
         <List id="focusSidebarPrefix">
-            {/* <ListItem className="info" style={{ display: "block" }}>
-                <Box className="infoHeader">POSITION</Box>
-                <Box>
-                <b>
-                    <font color="#82CBC5">
-                    X={this.props.focus.x}, Y={this.props.focus.y}
-                    </font>
-                </b>
-                </Box>
-            </ListItem> */}
-            {/* <ListItem className="info" style={{ display: "block" }}>
-                <Box className="infoHeader">NEIGHBORHOOD</Box>
-                <Box>
-                <b>
-                    <font color="#82CBC5">
-                    {this.props.focus.neighborhood_name ? this.props.focus.neighborhood_name : "NONE"}
-                    </font>
-                </b>
-                </Box>
-            </ListItem> */}
             <ListItem className="info" style={{ display: "block" }}>
                 <Box className="infoHeader">
                     {this.state.owned ? "OWNER (YOU)" : "OWNER"}
@@ -158,36 +146,6 @@ export class FocusSidebar extends React.Component {
                 </Button>
                 </Box>
             </ListItem>
-            {/* <ListItem className="info" style={{ display: "block" }}>
-                <Box className="infoHeader">
-                    MINT
-                </Box>
-                <Box>
-                <Button
-                    size="small"
-                    variant="text"
-                    onClick={async () => {
-                    if (this.props.focus.mint) {
-                        navigator.clipboard.writeText(this.props.focus.mint.toBase58());
-                        notify({
-                            description: "Address copied to clipboard",
-                        });
-                    }
-                    }}
-                    style={{ padding: 0 }}
-                    disabled={!this.props.focus.mint}
-                >
-                    {this.props.focus.mint ? (
-                    <>
-                        <CopyOutlined />
-                        {shortenAddress(this.props.focus.mint.toBase58())}
-                    </>
-                    ) : (
-                    "NONE"
-                    )}
-                </Button>
-                </Box>
-            </ListItem> */}
         </List>
         </>)}
         </>;
@@ -356,14 +314,24 @@ export class FocusSidebar extends React.Component {
                                         }
                                     />
                                     </RadioGroup>
-                                    <Box className="infoHeader">COLOR</Box>
-                                    <div style={{ display: "flex", alignItems: "center" }}>
+                                    <Box className="infoHeader">
+                                        <div style={{width: "70%", float: "left"}}>
+                                            COLOR
+                                        </div>
+                                        {this.state.editable && !this.state.owned && this.props.focus.owner ?
+                                        <div style={{width: "30%", float: "right"}}>
+                                            EDIT PRICE
+                                        </div> 
+                                        : null
+                                        }
+                                    </Box>
+                                    <div style={{ display: "flex", alignItems: "center", width: "70%", float: "left"}}>
                                     <input
                                         className="newColor"
                                         type="color"
                                         value={this.props.focus.color}
                                         onChange={(e) => this.props.handleChangeColor(e)}
-                                        disabled={!this.state.owned}
+                                        disabled={(!this.state.owned && !this.state.editable) || !this.props.focus.owner}
                                     ></input>
                                     <Button
                                         size="small"
@@ -376,11 +344,38 @@ export class FocusSidebar extends React.Component {
                                         color: "#FFFFFF",
                                         background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                                         }}
-                                        disabled={!this.state.owned}
+                                        disabled={(!this.state.owned && !this.state.editable) || !this.props.focus.owner}
                                     >
                                         Change Color
                                     </Button>
                                     </div>
+                                    {(!this.state.owned && this.state.editable && this.props.focus.owner) ? 
+                                        <div style={{ display: "flex", alignItems: "center", width: "30%", float: "right"}}>
+                                            0.0002 SOL
+                                        </div>
+                                    : null
+                                    }
+                                    {this.state.owned ?
+                                    <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                                        <Tooltip placement={'right'} title="Click the checkbox to make your space editable by others and gain SOL from their color changes on the space. To make the space uneditable, simply change the color to your desired color.">
+                                        <FormControl>
+                                        <FormControlLabel
+                                            style={{marginLeft: "2px"}} // fix alignment
+                                            control={
+                                                <Checkbox
+                                                    onChange={(e) => this.props.makeEditable(e)}
+                                                    checked={this.state.editable}
+                                                />
+                                            }
+                                            labelPlacement="start"
+                                            label="EDITABLE"
+                                        />
+                                        </FormControl>
+                                        </Tooltip>
+                                    </div>
+                                    : 
+                                    null
+                                    }
                                 </ListItem>
                                 &nbsp;
                             </List>)

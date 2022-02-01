@@ -40,6 +40,7 @@ import Search from "antd/es/input/Search";
 
 const SIDE_NAV_WIDTH = 400;
 const FETCH_COLORS_INTERVAL = 10 * 1000;
+const FETCH_TIMES_INTERVAL = 30 * 1000;
 const FETCH_NAMES_INTERVAL = 60 * 1000;
 const FETCH_PRICES_INTERVAL = 3 * 60 * 1000;
 const ANIMATION_INTERVAL = 300;
@@ -154,6 +155,7 @@ export class Game extends React.Component {
             neighborhood_end: [2, 2], // exclusive
             neighborhood_colors: {},
             neighborhood_colors_all_frames: {},
+            neighborhood_time_clusters: {},
             neighborhood_censors: {},
             neighborhood_names: {},
             neighborhood_prices: {},
@@ -238,7 +240,6 @@ export class Game extends React.Component {
             tmp_neighborhood_censors[JSON.stringify(value)] = this.fetch_censors(frame, value);
         })
         this.viewport.neighborhood_censors = tmp_neighborhood_censors;
-        console.log(this.viewport.neighborhood_censors);
         
         this.setState({ maxFrame: newMax });
         return frameKeys;
@@ -287,6 +288,28 @@ export class Game extends React.Component {
 
         this.setState({ maxFrame: newMax });
         return frameKeys;
+    }
+
+    // pull all time cluster data
+    fetch_time_clusters = async () => {
+        const connection = this.props.connection;
+
+        const neighborhoods = await this.getViewportNeighborhoods();
+
+        let timeClustersMap = await this.props.server.getEditableTimeClusterKeys(connection, neighborhoods);
+
+        const timeClusterInfos = Object.keys(timeClustersMap).map(x => JSON.parse(x));
+        const timeClusterKeys = Object.values(timeClustersMap);
+        const timeDatas = await this.props.server.batchGetMultipleAccountsInfo(
+            connection,
+            timeClusterKeys,
+        );
+        this.viewport.neighborhood_time_clusters = {};
+        for(let i = 0; i < timeDatas.length; i++) {
+            let { n_x, n_y } = timeClusterInfos[i];
+            let data = await this.props.server.getEditableTimeData(timeDatas[i]);
+            this.viewport.neighborhood_time_clusters[JSON.stringify({ n_x, n_y})] = data;
+        }
     }
 
     fetch_neighborhood_names = async() => {
@@ -390,7 +413,8 @@ export class Game extends React.Component {
             this.fetch_colors(this.state.frame),
             this.fetch_neighborhood_names(this.state.frame),
             this.fetch_neighborhood_prices(),
-            this.fetch_censors_all_frames()
+            this.fetch_censors_all_frames(),
+            this.fetch_time_clusters()
         ]);
         this.setState({
             initialFetchStatus: 1,
@@ -412,6 +436,11 @@ export class Game extends React.Component {
                 await this.fetch_neighborhood_prices();
             }
         }, FETCH_PRICES_INTERVAL);
+        this.intervalFetchTimeClusters = setInterval(async () => {
+            if (!document.hidden){
+                await this.fetch_time_clusters();
+            }
+        }, FETCH_TIMES_INTERVAL);
         
         if ("address" in this.props.locator) {
             try {
@@ -514,6 +543,22 @@ export class Game extends React.Component {
         notify({
             message: "Changing colors...",
         });
+    }
+
+    makeEditable = (e) => {
+        let checked = e.target.checked;
+
+        if (checked) {
+            this.props.setMakeEditableTrigger({
+                x: this.state.focus.x,
+                y: this.state.focus.y,
+                mint: this.state.focus.mint,
+                editable: true,
+            });
+            notify({
+                message: "Making editable...",
+            });
+        } // nothing for uncheck case for now
     }
 
     uploadImage = () => {
@@ -1686,6 +1731,10 @@ export class Game extends React.Component {
                     key in this.viewport.neighborhood_colors
                         ? this.viewport.neighborhood_colors[key][p_y][p_x]
                         : "#000000",
+                time:
+                    key in this.viewport.neighborhood_time_clusters
+                        ? this.viewport.neighborhood_time_clusters[key][p_y][p_x]
+                        : 0,
                 owned: owned,
                 infoLoaded: true,
                 neighborhood_name: neighborhood_name,
@@ -2080,6 +2129,7 @@ export class Game extends React.Component {
             handleChangeColorApplyAll={this.handleChangeColorApplyAll}
             handleChangeColor={this.handleChangeColor}
             changeColor={this.changeColor}
+            makeEditable={this.makeEditable}
             purchaseSpace={this.purchaseSpace}
             handleChangeFocusPrice={this.handleChangeFocusPrice}
             changePrice={this.changePrice}
