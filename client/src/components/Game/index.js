@@ -158,7 +158,7 @@ export class Game extends React.Component {
             neighborhood_prices: {},
             view: 0,
         };
-        this.censors = null;
+        this.censors = {};
         this.board = React.createRef();
         this.captchaResponse = null;
         this.mobile = window.innerWidth < 500;
@@ -237,7 +237,6 @@ export class Game extends React.Component {
             tmp_neighborhood_censors[JSON.stringify(value)] = this.fetch_censors(frame, value);
         })
         this.viewport.neighborhood_censors = tmp_neighborhood_censors;
-        console.log(this.viewport.neighborhood_censors);
         
         this.setState({ maxFrame: newMax });
         return frameKeys;
@@ -357,7 +356,9 @@ export class Game extends React.Component {
     }
 
     fetch_censors_all_frames = async() => {
-        const response = await fetch("censor.json");
+        const censor_url = "https://extendxyz.github.io/extend-censorship/censor_" + 
+            (RPC?.includes("mainnet") ? "mainnet" : "devnet") + ".json";
+        const response = await fetch(censor_url);
         this.censors = await response.json();
     }
 
