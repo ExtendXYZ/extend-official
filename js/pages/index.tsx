@@ -508,12 +508,12 @@ const Home: NextPage = () => {
 
       <section className={`${styles.sectionMain}`}>
         <Row className={styles.roadMapContent}>
-          <h1>Supported by</h1>
+          <h1>Contributors </h1>
         </Row>
         <Row className={styles.socialMediaBar}>
           {/* <img src={"/images/twitter.svg"} className={styles.socialMediaButton}/> */}
           <a
-            href="https://www.metaplex.com/"
+            href="https://9up.io/"
             className={styles.supporterButton}
           >
             <img className={styles.supporterImage}
@@ -521,19 +521,19 @@ const Home: NextPage = () => {
             />
           </a>
           <a
-            href="https://www.metaplex.com/"
-            className={styles.supporterButton}
-          >
-            <img className={styles.supporterImage}
-              src={"/images/supporters/JumpCrypto_logo_FullKO_RGB.svg"}
-            />
-          </a>
-          <a
-            href="https://www.metaplex.com/"
+            href="https://impossible.finance/"
             className={styles.supporterButton}
           >
             <img className={styles.supporterImage}
               src={"/images/supporters/ImpossibleFinance.svg"}
+            />
+          </a>
+          <a
+            href="https://jumpcrypto.com/"
+            className={styles.supporterButton}
+          >
+            <img className={styles.supporterImage}
+              src={"/images/supporters/JumpCrypto_logo_FullKO_RGB.svg"}
             />
           </a>
           <a
