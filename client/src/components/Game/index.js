@@ -118,6 +118,7 @@ export class Game extends React.Component {
                 owners: {},
                 mints: {},
                 editable: new Set(),
+                totalEditable: new Set(),
                 totalPrice: null,
                 // rentPrice: null,
                 // loadingRentStatus: 0,
@@ -555,6 +556,8 @@ export class Game extends React.Component {
             color: this.state.selecting.color,
             spaces: this.state.selecting.poses,
             frame: this.state.colorApplyAll ? -1 : this.state.frame,
+            mints: this.state.selecting.mints,
+            editable: this.state.selecting.totalEditable,
             owners: this.state.selecting.owners,
         });
         notify({
@@ -586,7 +589,7 @@ export class Game extends React.Component {
             const editable = this.state.selecting.editable;
             const spaces = new Set();
             for(let pose of poses) {
-                if(!editable.has(pose)) {
+                if(this.props.ownedSpaces.has(pose) && !editable.has(pose)) { // if you own the space and it is not editable
                     spaces.add(pose);
                 }
             }
@@ -657,6 +660,8 @@ export class Game extends React.Component {
                         init_x: bounds.left,
                         init_y: bounds.top,
                         frame: this.state.colorApplyAll === "true" ? -1 : this.state.frame,
+                        mints: this.state.selecting.mints,
+                        editable: this.state.selecting.totalEditable,
                         owners: this.state.selecting.owners,
                     });
                     notify({
@@ -722,6 +727,8 @@ export class Game extends React.Component {
                         spaces: this.state.selecting.poses,
                         init_x: bounds.left,
                         init_y: bounds.top,
+                        mints: this.state.selecting.mints,
+                        editable: this.state.selecting.totalEditable,
                         owners: this.state.selecting.owners,
                     });
                     notify({
@@ -1698,6 +1705,7 @@ export class Game extends React.Component {
                 owners: {},
                 mints: {},
                 editable: new Set(),
+                totalEditable: new Set(),
                 totalPrice: null,
                 rentPrice: null,
                 // loadingRentStatus: 0,
@@ -1845,6 +1853,7 @@ export class Game extends React.Component {
 
             const newPoses = [...poses]; // get editable spaces
             const editable = new Set();
+            const totalEditable = new Set();
             for(let pose of newPoses) {
                 let pos = JSON.parse(pose);
                 let n_x = Math.floor(pos.x / NEIGHBORHOOD_SIZE);
@@ -1853,7 +1862,11 @@ export class Game extends React.Component {
                 let p_x = ((pos.x % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
                 let p_y = ((pos.y % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
                 if (!(key in this.viewport.neighborhoodEditableTimes) || this.viewport.neighborhoodEditableTimes[key][p_y][p_x] < (Date.now() / 1000)) {
+                    totalEditable.add(pose);
                     editable.add(pose);
+                }
+                if(this.props.ownedSpaces.has(pose)) {
+                    totalEditable.add(pose);
                 }
             }
 
@@ -1870,6 +1883,7 @@ export class Game extends React.Component {
                     owners: {},
                     mints: {},
                     editable: editable,
+                    totalEditable: totalEditable,
                     totalPrice: null,
                     floorM: 1,
                     floorN: 1,
@@ -1891,6 +1905,20 @@ export class Game extends React.Component {
                 mints = {};
             }
 
+            // take out the spaces without owners (unregistered)
+            const newEditable = new Set();
+            for (let pose of editable) {
+                if(pose in owners) {
+                    newEditable.add(pose);
+                }
+            }
+            const newTotalEditable = new Set();
+            for (let pose of totalEditable) {
+                if(pose in owners) {
+                    newTotalEditable.add(pose);
+                }
+            }
+
             // TODO: use better check to tell if selection changed
             if (this.state.selecting.poses.size != poses.size){
                 return; // selection changed
@@ -1906,7 +1934,8 @@ export class Game extends React.Component {
                     targetStatus: 0,
                     purchasableInfoAll,
                     owners,
-                    editable,
+                    editable: newEditable,
+                    totalEditable: newTotalEditable,
                     mints,
                 },
                 img_upl: null,

@@ -339,6 +339,75 @@ export function Screen(props) {
         [changeColorTrigger]
     );
 
+    // useEffect(() => {
+    //     const asyncChangeColors = async () => {
+    //         let changes: ChangeColorArgs[] = [];
+    //         const color = changeColorsTrigger["color"];
+    //         const spaces = changeColorsTrigger["spaces"];
+    //         const frame = changeColorsTrigger["frame"];
+    //         const owners = changeColorsTrigger["owners"];
+    //         const mints = changeColorsTrigger["mints"];
+    //         const editable = changeColorsTrigger["editable"];
+
+    //         if (color != null && wallet.publicKey) {
+    //             const r = parseInt(color.slice(1, 3), 16);
+    //             const g = parseInt(color.slice(3, 5), 16);
+    //             const b = parseInt(color.slice(5, 7), 16);
+                
+    //             const spaceGrid = ownedSpaces;
+    //             let n_x;
+    //             let n_y;
+
+    //             let neighborhoods = server.getNeighborhoods(spaces);
+    //             let numFramesMap = {};
+    //             let frameKeysMap = {};
+    //             let n_frames = -1;
+    //             if (frame == -1){
+    //                 ({numFramesMap, frameKeysMap} = await server.getAllFrameKeys(connection, neighborhoods));
+    //             }
+    //             else{
+    //                 frameKeysMap = await server.getFrameKeys(connection, neighborhoods, frame);
+    //             }
+    //             const timeClusterMap = await server.getEditableTimeClusterKeys(connection, neighborhoods);
+
+    //             for (const s of spaces) {
+    //                 if (spaceGrid.has(s)) {
+    //                     let p = JSON.parse(s);
+    //                     const x = p.x;
+    //                     const y = p.y;
+    //                     const mint = ownedMints[s];
+    //                     const owner = owners[s];
+
+    //                     if (frame == -1){
+    //                         let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
+    //                         let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
+                            
+    //                         n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
+    //                         for (let frame_i = 0; frame_i < n_frames; frame_i++){
+    //                             changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, mint, owner}));
+    //                         }
+    //                     }
+    //                     else{
+    //                         let change = new ChangeColorArgs({x, y, frame, r, g, b, mint, owner});
+    //                         changes.push(change);
+    //                     }
+    //                 }
+    //             }
+    //             try {
+    //                 let ixs = await changeColorInstructions(connection, wallet, BASE, changes, frameKeysMap, timeClusterMap);
+    //                 sendInstructionsGreedyBatch(connection, wallet, ixs, "change colors", true, n_frames);
+    //             }
+    //             catch (e) {
+    //                 console.log(e)
+    //                 return;
+    //             }
+    //         }
+    //     }
+    //     asyncChangeColors();
+    // },
+    //     [changeColorsTrigger]
+    // );
+
     useEffect(() => {
         const asyncChangeColors = async () => {
             let changes: ChangeColorArgs[] = [];
@@ -346,6 +415,8 @@ export function Screen(props) {
             const spaces = changeColorsTrigger["spaces"];
             const frame = changeColorsTrigger["frame"];
             const owners = changeColorsTrigger["owners"];
+            const mints = changeColorsTrigger["mints"];
+            const editable = changeColorsTrigger["editable"];
 
             if (color != null && wallet.publicKey) {
                 const r = parseInt(color.slice(1, 3), 16);
@@ -369,11 +440,11 @@ export function Screen(props) {
                 const timeClusterMap = await server.getEditableTimeClusterKeys(connection, neighborhoods);
 
                 for (const s of spaces) {
-                    if (spaceGrid.has(s)) {
+                    if (editable.has(s)) {
                         let p = JSON.parse(s);
                         const x = p.x;
                         const y = p.y;
-                        const mint = ownedMints[s];
+                        const mint = mints[s];
                         const owner = owners[s];
 
                         if (frame == -1){
@@ -639,6 +710,8 @@ export function Screen(props) {
             const init_y = imgUploadTrigger["init_y"];
             const frame = imgUploadTrigger["frame"];
             const owners = imgUploadTrigger["owners"];
+            const mints = imgUploadTrigger["mints"];
+            const editable = imgUploadTrigger["editable"];
             if (image != null && wallet.publicKey) {
 
                 const spaceGrid = ownedSpaces;
@@ -669,11 +742,11 @@ export function Screen(props) {
                         const x = init_x+j;
                         const y = init_y+i;
                         const position = JSON.stringify({x, y});
-                        if (spaces.has(position) && spaceGrid.has(position)) {
+                        if (spaces.has(position) && editable.has(position)) {
                             const r = image[i][j][0];
                             const g = image[i][j][1];
                             const b = image[i][j][2];
-                            const mint = ownedMints[position];
+                            const mint = mints[position];
                             const owner = owners[position];
 
                             if (frame == -1){
@@ -714,6 +787,8 @@ export function Screen(props) {
             const init_x = gifUploadTrigger["init_x"];
             const init_y = gifUploadTrigger["init_y"];
             const owners = gifUploadTrigger["owners"];
+            const mints = gifUploadTrigger["mints"];
+            const editable = gifUploadTrigger["editable"];
             if (gif != null && wallet.publicKey) {
 
                 console.log("GIF Length", gif.length)
@@ -737,8 +812,8 @@ export function Screen(props) {
                         const y = init_y+i;
 
                         const position = JSON.stringify({x, y});
-                        if (spaces.has(position) && spaceGrid.has(position)) {
-                            const mint = ownedMints[position];
+                        if (spaces.has(position) && editable.has(position)) {
+                            const mint = mints[position];
                             const owner = owners[position];
 
                             // To get num frames
