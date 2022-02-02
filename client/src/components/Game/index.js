@@ -417,7 +417,7 @@ export class Game extends React.Component {
             this.fetchNeighborhoodNames(),
             this.fetchPriceView(),
             this.fetchEditableView(),
-            this.fetchCensorsAllFrames()
+            this.fetchCensorsAllFrames(),
         ]);
         loading(null, "refreshing", "success");
     }
@@ -457,6 +457,17 @@ export class Game extends React.Component {
                 await this.fetchNeighborhoodNames();
             }
         }, FETCH_NAMES_INTERVAL);
+        this.intervalFetchColors = setInterval(async () => {
+            if (!document.hidden){
+                await this.fetchColors(this.state.frame);
+            }
+        }, FETCH_COLORS_INTERVAL);
+        this.intervalFetchEditable = setInterval(async () => {
+            if (!document.hidden){
+                await this.fetchEditableView();
+            }
+        }, FETCH_EDITABLE_INTERVAL);
+
         this.setColorView();
         
         if ("address" in this.props.locator) {
@@ -530,6 +541,7 @@ export class Game extends React.Component {
         clearInterval(this.intervalFetchNeighborhoodNames);
         clearInterval(this.intervalChangeFrame);
         clearInterval(this.intervalFetchPrices);
+        clearInterval(this.intervalFetchEditable);
     }
 
     closeSideNav = () => {
@@ -1502,10 +1514,8 @@ export class Game extends React.Component {
         this.setState({
             animations: false
         });
-        clearInterval(this.intervalFetchColors);
         clearInterval(this.intervalChangeFrame);
         clearInterval(this.intervalFetchPrices);
-        clearInterval(this.intervalFetchEditable);
     }
 
     handleChangeAnims = async (e) => {
@@ -2104,51 +2114,7 @@ export class Game extends React.Component {
         loading(null, "refreshing", "success");
     }
 
-    setColorView = () => {
-        this.resetViews();
-        this.state.view = 0;
-        this.board.current.resetCanvas();
-        this.fetchColors(this.state.frame);
-        this.intervalFetchColors = setInterval(async () => {
-            if (!document.hidden){
-                await this.fetchColors(this.state.frame);
-            }
-        }, FETCH_COLORS_INTERVAL);
-        this.setState({
-            viewMenuOpen: false,
-            viewMenuAnchorEl: null,
-        });
-    }
-    setPriceView = () => {
-        this.resetViews();
-        this.state.view = 1;
-        this.board.current.resetCanvas();
-        this.fetchPriceView();
-        this.intervalFetchPrices = setInterval(async () => {
-            if (!document.hidden){
-                await this.fetchPriceView();
-            }
-        }, FETCH_PRICES_INTERVAL);
-        this.setState({
-            viewMenuOpen: false,
-            viewMenuAnchorEl: null,
-        });
-    }
-    setEditableView = () => {
-        this.resetViews();
-        this.state.view = 2;
-        this.board.current.resetCanvas();
-        this.fetchEditableView();
-        this.intervalFetchEditable = setInterval(async () => {
-            if (!document.hidden){
-                await this.fetchEditableView();
-            }
-        }, FETCH_EDITABLE_INTERVAL);
-        this.setState({
-            viewMenuOpen: false,
-            viewMenuAnchorEl: null,
-        });
-    }
+
 
     copyCurrentView = (e) => {
         const width = this.board.current.width;
@@ -2189,6 +2155,40 @@ export class Game extends React.Component {
         this.setState({
             shareMenuOpen: false,
             shareMenuAnchorEl: null,
+        });
+    }
+
+    setColorView = () => {
+        this.resetViews();
+        this.state.view = 0;
+        this.board.current.resetCanvas();
+        this.setState({
+            viewMenuOpen: false,
+            viewMenuAnchorEl: null,
+        });
+    }
+    setPriceView = () => {
+        this.resetViews();
+        this.state.view = 1;
+        this.board.current.resetCanvas();
+        this.fetchPriceView();
+        this.intervalFetchPrices = setInterval(async () => {
+            if (!document.hidden){
+                await this.fetchPriceView();
+            }
+        }, FETCH_PRICES_INTERVAL);
+        this.setState({
+            viewMenuOpen: false,
+            viewMenuAnchorEl: null,
+        });
+    }
+    setEditableView = () => {
+        this.resetViews();
+        this.state.view = 2;
+        this.board.current.resetCanvas();
+        this.setState({
+            viewMenuOpen: false,
+            viewMenuAnchorEl: null,
         });
     }
 
@@ -2387,7 +2387,7 @@ export class Game extends React.Component {
                                 className={"defaultButton"}
                                 id="reload-button"
                                 onClick={(e) => this.reloadViews(e)}
-                                disabled={!this.state.animationsInfoLoaded}
+                                // disabled={!this.state.animationsInfoLoaded}
                                 sx={{marginRight: "10px"}}
                             >
                                 <ReloadOutlined />
