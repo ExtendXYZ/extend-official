@@ -115,6 +115,9 @@ export class Game extends React.Component {
                 purchasableInfo: new Array(),
                 purchasable: new Set(),
                 owners: {},
+                mints: {},
+                editable: new Set(),
+                totalEditable: new Set(),
                 totalPrice: null,
                 // rentPrice: null,
                 // loadingRentStatus: 0,
@@ -347,6 +350,7 @@ export class Game extends React.Component {
         
         this.viewport.neighborhoodPriceView = tmpNeighborhoodPriceView;
     }
+  
     fetchEditableView = async() => {
         const connection = this.props.connection;
         let neighborhoods = await this.getViewportNeighborhoods();
@@ -373,8 +377,6 @@ export class Game extends React.Component {
                     editableClusterDatas[i]
                 );
                 this.viewport.neighborhoodEditableTimes[JSON.stringify({n_x, n_y})] = editableTimes;
-                console.log(n_x, n_y);
-                console.log(editableTimes);
                 let colors = Array.from({ length: NEIGHBORHOOD_SIZE }, () => new Array(NEIGHBORHOOD_SIZE).fill(null));
                 for(let x = n_x * NEIGHBORHOOD_SIZE; x < (n_x + 1) * NEIGHBORHOOD_SIZE; x++){
                     for(let y = n_y * NEIGHBORHOOD_SIZE; y < (n_y + 1) * NEIGHBORHOOD_SIZE; y++){
@@ -552,11 +554,52 @@ export class Game extends React.Component {
             color: this.state.selecting.color,
             spaces: this.state.selecting.poses,
             frame: this.state.colorApplyAll ? -1 : this.state.frame,
+            mints: this.state.selecting.mints,
+            editable: this.state.selecting.totalEditable,
             owners: this.state.selecting.owners,
         });
         notify({
             message: "Changing colors...",
         });
+    }
+
+    makeEditableColor = (e) => {
+        let checked = e.target.checked;
+
+        if (checked) {
+            this.props.setMakeEditableColorTrigger({
+                x: this.state.focus.x,
+                y: this.state.focus.y,
+                mint: this.state.focus.mint,
+                editable: true,
+            });
+            notify({
+                message: "Making editable...",
+            });
+        } // nothing for uncheck case for now
+    }
+
+    makeEditableColors = (e) => {
+        let checked = e.target.checked;
+
+        if (checked) {
+            const poses = this.state.selecting.poses;
+            const editable = this.state.selecting.editable;
+            const spaces = new Set();
+            for(let pose of poses) {
+                if(this.props.ownedSpaces.has(pose) && !editable.has(pose)) { // if you own the space and it is not editable
+                    spaces.add(pose);
+                }
+            }
+            this.props.setMakeEditableColorsTrigger({
+                spaces: spaces,
+                mints: this.state.selecting.mints,
+                editable: true,
+            });
+            notify({
+                message: "Making editable...",
+            });
+        } // nothing for uncheck case for now
     }
 
     uploadImage = () => {
@@ -615,6 +658,8 @@ export class Game extends React.Component {
                         init_x: bounds.left,
                         init_y: bounds.top,
                         frame: this.state.colorApplyAll === "true" ? -1 : this.state.frame,
+                        mints: this.state.selecting.mints,
+                        editable: this.state.selecting.totalEditable,
                         owners: this.state.selecting.owners,
                     });
                     notify({
@@ -680,6 +725,8 @@ export class Game extends React.Component {
                         spaces: this.state.selecting.poses,
                         init_x: bounds.left,
                         init_y: bounds.top,
+                        mints: this.state.selecting.mints,
+                        editable: this.state.selecting.totalEditable,
                         owners: this.state.selecting.owners,
                     });
                     notify({
@@ -1654,6 +1701,9 @@ export class Game extends React.Component {
                 purchasableInfo: new Array(),
                 purchasable: new Set(),
                 owners: {},
+                mints: {},
+                editable: new Set(),
+                totalEditable: new Set(),
                 totalPrice: null,
                 rentPrice: null,
                 // loadingRentStatus: 0,
@@ -1739,6 +1789,10 @@ export class Game extends React.Component {
                     key in this.viewport.neighborhoodColors
                         ? this.viewport.neighborhoodColors[key][p_y][p_x]
                         : "#000000",
+                time:
+                    key in this.viewport.neighborhoodEditableTimes
+                        ? this.viewport.neighborhoodEditableTimes[key][p_y][p_x]
+                        : 0,
                 owned: owned,
                 infoLoaded: true,
                 neighborhood_name: neighborhood_name,
@@ -1795,6 +1849,25 @@ export class Game extends React.Component {
             this.setState({showNav: false});
         } else {
 
+            const newPoses = [...poses]; // get editable spaces
+            const editable = new Set();
+            const totalEditable = new Set();
+            for(let pose of newPoses) {
+                let pos = JSON.parse(pose);
+                let n_x = Math.floor(pos.x / NEIGHBORHOOD_SIZE);
+                let n_y = Math.floor(pos.y / NEIGHBORHOOD_SIZE);
+                let key = JSON.stringify({n_x, n_y});
+                let p_x = ((pos.x % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                let p_y = ((pos.y % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                if (!(key in this.viewport.neighborhoodEditableTimes) || this.viewport.neighborhoodEditableTimes[key][p_y][p_x] < (Date.now() / 1000)) {
+                    totalEditable.add(pose);
+                    editable.add(pose);
+                }
+                if(this.props.ownedSpaces.has(pose)) {
+                    totalEditable.add(pose);
+                }
+            }
+
             this.setState({
                 showNav: true,
                 selecting: {
@@ -1806,6 +1879,9 @@ export class Game extends React.Component {
                     purchasableInfo: new Array(),
                     purchasable: new Set(),
                     owners: {},
+                    mints: {},
+                    editable: editable,
+                    totalEditable: totalEditable,
                     totalPrice: null,
                     floorM: 1,
                     floorN: 1,
@@ -1814,14 +1890,31 @@ export class Game extends React.Component {
 
             let purchasableInfoAll;
             let owners;
+            let mints;
             try{
                 const selectedInfo = await this.props.database.getSelectedInfo(this.props.user, poses);
                 purchasableInfoAll = selectedInfo.purchasableInfo;
                 owners = selectedInfo.owners;
+                mints = selectedInfo.mints;
             } catch(e){
                 console.error(e);
                 purchasableInfoAll = [];
                 owners = {};
+                mints = {};
+            }
+
+            // take out the spaces without owners (unregistered)
+            const newEditable = new Set();
+            for (let pose of editable) {
+                if(pose in owners) {
+                    newEditable.add(pose);
+                }
+            }
+            const newTotalEditable = new Set();
+            for (let pose of totalEditable) {
+                if(pose in owners) {
+                    newTotalEditable.add(pose);
+                }
             }
 
             // TODO: use better check to tell if selection changed
@@ -1839,6 +1932,9 @@ export class Game extends React.Component {
                     targetStatus: 0,
                     purchasableInfoAll,
                     owners,
+                    editable: newEditable,
+                    totalEditable: newTotalEditable,
+                    mints,
                 },
                 img_upl: null,
                 has_img: false,
@@ -2153,6 +2249,7 @@ export class Game extends React.Component {
             handleChangeColorApplyAll={this.handleChangeColorApplyAll}
             handleChangeColor={this.handleChangeColor}
             changeColor={this.changeColor}
+            makeEditableColor={this.makeEditableColor}
             purchaseSpace={this.purchaseSpace}
             handleChangeFocusPrice={this.handleChangeFocusPrice}
             changePrice={this.changePrice}
@@ -2186,6 +2283,7 @@ export class Game extends React.Component {
                 handleTargetAll={this.handleTargetAll}
                 handleTargetFloor={this.handleTargetFloor}
                 purchaseSpaces={this.purchaseSpaces}
+                makeEditableColors={this.makeEditableColors}
                 handleSelectingRefresh={this.handleSelectingRefresh}
                 handleChangeSelectingRentPrice={this.handleChangeSelectingRentPrice}
                 changeRents={this.changeRents}
