@@ -28,6 +28,8 @@ import { SelectingSidebar } from './selecting_sidebar.js';
 import { NeighborhoodSidebar } from './neighborhood_sidebar.js';
 import { solToLamports, lamportsToSol, xor, priceToColor, sleep} from "../../utils";
 import {loading} from '../../utils/loading';
+import { ReloadOutlined } from "@ant-design/icons";
+
 import Search from "antd/es/input/Search";
 
 const SIDE_NAV_WIDTH = 400;
@@ -129,8 +131,8 @@ export class Game extends React.Component {
             findingSpaces: false,
             refreshingUserSpaces: false,
             colorApplyAll: false,
-            anims: false,
-            animsInfoLoaded: true,
+            animations: false,
+            animationsInfoLoaded: true,
             floor: false,
             frame: 0,
             maxFrame: 1,
@@ -140,6 +142,7 @@ export class Game extends React.Component {
             shareMenuAnchorEl: null,
             mySpacesMenuOpen: false,
             mySpacesMenuAnchorEl: null,
+            view: 0,
         };
 
         this.viewport = {
@@ -152,13 +155,13 @@ export class Game extends React.Component {
             neighborhoodPriceView: {},
             neighborhoodEditableView: {},
             neighborhoodEditableTimes: {},
-            view: 0,
         };
         this.censors = {};
         this.board = React.createRef();
         this.captchaResponse = null;
         this.mobile = window.innerWidth < 500;
     }
+
 
     // gets neighborhoods in viewport with neighborhood metadata created
     getViewportNeighborhoods = async() => {
@@ -172,16 +175,6 @@ export class Game extends React.Component {
             }
         }
         return await this.props.server.filterExistingNeighborhoods(this.props.connection, neighborhoods);
-    }
-
-    fetch_censors = (frame, {n_x, n_y}) => {
-        const key = `${n_x}, ${n_y}`;
-        if (key in this.censors) {
-            if (frame in this.censors[key]) {
-                return this.censors[key][frame];
-            }
-        }
-        return [];
     }
 
     // pull color data for a specific frame into viewport
@@ -221,7 +214,7 @@ export class Game extends React.Component {
         this.viewport.neighborhoodColors = tmpNeighborhoodColors;
         const tmpNeighborhoodCensors = {};
         neighborhoods.forEach(value => {
-            tmpNeighborhoodCensors[JSON.stringify(value)] = this.fetch_censors(frame, value);
+            tmpNeighborhoodCensors[JSON.stringify(value)] = this.fetchCensors(frame, value);
         })
         this.viewport.neighborhoodCensors = tmpNeighborhoodCensors;
         
@@ -394,11 +387,33 @@ export class Game extends React.Component {
         this.viewport.neighborhoodEditableView = tmpNeighborhoodEditableView;
     }
 
-    fetch_censors_all_frames = async() => {
+    fetchCensors = (frame, {n_x, n_y}) => {
+        const key = `${n_x}, ${n_y}`;
+        if (key in this.censors) {
+            if (frame in this.censors[key]) {
+                return this.censors[key][frame];
+            }
+        }
+        return [];
+    }
+
+    fetchCensorsAllFrames = async() => {
         const censor_url = "https://extendxyz.github.io/extend-censorship/censor_" + 
             (RPC?.includes("mainnet") ? "mainnet" : "devnet") + ".json";
         const response = await fetch(censor_url);
         this.censors = await response.json();
+    }
+
+    handleFetchViews = async() => {
+        loading(null, "refreshing", null);
+        await Promise.all([
+            this.fetchColors(this.state.frame),
+            this.fetchNeighborhoodNames(),
+            this.fetchPriceView(),
+            this.fetchEditableView(),
+            this.fetchCensorsAllFrames()
+        ]);
+        loading(null, "refreshing", "success");
     }
 
     // updateAccount = async (account) => {
@@ -425,38 +440,18 @@ export class Game extends React.Component {
     // }
 
     async componentDidMount() {
-        await Promise.all([
-            this.fetchColors(this.state.frame),
-            this.fetchNeighborhoodNames(this.state.frame),
-            this.fetchPriceView(),
-            this.fetchEditableView(),
-            this.fetch_censors_all_frames()
-        ]);
+        await this.handleFetchViews();
+
         this.setState({
             initialFetchStatus: 1,
         });
 
-        // setInterval for requerying from chain regularly
-        this.intervalFetchColors = setInterval(async () => {
-            if (!document.hidden){
-                await this.fetchColors(this.state.frame);
-            }
-        }, FETCH_COLORS_INTERVAL);
         this.intervalFetchNeighborhoodNames = setInterval(async () => {
             if (!document.hidden){
                 await this.fetchNeighborhoodNames();
             }
         }, FETCH_NAMES_INTERVAL);
-        this.intervalFetchPrices = setInterval(async () => {
-            if (!document.hidden){
-                await this.fetchPriceView();
-            }
-        }, FETCH_PRICES_INTERVAL);
-        this.intervalFetchEditable = setInterval(async () => {
-            if (!document.hidden){
-                await this.fetchEditableView();
-            }
-        }, FETCH_EDITABLE_INTERVAL);
+        this.setColorView();
         
         if ("address" in this.props.locator) {
             try {
@@ -1457,17 +1452,27 @@ export class Game extends React.Component {
         );
     }
 
+    resetViews = () => { // call when switching between views
+        this.setState({
+            animations: false
+        });
+        clearInterval(this.intervalFetchColors);
+        clearInterval(this.intervalChangeFrame);
+        clearInterval(this.intervalFetchPrices);
+        clearInterval(this.intervalFetchEditable);
+    }
+
     handleChangeAnims = async (e) => {
-        let anims = e.target.checked;
+        let animations = e.target.checked;
 
         this.setState({
-            anims: anims,
-            animsInfoLoaded: false
+            animations: animations,
+            animationsInfoLoaded: false
         });
 
         let k = this.state.frame;
 
-        if (anims) {
+        if (animations) {
             clearInterval(this.intervalFetchColors);
             loading(null, "Loading frames", null);
             await this.fetchColorsAllFrames();
@@ -1484,7 +1489,7 @@ export class Game extends React.Component {
                         const frame = k % datalen;
                         this.viewport.neighborhoodColors[key] =
                             this.viewport.neighborhoodColorsAllFrames[key][frame];
-                        this.viewport.neighborhoodCensors[key] = this.fetch_censors(frame, value);
+                        this.viewport.neighborhoodCensors[key] = this.fetchCensors(frame, value);
                     }
                 });
                 requestAnimationFrame(() => {
@@ -1507,8 +1512,8 @@ export class Game extends React.Component {
             }, FETCH_COLORS_INTERVAL);
         }
         this.setState({
-            anims: anims,
-            animsInfoLoaded: true
+            animations: animations,
+            animationsInfoLoaded: true
         });
     }
 
@@ -2029,44 +2034,47 @@ export class Game extends React.Component {
         loading(null, "refreshing", "success");
     }
 
-    setColorView = () => {
-        this.viewport.view = 0;
+    setColiew = () => {
+        this.resetViews();
+        this.state.view = 0;
         this.board.current.resetCanvas();
+        this.fetchColors(this.state.frame);
+        this.intervalFetchColors = setInterval(async () => {
+            if (!document.hidden){
+                await this.fetchColors(this.state.frame);
+            }
+        }, FETCH_COLORS_INTERVAL);
         this.setState({
             viewMenuOpen: false,
             viewMenuAnchorEl: null,
         });
     }
     setPriceView = () => {
-        clearInterval(this.intervalChangeFrame);
-        this.intervalFetchColors = setInterval(async () => {
-            if (document.hidden){
-                return;
-            }
-            await this.fetchColors(this.state.frame);
-        }, FETCH_COLORS_INTERVAL);
-        this.viewport.view = 1;
+        this.resetViews();
+        this.state.view = 1;
         this.board.current.resetCanvas();
+        this.fetchPriceView();
+        this.intervalFetchPrices = setInterval(async () => {
+            if (!document.hidden){
+                await this.fetchPriceView();
+            }
+        }, FETCH_PRICES_INTERVAL);
         this.setState({
-            anims: false,
-            animsInfoLoaded: true,
             viewMenuOpen: false,
             viewMenuAnchorEl: null,
         });
     }
     setEditableView = () => {
-        clearInterval(this.intervalChangeFrame);
-        this.intervalFetchEditable = setInterval(async () => {
-            if (document.hidden){
-                return;
-            }
-            await this.fetchEditableView(this.state.frame);
-        }, FETCH_COLORS_INTERVAL);
-        this.viewport.view = 2;
+        this.resetViews();
+        this.state.view = 2;
         this.board.current.resetCanvas();
+        this.fetchEditableView();
+        this.intervalFetchEditable = setInterval(async () => {
+            if (!document.hidden){
+                await this.fetchEditableView();
+            }
+        }, FETCH_EDITABLE_INTERVAL);
         this.setState({
-            anims: false,
-            animsInfoLoaded: true,
             viewMenuOpen: false,
             viewMenuAnchorEl: null,
         });
@@ -2236,8 +2244,8 @@ export class Game extends React.Component {
                 <Board
                     ownedSpaces={this.props.ownedSpaces}
                     ref={this.board}
-                    getMap={() => [this.viewport.neighborhoodColors, this.viewport.neighborhoodPriceView, this.viewport.neighborhoodEditableView][this.viewport.view]}
-                    getCensors={() => this.viewport.view == 0 ? this.viewport.neighborhoodCensors : {}}
+                    getMap={() => [this.viewport.neighborhoodColors, this.viewport.neighborhoodPriceView, this.viewport.neighborhoodEditableView][this.state.view]}
+                    getCensors={() => this.state.view == 0 ? this.viewport.neighborhoodCensors : {}}
                     getNeighborhoodNames={() => this.viewport.neighborhoodNames}
                     user={this.props.user}
                     onViewportChange={(startx, starty, endx, endy) => {
@@ -2293,6 +2301,23 @@ export class Game extends React.Component {
                             marginLeft: "20px", // TODO
                         }}
                     >
+                        <Tooltip title="Number of viewers">
+                            <Box sx={{marginLeft: "10px"}}>
+                                <VisibilityIcon/> {this.props.viewer}
+                            </Box>
+                        </Tooltip>
+                        <Tooltip title="Refresh canvas">
+                            <Button
+                                variant="contained"
+                                className={"defaultButton"}
+                                id="reload-button"
+                                onClick={(e) => this.handleFetchViews(e)}
+                                disabled={!this.state.animationsInfoLoaded}
+                                sx={{marginRight: "10px"}}
+                            >
+                                <ReloadOutlined />
+                            </Button>
+                        </Tooltip>
                         <Tooltip title="Change view">
                             <Button
                                 variant="contained"
@@ -2305,15 +2330,19 @@ export class Game extends React.Component {
                                 endIcon={<KeyboardArrowDownIcon />}
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                                 sx={{marginRight: "5px"}}
 =======
                                 disabled={!this.state.animationsInfoLoaded}
 =======
 >>>>>>> 6f68a50 (Revert "better view selection")
+=======
+                                disabled={!this.state.animationsInfoLoaded}
+>>>>>>> 5561b3e (better view selection (#109))
                                 sx={{marginRight: "10px"}}
 >>>>>>> 99a6075 (better view selection)
                             >
-                                {["Colors", "Prices", "Editable"][this.viewport.view]}
+                                {["Colors", "Prices", "Editable"][this.state.view]}
                             </Button>
                         </Tooltip>
                         <Menu
@@ -2327,6 +2356,7 @@ export class Game extends React.Component {
                             <MenuItem onClick={(e) => this.setPriceView()}>Prices</MenuItem>
                             <MenuItem onClick={(e) => this.setEditableView()}>Editable</MenuItem>
                         </Menu>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
                         <Tooltip title="Toggle animations">
@@ -2384,6 +2414,8 @@ export class Game extends React.Component {
                         </Tooltip>
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 5561b3e (better view selection (#109))
                         {this.state.view == 0 ? 
                             <>
                             <FormControl>
@@ -2422,9 +2454,12 @@ export class Game extends React.Component {
                             null
                         }
                         
+<<<<<<< HEAD
 >>>>>>> 99a6075 (better view selection)
 =======
 >>>>>>> 6f68a50 (Revert "better view selection")
+=======
+>>>>>>> 5561b3e (better view selection (#109))
                         {!this.mobile &&
                         <>
                             <div className={"animationsSeparator"}></div>
@@ -2458,11 +2493,6 @@ export class Game extends React.Component {
                             </Button>
                         </Tooltip> */}
                         </>}
-                        <Tooltip title="Number of viewers">
-                            <Box sx={{marginLeft: "10px"}}>
-                                <VisibilityIcon/> {this.props.viewer}
-                            </Box>
-                        </Tooltip>
                     </Box>
                     
 
