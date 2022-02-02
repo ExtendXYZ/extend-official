@@ -483,6 +483,8 @@ export const Home = (props: HomeProps) => {
       setIsRegistering(false);
       return;
     }
+
+    server.setAddress(wallet.publicKey); // set address in case of disconnecting
     const currSpaceAccs = {};
     const currMints = {};
     let accs: any[] = [];
