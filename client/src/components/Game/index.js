@@ -614,6 +614,12 @@ export class Game extends React.Component {
         } // nothing for uncheck case for now
     }
 
+    selectOwnedSpaces = () => {
+        const ownedSelection = intersection(this.props.ownedSpaces, this.state.selecting.poses)
+        this.resetSelecting();
+        this.setSelecting(ownedSelection);
+    }
+
     uploadImage = () => {
         let reader = new FileReader();
 
@@ -2313,6 +2319,7 @@ export class Game extends React.Component {
                 handleTargetFloor={this.handleTargetFloor}
                 purchaseSpaces={this.purchaseSpaces}
                 makeEditableColors={this.makeEditableColors}
+                selectOwnedSpaces={this.selectOwnedSpaces}
                 handleSelectingRefresh={this.handleSelectingRefresh}
                 handleChangeSelectingRentPrice={this.handleChangeSelectingRentPrice}
                 changeRents={this.changeRents}
