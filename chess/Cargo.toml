@@ -1,0 +1,15 @@
+[package]
+name = "extend-chess"
+version = "0.1.0"
+edition = "2018"
+license = "WTFPL"
+publish = false
+
+[features]
+no-entrypoint = []
+
+[dependencies]
+solana-program = "1.7.14"
+
+[lib]
+crate-type = ["cdylib", "lib"]
