@@ -32,7 +32,7 @@ import { Board } from './canvas.js';
 import { FocusSidebar } from './focus_sidebar.js';
 import { SelectingSidebar } from './selecting_sidebar.js';
 import { NeighborhoodSidebar } from './neighborhood_sidebar.js';
-import { solToLamports, lamportsToSol, xor, bytesToUInt, priceToColor, colorHighlight} from "../../utils";
+import { solToLamports, lamportsToSol, xor, priceToColor, intersection} from "../../utils";
 import {loading} from '../../utils/loading';
 import { letterSpacing } from "@mui/system";
 import { InfoOutlined } from "@mui/icons-material";
@@ -613,6 +613,12 @@ export class Game extends React.Component {
                 message: "Making editable...",
             });
         } // nothing for uncheck case for now
+    }
+
+    selectOwnedSpaces = () => {
+        const ownedSelection = intersection(this.props.ownedSpaces, this.state.selecting.poses)
+        this.resetSelecting();
+        this.setSelecting(ownedSelection);
     }
 
     uploadImage = () => {
@@ -2285,6 +2291,7 @@ export class Game extends React.Component {
                 handleTargetFloor={this.handleTargetFloor}
                 purchaseSpaces={this.purchaseSpaces}
                 makeEditableColors={this.makeEditableColors}
+                selectOwnedSpaces={this.selectOwnedSpaces}
                 handleSelectingRefresh={this.handleSelectingRefresh}
                 handleChangeSelectingRentPrice={this.handleChangeSelectingRentPrice}
                 changeRents={this.changeRents}
