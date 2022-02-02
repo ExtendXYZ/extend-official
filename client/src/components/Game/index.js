@@ -251,17 +251,17 @@ export class Game extends React.Component {
         );
 
         let newMax = this.state.maxFrame;
-        this.viewport.neighborhoodColorsAllFrames = {};
+        let tmpNeighborhoodColorsAllFrames = {}
         for (let i = 0; i < frameDatas.length; i++) {
             let { n_x, n_y, frame } = frameInfos[i];
             let key = JSON.stringify({ n_x, n_y });
             let n_frames = numFramesMap[key];
             newMax = n_frames > newMax ? n_frames : newMax;
 
-            if (!(key in this.viewport.neighborhoodColorsAllFrames)) {
-                this.viewport.neighborhoodColorsAllFrames[key] = [];
+            if (!(key in tmpNeighborhoodColorsAllFrames)) {
+                tmpNeighborhoodColorsAllFrames[key] = [];
                 for (let k = 0; k < n_frames; k++) {
-                    this.viewport.neighborhoodColorsAllFrames[key].push(
+                    tmpNeighborhoodColorsAllFrames[key].push(
                         Array.from({ length: NEIGHBORHOOD_SIZE }, () =>
                             new Array(NEIGHBORHOOD_SIZE).fill(null)
                         )
@@ -269,9 +269,10 @@ export class Game extends React.Component {
                 }
             }
 
-            this.viewport.neighborhoodColorsAllFrames[key][frame] =
+            tmpNeighborhoodColorsAllFrames[key][frame] =
                 await this.props.server.getFrameData(frameDatas[i]);
         }
+        this.viewport.neighborhoodColorsAllFrames = tmpNeighborhoodColorsAllFrames;
 
         this.setState({ maxFrame: newMax });
     }
@@ -409,10 +410,10 @@ export class Game extends React.Component {
         this.censors = await response.json();
     }
 
-    handleFetchViews = async() => {
+    reloadViews = async() => {
         loading(null, "refreshing", null);
         await Promise.all([
-            this.fetchColors(this.state.frame),
+            this.state.animations ? this.fetchColorsAllFrames() : this.fetchColors(this.state.frame),
             this.fetchNeighborhoodNames(),
             this.fetchPriceView(),
             this.fetchEditableView(),
@@ -445,7 +446,7 @@ export class Game extends React.Component {
     // }
 
     async componentDidMount() {
-        await this.handleFetchViews();
+        await this.reloadViews();
 
         this.setState({
             initialFetchStatus: 1,
@@ -2103,7 +2104,7 @@ export class Game extends React.Component {
         loading(null, "refreshing", "success");
     }
 
-    setColiew = () => {
+    setColorView = () => {
         this.resetViews();
         this.state.view = 0;
         this.board.current.resetCanvas();
@@ -2385,7 +2386,7 @@ export class Game extends React.Component {
                                 variant="contained"
                                 className={"defaultButton"}
                                 id="reload-button"
-                                onClick={(e) => this.handleFetchViews(e)}
+                                onClick={(e) => this.reloadViews(e)}
                                 disabled={!this.state.animationsInfoLoaded}
                                 sx={{marginRight: "10px"}}
                             >
