@@ -122,10 +122,11 @@ export class Database {
             const pos = JSON.stringify({x, y});
             if (poses.has(pos) && (!user || user.toBase58() != owner) && (forSale === 1)) { // if in poses, not owned by curr user, and for Sale 
                 purchasableInfo.push({x, y, mint: new PublicKey(mint), price: Number(price), seller: new PublicKey(owner)});
-            } else if (poses.has(pos)) { // if it is in the poses
+            }
+            if (poses.has(pos)) {
                 owners[pos] = new PublicKey(owner);
                 mints[pos] = new PublicKey(mint);
-            }   
+            }
         }
         purchasableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
 

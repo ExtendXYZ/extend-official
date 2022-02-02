@@ -159,3 +159,22 @@ export function xor(setA, setB){
   }
   return _union;
 }
+export function complement(setA, setB){
+  let _complement = new Set();
+  for (let elem of setA) {
+      if (!setB.has(elem)) {
+        _complement.add(elem);
+      }
+  }
+  return _complement;
+}
+export function union_without_modify(setA, setB){
+  let _union = new Set();
+  for (let elem of setA) {
+    _union.add(elem);
+  }
+  for (let elem of setB) {
+    _union.add(elem);
+  }
+  return _union;
+}
