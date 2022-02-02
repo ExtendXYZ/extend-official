@@ -195,6 +195,7 @@ pub fn process(
 
     // update frame base
     neighborhood_frame_base_data.length += 1;
+    neighborhood_frame_base_data.time_cluster_account = *time_cluster.key;
     neighborhood_frame_base_data.serialize(&mut *neighborhood_frame_base.data.borrow_mut())?;
 
     // zero out data in color cluster
