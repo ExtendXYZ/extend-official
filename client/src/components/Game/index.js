@@ -81,6 +81,7 @@ export class Game extends React.Component {
         this.intervalFetchNeighborhoodNames = 0;
         this.intervalFetchPrices = 0;
         this.intervalChangeFrame = 0;
+        this.intervalFetchEditable = 0;
         this.state = {
             neighborhoodColors: {},
             showNav: false,
@@ -469,7 +470,6 @@ export class Game extends React.Component {
                 await this.fetchEditableView();
             }
         }, FETCH_EDITABLE_INTERVAL);
-
         this.setColorView();
         
         if ("address" in this.props.locator) {
