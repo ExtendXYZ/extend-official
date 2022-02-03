@@ -1539,14 +1539,6 @@ export class Game extends React.Component {
         );
     }
 
-    resetViews = () => { // call when switching between views
-        this.setState({
-            animations: false
-        });
-        clearInterval(this.intervalChangeFrame);
-        clearInterval(this.intervalFetchPriceView);
-    }
-
     handleChangeAnims = async (e) => {
         let animations = e.target.checked;
 
@@ -2192,8 +2184,19 @@ export class Game extends React.Component {
         });
     }
 
+
+    resetViews = (newView) => { // call when switching between views
+        if (newView != 0 && newView != 1){
+            this.setState({
+                animations: false
+            });
+            clearInterval(this.intervalChangeFrame);
+        }
+        clearInterval(this.intervalFetchPriceView);
+    }
+
     setColorView = () => {
-        this.resetViews();
+        this.resetViews(0);
         this.state.view = 0;
         this.board.current.resetCanvas();
         this.setState({
@@ -2201,9 +2204,22 @@ export class Game extends React.Component {
             viewMenuAnchorEl: null,
         });
     }
-    setPriceView = () => {
-        this.resetViews();
+    setEditableView = () => {
+        this.resetViews(1);
         this.state.view = 1;
+        this.board.current.resetCanvas();
+        this.setState({
+            viewMenuOpen: false,
+            viewMenuAnchorEl: null,
+        });
+    }
+    setPriceView = () => {
+        this.resetViews(2);
+        // this.setState({
+        //     animations: false
+        // });
+        // clearInterval(this.intervalChangeFrame);
+        this.state.view = 2;
         this.board.current.resetCanvas();
         this.fetchPriceView();
         this.intervalFetchPriceView = setInterval(async () => {
@@ -2211,15 +2227,6 @@ export class Game extends React.Component {
                 await this.fetchPriceView();
             }
         }, FETCH_PRICES_INTERVAL);
-        this.setState({
-            viewMenuOpen: false,
-            viewMenuAnchorEl: null,
-        });
-    }
-    setEditableView = () => {
-        this.resetViews();
-        this.state.view = 2;
-        this.board.current.resetCanvas();
         this.setState({
             viewMenuOpen: false,
             viewMenuAnchorEl: null,
@@ -2273,12 +2280,9 @@ export class Game extends React.Component {
             return this.viewport.neighborhoodColors;
         }
         else if (this.state.view == 1){
-            return this.viewport.neighborhoodPriceView;
-        }
-        else if (this.state.view == 2){
             let view = {};
             for (let nhash in this.viewport.neighborhoodEditableTimes){
-                if (!nhash in this.viewport.neighborhoodColors){
+                if (!(nhash in this.viewport.neighborhoodColors)){
                     continue;
                 }
                 let now = Date.now() / 1000;
@@ -2296,6 +2300,9 @@ export class Game extends React.Component {
             }
             console.log(view);
             return view;
+        }
+        else if (this.state.view == 2){
+            return this.viewport.neighborhoodPriceView;
         }
     }
 
@@ -2472,7 +2479,7 @@ export class Game extends React.Component {
                                 disabled={!this.state.animationsInfoLoaded}
                                 sx={{marginRight: "10px"}}
                             >
-                                {["Colors", "Prices", "Editable"][this.state.view]}
+                                {["Colors", "Editable", "Prices"][this.state.view]}
                             </Button>
                         </Tooltip>
                         <Menu
@@ -2482,15 +2489,21 @@ export class Game extends React.Component {
                             open={this.state.viewMenuOpen}
                             onClose={() => this.handleViewMenuClose()}
                         >
-                            <MenuItem onClick={(e) => this.setColorView()}>Colors</MenuItem>
-                            <MenuItem onClick={(e) => this.setPriceView()}>Prices</MenuItem>
-                            <MenuItem onClick={(e) => this.setEditableView()}>Editable</MenuItem>
+                            <Tooltip title="View colors">
+                                <MenuItem onClick={(e) => this.setColorView()}>Colors</MenuItem>
+                            </Tooltip>
+                            <Tooltip title="Only show spaces you can change">
+                                <MenuItem onClick={(e) => this.setEditableView()}>Editable</MenuItem>
+                            </Tooltip>
+                            <Tooltip title="View prices heatmap">
+                                <MenuItem onClick={(e) => this.setPriceView()}>Prices</MenuItem>
+                            </Tooltip>
                         </Menu>
-                        {this.state.view == 0 ? 
+                        {this.state.view == 0 || this.state.view == 1 ? 
                             <>
                             <FormControl>
                                 <FormControlLabel
-                                    disabled={!this.state.animationsInfoLoaded || this.state.view != 0}
+                                    disabled={!this.state.animationsInfoLoaded || (this.state.view != 0 && this.state.view != 1)}
                                     control={
                                         <Switch
                                             onChange={(e) => this.handleChangeAnims(e)}
@@ -2504,7 +2517,7 @@ export class Game extends React.Component {
                                 <Select
                                     variant="standard"
                                     value={this.state.frame}
-                                    disabled={this.state.animations || this.state.view != 0}
+                                    disabled={this.state.animations || (this.state.view != 0 && this.state.view != 1)}
                                     onChange={(e) => {
                                         this.handleChangeFrame(e);
                                     }}
