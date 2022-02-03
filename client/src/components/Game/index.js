@@ -2471,7 +2471,7 @@ export class Game extends React.Component {
                             <Tooltip title="View colors" placement="right">
                                 <MenuItem onClick={(e) => this.setColorView()}>Colors</MenuItem>
                             </Tooltip>
-                            <Tooltip title="Only show spaces you can change" placement="left">
+                            <Tooltip title="Only show spaces you can change" placement="right">
                                 <MenuItem onClick={(e) => this.setEditableView()}>Editable</MenuItem>
                             </Tooltip>
                             <Tooltip title="View prices heatmap" placement="right">
