@@ -440,7 +440,7 @@ export function Screen(props) {
                 const timeClusterMap = await server.getEditableTimeClusterKeys(connection, neighborhoods);
 
                 for (const s of spaces) {
-                    if (editable.has(s)) {
+                    if ((frame != -1 && editable.has(s)) || (frame == -1 && spaceGrid.has(s))) {
                         let p = JSON.parse(s);
                         const x = p.x;
                         const y = p.y;
@@ -742,7 +742,7 @@ export function Screen(props) {
                         const x = init_x+j;
                         const y = init_y+i;
                         const position = JSON.stringify({x, y});
-                        if (spaces.has(position) && editable.has(position)) {
+                        if ( spaces.has(position) && ((frame != -1 && editable.has(position)) || (frame == -1 && spaceGrid.has(position))) ) {
                             const r = image[i][j][0];
                             const g = image[i][j][1];
                             const b = image[i][j][2];
@@ -812,7 +812,7 @@ export function Screen(props) {
                         const y = init_y+i;
 
                         const position = JSON.stringify({x, y});
-                        if (spaces.has(position) && editable.has(position)) {
+                        if (spaces.has(position) && spaceGrid.has(position)) {
                             const mint = mints[position];
                             const owner = owners[position];
 

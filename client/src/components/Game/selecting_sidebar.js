@@ -200,15 +200,37 @@ export class SelectingSidebar extends React.Component {
               </div>
             </Box>
             &nbsp;
+            <Box>
+              <div style={{ display: "flex", alignItems: "center", width: "100%"}}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => {
+                    this.props.selectOwnedSpaces();
+                  }}
+                  style={{
+                    marginLeft: "5px",
+                    color: "#FFFFFF",
+                    background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                  }}
+                  disabled={!this.state.ownedSelection.size}
+                >
+                  SELECT OWNED SPACES
+                </Button>
+              </div>
+            </Box>
+            &nbsp;
         </ListItem>
         </List>;
 
-        let tooltipModifyColorTitle = `Estimated Cost to Change Colors:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
+        let tooltipModifyColorTitle = `Estimated Cost to Change Colors:  ${(this.state.ownedSelection.size * 0.000005 + this.state.editableSelection.size * 0.000001).toFixed(6)} SOL`;
         let tooltipSetPriceTitle = `Estimated Cost to List/Delist:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
         let tooltipBuyTitle = `Batch buying is non-atomic and is available as a convenience feature. Successful purchase of every Space selected is not guaranteed.
-        
+
         Estimated Transaction Cost to Buy:  ${(this.props.selecting.purchasableInfo.length * 0.000005).toFixed(6)} SOL`;
-        
+        let tooltipMakeEditable = `Click the checkbox to make your selected spaces editable by others and gain SOL from their color changes on the spaces. To make the spaces uneditable, simply change the color to your desired color.`;
+        let tooltipEditPrice = `Pay a fixed price to upload an image or edit the color of editable spaces that you don't own (0.000001 SOL per space). After changing colors, the colors will be able to be edited again in 30 seconds.`
+
         return (
 
                 <div>
@@ -277,7 +299,7 @@ export class SelectingSidebar extends React.Component {
                           </div>
                           </Tooltip>
                           {this.state.editableSelection.size > 0 ?
-                          <Tooltip placement={'right'} title="Pay a fixed price to upload an image or edit the color of these spaces (0.000001 SOL per space). After changing colors, the colors will be able to be edited again in 30 seconds.">
+                          <Tooltip placement={'right'} title={tooltipEditPrice}>
                           <div style={{width: "35%", float: "right"}}>
                               EDIT PRICE
                           </div>
@@ -320,7 +342,7 @@ export class SelectingSidebar extends React.Component {
 
                         {this.state.ownedSelection.size > 0 ?
                           <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                              <Tooltip placement={'right'} title="Click the checkbox to make your selected spaces editable by others and gain SOL from their color changes on the spaces. To make the spaces uneditable, simply change the color to your desired color.">
+                              <Tooltip placement={'right'} title={tooltipMakeEditable}>
                               <FormControl>
                               <FormControlLabel
                                   style={{marginLeft: "2px"}} // fix alignment
