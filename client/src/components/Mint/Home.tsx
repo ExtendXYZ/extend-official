@@ -1078,7 +1078,7 @@ export const Home = (props: HomeProps) => {
         </Alert>
       </Snackbar>
 
-      <div className="botnav" id="botnav" style={{
+      <div className="loading" id="loading" style={{
         position: "fixed",
         zIndex: 1,
         bottom: "50px",

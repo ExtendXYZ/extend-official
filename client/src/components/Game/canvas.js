@@ -12,6 +12,7 @@ import {
     DialogContent,
     DialogContentText,
     DialogActions,
+    Slider,
 } from "@mui/material";
 
 const CLICK_THRESHOLD = 5;
@@ -49,6 +50,7 @@ export class Board extends React.Component {
         this.scale = ("scale" in locator)? parseInt(locator.scale) * this.height / 100 / NEIGHBORHOOD_SIZE : height / 2 / NEIGHBORHOOD_SIZE;
         this.scale = Math.max(1, Math.round(this.scale));
         
+        
         if ("x" in locator) {
             this.x = width * 0.5 - parseInt(locator.x) * this.scale;
         }
@@ -77,6 +79,7 @@ export class Board extends React.Component {
         
         this.sensor = React.createRef();
         this.canvas = React.createRef();
+        this.zoomSlider = React.createRef();
         this.resizeHandler = this.resizeHandler.bind(this);
         this.onTouchMove = this.onTouchMove.bind(this);
         this.onWheel = this.onWheel.bind(this);
@@ -127,6 +130,7 @@ export class Board extends React.Component {
             this.drawMouseTracker();
             this.drawNTracker();
             this.drawSelected();
+            this.drawZoomSlider();
         });
     }
 
@@ -708,6 +712,12 @@ export class Board extends React.Component {
         this.canvasCache.t = Date.now();
     }
 
+    drawZoomSlider() {
+        // console.log("drawing zoom slider");
+        // this.zoomSlider.current.props.value = this.scale;
+        // console.log(this.zoomSlider.current.props.value);
+    }
+
     examine() {
         const n_x = Math.floor(this.focus.x / NEIGHBORHOOD_SIZE);
         const n_y = Math.floor(this.focus.y / NEIGHBORHOOD_SIZE);
@@ -833,6 +843,38 @@ export class Board extends React.Component {
             })
         }
         return tmpCanvas;
+    }
+
+    handleZoomSliderChange(event){
+        let scale = this.scale;
+        const rect = this.sensor.current.getBoundingClientRect();
+        const width = this.width;
+        const height = this.height;
+        const offsetX = (rect.right - rect.left) / 2;
+        const offsetY = (rect.bottom - rect.top) / 2;
+        const center_x = (offsetX - this.x) / scale;
+        const center_y = (offsetY - this.y) / scale;
+        const delta = event.deltaY / 2;
+        let newScale = event.target.value;
+        const x = offsetX - center_x * newScale;
+        const y = offsetY - center_y * newScale;
+        const neighborhood_scale = newScale * NEIGHBORHOOD_SIZE;
+        this.props.onViewportChange(
+            Math.floor(-x / neighborhood_scale),
+            Math.floor(-y / neighborhood_scale),
+            Math.ceil((-x + width) / neighborhood_scale),
+            Math.ceil((-y + height) / neighborhood_scale)
+        );
+        this.scale = newScale;
+        this.x = x;
+        this.y = y;
+        requestAnimationFrame(() => {
+            this.drawCanvasCache();
+            this.drawMouseTracker();
+            this.drawNTracker();
+            this.drawSelected();
+            this.drawZoomSlider();
+        });
     }
 
     render() {
@@ -1080,6 +1122,20 @@ export class Board extends React.Component {
                     onTouchCancel={(e) => this.touchCancelHandler(e)}
                     tabIndex={-1}
                 ></canvas>
+                <div className="zoom" id="zoom">
+                    <Slider
+                        ref={this.zoomSlider}
+                        aria-label="zoom"
+                        defaultValue={1}
+                        getAriaValueText={() => this.scale}
+                        valueLabelDisplay="auto"
+                        step={1}
+                        min={Math.max(this.height / 2 / (NEIGHBORHOOD_SIZE * 5), 1)}
+                        // value={this.scale}
+                        onChange={(e) => this.handleZoomSliderChange(e)}
+                        max={this.height / 2}
+                    />
+                </div>
             </div>
         );
     }

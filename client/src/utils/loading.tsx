@@ -6,11 +6,11 @@ import "./loading.css"
 
 const taskCache = {};
 export function loading(percent, task, status) {
-    if (document.getElementById('botnav')) {
+    if (document.getElementById('loading')) {
         if (percent === null) {
             if (status) {
                 delete taskCache[task];
-                // ReactDOM.render(null, document.getElementById('botnav'));
+                // ReactDOM.render(null, document.getElementById('loading'));
             } else {
                 taskCache[task] = null;
                 // ReactDOM.render(
@@ -18,7 +18,7 @@ export function loading(percent, task, status) {
                 //         <Box className="description" id="description1"> {task} </Box>
                 //         <Spin size="large"/>
                 //     </>,
-                //     document.getElementById('botnav')
+                //     document.getElementById('loading')
                 // );
             }
         } else {
@@ -29,7 +29,7 @@ export function loading(percent, task, status) {
                 //         <Box className="description" id="description1"> {task} </Box>
                 //         
                 //     </>, 
-                //     document.getElementById('botnav')
+                //     document.getElementById('loading')
                 // );
             }
             else {
@@ -39,7 +39,7 @@ export function loading(percent, task, status) {
                 //         <Box className="description" id="description2"> {task} </Box>
                 //         <Progress type="circle" percent={percent.toFixed(1)} className="red-text" />
                 //     </>,
-                //     document.getElementById('botnav')
+                //     document.getElementById('loading')
                 // );
             }
         }
@@ -65,6 +65,6 @@ export function loading(percent, task, status) {
                 )
             }
         }
-        ReactDOM.render(tasks, document.getElementById('botnav'));
+        ReactDOM.render(tasks, document.getElementById('loading'));
     }
 }

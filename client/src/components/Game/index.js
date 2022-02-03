@@ -2578,7 +2578,9 @@ export class Game extends React.Component {
                         </Menu>
                     </Box>}
                 </Box>
-                <div className="botnav" id="botnav"></div>
+                
+                <div className="loading" id="loading">
+                </div>
                 {/* <div className="topnav" id="topnav">
                     <Button sx={{color: "white"}} onClick={() => {
                         this.moveToSpaces(this.state.selecting.poses)}}> All Selected</Button>

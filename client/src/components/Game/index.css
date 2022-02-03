@@ -188,7 +188,20 @@
     color: white;
 }
 
-.botnav {
+.zoom {
+    position: fixed;
+    z-index: 1;
+    bottom: 50px;
+    width: 150px;
+    right: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+
+.loading {
     position: fixed;
     z-index: 1;
     bottom: 50px;
