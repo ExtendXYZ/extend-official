@@ -2504,13 +2504,13 @@ export class Game extends React.Component {
                             open={this.state.viewMenuOpen}
                             onClose={() => this.handleViewMenuClose()}
                         >
-                            <Tooltip title="View colors">
+                            <Tooltip title="View colors" placement="right">
                                 <MenuItem onClick={(e) => this.setColorView()}>Colors</MenuItem>
                             </Tooltip>
-                            <Tooltip title="Only show spaces you can change">
+                            <Tooltip title="Only show spaces you can change" placement="right">
                                 <MenuItem onClick={(e) => this.setEditableView()}>Editable</MenuItem>
                             </Tooltip>
-                            <Tooltip title="View prices heatmap">
+                            <Tooltip title="View prices heatmap" placement="right">
                                 <MenuItem onClick={(e) => this.setPriceView()}>Prices</MenuItem>
                             </Tooltip>
                         </Menu>
