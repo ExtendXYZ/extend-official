@@ -533,7 +533,7 @@ export class FocusSidebar extends React.Component {
                                     size="small"
                                     variant="contained"
                                     onClick={() => {
-                                        this.props.handleFocusRefresh();
+                                        this.props.focusRefresh();
                                     }}
                                     style={{
                                         width: "100%",

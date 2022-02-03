@@ -698,7 +698,7 @@ export class SelectingSidebar extends React.Component {
                                 size="small"
                                 variant="contained"
                                 onClick={() => {
-                                    this.props.handleSelectingRefresh();
+                                    this.props.selectingRefresh();
                                 }}
                                 style={{
                                     width: "100%",

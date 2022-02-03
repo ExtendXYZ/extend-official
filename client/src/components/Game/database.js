@@ -83,11 +83,19 @@ export class Database {
     async getSpaceMetadata(x, y) {
         const results = await axios.get(this.mysql + '/info/' + x + '/' + y);
         const data = results.data[0];
+        if (!data){
+            return {
+                mint: null,
+                owner: null,
+                price: null,
+                hasPrice: false,
+            }
+        }
         const [mint, owner, price, forSale] = data;
 
         return {
-            mint: new PublicKey(mint),
-            owner: new PublicKey(owner),
+            mint: mint ? new PublicKey(mint) : null,
+            owner: owner ? new PublicKey(owner) : null,
             price: Number(price),
             hasPrice: Boolean(forSale)
         }

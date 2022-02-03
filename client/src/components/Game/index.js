@@ -2088,7 +2088,7 @@ export class Game extends React.Component {
         loading(null, 'Refreshing', error ? "error" : "success");
     }
 
-    handleFocusRefresh = async () => {
+    focusRefresh = async () => {
         this.setState({ // trigger loading icon
             showNav: true,
             focus: { 
@@ -2101,41 +2101,46 @@ export class Game extends React.Component {
         let space_metadata_data = await this.props.server.getSpaceMetadata(this.props.connection, x, y);
         let owner = space_metadata_data.owner;
         let mint = space_metadata_data.mint;
-        let key = JSON.stringify({x, y});
-        let owners = {[key]: owner};
-        let mints = {[key]: mint};
-        try{
-            await this.props.database.updateSpaceInfo(owners, mints);
-        } catch (e){
-            console.error(e);
-        }
+        if (owner && mint){
+            let key = JSON.stringify({x, y});
+            let owners = {[key]: owner};
+            let mints = {[key]: mint};
+            try{
+                await this.props.database.updateSpaceInfo(owners, mints);
+            } catch (e){
+                console.error(e);
+            }
 
-        // refresh info client side
-        try{
-            const data = await this.props.database.getSpacesByOwner(this.props.user);
-            this.props.setOwnedSpaces(data.spaces); // set spaces and mints on hooks side
-            this.props.setOwnedMints(data.mints);
+            // refresh info client side
+            try{
+                const data = await this.props.database.getSpacesByOwner(this.props.user);
+                this.props.setOwnedSpaces(data.spaces); // set spaces and mints on hooks side
+                this.props.setOwnedMints(data.mints);
+            }
+            catch(e){
+                console.error(e);
+            }
         }
-        catch(e){
-            console.error(e);
-        }
-
+        
         // set focus, if focus hasn't changed
         this.refreshSidebar();
     }
 
-    handleSelectingRefresh = async () => {
+    selectingRefresh = async () => {
         let infos = await this.props.server.getSpaceInfos(this.props.connection, this.state.selecting.poses);
 
+        loading(null, "refreshing", null);
         let owners = {};
         let mints = {};
         for (let info of infos){
             let key = JSON.stringify({x: info.x, y: info.y})
+            if (!info.owner || !info.mint){
+                continue;
+            }
             owners[key] = info.owner;
             mints[key] = info.mint;
         }
 
-        loading(null, "refreshing", null);
         let error = false;
         try{
             await this.props.database.updateSpaceInfo(owners, mints);
@@ -2342,7 +2347,7 @@ export class Game extends React.Component {
             handleChangeFocusPrice={this.handleChangeFocusPrice}
             changePrice={this.changePrice}
             delistSpace={this.delistSpace}
-            handleFocusRefresh={this.handleFocusRefresh}
+            focusRefresh={this.focusRefresh}
             handleChangeFocusRentPrice={this.handleChangeFocusRentPrice}
             changeRent={this.changeRent}
             delistRent={this.delistRent}
@@ -2372,7 +2377,7 @@ export class Game extends React.Component {
                 purchaseSpaces={this.purchaseSpaces}
                 makeEditableColors={this.makeEditableColors}
                 selectOwnedSpaces={this.selectOwnedSpaces}
-                handleSelectingRefresh={this.handleSelectingRefresh}
+                selectingRefresh={this.selectingRefresh}
                 handleChangeSelectingRentPrice={this.handleChangeSelectingRentPrice}
                 changeRents={this.changeRents}
                 delistRents={this.delistRents}
