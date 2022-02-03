@@ -79,9 +79,9 @@ export class Game extends React.Component {
         super(props);
         this.intervalFetchColors = 0;
         this.intervalFetchNeighborhoodNames = 0;
-        this.intervalFetchPrices = 0;
+        this.intervalFetchPriceView = 0;
         this.intervalChangeFrame = 0;
-        this.intervalFetchEditable = 0;
+        this.intervalFetchEditableTimes = 0;
         this.state = {
             neighborhoodColors: {},
             showNav: false,
@@ -353,9 +353,15 @@ export class Game extends React.Component {
         
         this.viewport.neighborhoodPriceView = tmpNeighborhoodPriceView;
     }
+<<<<<<< HEAD
     fetchEditableView = async() => {
+=======
+  
+    fetchEditableTimes = async() => {
+>>>>>>> 5aa93c0 (editable view shows colors)
         const connection = this.props.connection;
-        let neighborhoods = await this.getViewportNeighborhoods();
+
+        let neighborhoods = Object.keys(this.viewport.neighborhoodColors).map(x => JSON.parse(x));
 
         const keyMap = await this.props.server.getEditableTimeClusterKeys(
             connection,
@@ -368,16 +374,18 @@ export class Game extends React.Component {
             this.props.connection,
             editableClusterKeys
         );
-        let tmpNeighborhoodEditableView = {};
+        // let tmpNeighborhoodEditableView = {};
         this.viewport.neighborhoodEditableTimes = {};
         let newMax = this.state.maxFrame;
         let now = Date.now() / 1000;
         const neighborhood_accounts = await Promise.all(
             neighborhoods.map(async (value, i) => {
                 let { n_x, n_y } = value;
+                let nhash = JSON.stringify({n_x, n_y});
                 let editableTimes = await this.props.server.getEditableTimeData(
                     editableClusterDatas[i]
                 );
+<<<<<<< HEAD
                 this.viewport.neighborhoodEditableTimes[JSON.stringify({n_x, n_y})] = editableTimes;
                 console.log(n_x, n_y);
                 console.log(editableTimes);
@@ -391,9 +399,22 @@ export class Game extends React.Component {
                     }
                 }
                 tmpNeighborhoodEditableView[JSON.stringify({n_x, n_y})] = colors;
+=======
+                this.viewport.neighborhoodEditableTimes[nhash] = editableTimes;
+                // let editableColors = Array.from({ length: NEIGHBORHOOD_SIZE }, () => new Array(NEIGHBORHOOD_SIZE).fill(null));
+                // for(let x = n_x * NEIGHBORHOOD_SIZE; x < (n_x + 1) * NEIGHBORHOOD_SIZE; x++){
+                //     for(let y = n_y * NEIGHBORHOOD_SIZE; y < (n_y + 1) * NEIGHBORHOOD_SIZE; y++){
+                //         let x_relative = x - n_x * NEIGHBORHOOD_SIZE;
+                //         let y_relative = y - n_y * NEIGHBORHOOD_SIZE;
+                //         let color = this.viewport.neighborhoodColors[nhash][y_relative][x_relative];
+                //         editableColors[y_relative][x_relative] = (now > editableTimes[nhash][y_relative][x_relative] ? color : "gray");
+                //     }
+                // }
+                // tmpNeighborhoodEditableView[nhash] = editableColors;
+>>>>>>> 5aa93c0 (editable view shows colors)
             })
         );
-        this.viewport.neighborhoodEditableView = tmpNeighborhoodEditableView;
+        // this.viewport.neighborhoodEditableView = tmpNeighborhoodEditableView;
     }
 
     fetchCensors = (frame, {n_x, n_y}) => {
@@ -419,9 +440,9 @@ export class Game extends React.Component {
             this.state.animations ? this.fetchColorsAllFrames() : this.fetchColors(this.state.frame),
             this.fetchNeighborhoodNames(),
             this.fetchPriceView(),
-            this.fetchEditableView(),
             this.fetchCensorsAllFrames(),
         ]);
+        await this.fetchEditableTimes(); // not parallel because depends on colors
         loading(null, "refreshing", "success");
     }
 
@@ -465,9 +486,9 @@ export class Game extends React.Component {
                 await this.fetchColors(this.state.frame);
             }
         }, FETCH_COLORS_INTERVAL);
-        this.intervalFetchEditable = setInterval(async () => {
+        this.intervalFetchEditableTimes = setInterval(async () => {
             if (!document.hidden){
-                await this.fetchEditableView();
+                await this.fetchEditableTimes();
             }
         }, FETCH_EDITABLE_INTERVAL);
         this.setColorView();
@@ -542,8 +563,8 @@ export class Game extends React.Component {
         clearInterval(this.intervalFetchColors);
         clearInterval(this.intervalFetchNeighborhoodNames);
         clearInterval(this.intervalChangeFrame);
-        clearInterval(this.intervalFetchPrices);
-        clearInterval(this.intervalFetchEditable);
+        clearInterval(this.intervalFetchPriceView);
+        clearInterval(this.intervalFetchEditableTimes);
     }
 
     closeSideNav = () => {
@@ -1523,7 +1544,7 @@ export class Game extends React.Component {
             animations: false
         });
         clearInterval(this.intervalChangeFrame);
-        clearInterval(this.intervalFetchPrices);
+        clearInterval(this.intervalFetchPriceView);
     }
 
     handleChangeAnims = async (e) => {
@@ -2180,7 +2201,7 @@ export class Game extends React.Component {
         this.state.view = 1;
         this.board.current.resetCanvas();
         this.fetchPriceView();
-        this.intervalFetchPrices = setInterval(async () => {
+        this.intervalFetchPriceView = setInterval(async () => {
             if (!document.hidden){
                 await this.fetchPriceView();
             }
@@ -2240,6 +2261,37 @@ export class Game extends React.Component {
             mySpacesMenuOpen: false,
             mySpacesMenuAnchorEl: null,
         });
+    }
+
+    getMap = () => {
+        if (this.state.view == 0){
+            return this.viewport.neighborhoodColors;
+        }
+        else if (this.state.view == 1){
+            return this.viewport.neighborhoodPriceView;
+        }
+        else if (this.state.view == 2){
+            let view = {};
+            for (let nhash in this.viewport.neighborhoodEditableTimes){
+                if (!nhash in this.viewport.neighborhoodColors){
+                    continue;
+                }
+                let now = Date.now() / 1000;
+                let { n_x, n_y } = JSON.parse(nhash);
+                let editableColors = Array.from({ length: NEIGHBORHOOD_SIZE }, () => new Array(NEIGHBORHOOD_SIZE).fill(null));
+                for(let x = n_x * NEIGHBORHOOD_SIZE; x < (n_x + 1) * NEIGHBORHOOD_SIZE; x++){
+                    for(let y = n_y * NEIGHBORHOOD_SIZE; y < (n_y + 1) * NEIGHBORHOOD_SIZE; y++){
+                        let x_relative = x - n_x * NEIGHBORHOOD_SIZE;
+                        let y_relative = y - n_y * NEIGHBORHOOD_SIZE;
+                        let color = this.viewport.neighborhoodColors[nhash][y_relative][x_relative];
+                        editableColors[y_relative][x_relative] = (now > this.viewport.neighborhoodEditableTimes[nhash][y_relative][x_relative] ? color : "transparent");
+                    }
+                }
+                view[nhash] = editableColors;
+            }
+            console.log(view);
+            return view;
+        }
     }
 
     render() {
@@ -2328,7 +2380,7 @@ export class Game extends React.Component {
                 <Board
                     ownedSpaces={this.props.ownedSpaces}
                     ref={this.board}
-                    getMap={() => [this.viewport.neighborhoodColors, this.viewport.neighborhoodPriceView, this.viewport.neighborhoodEditableView][this.state.view]}
+                    getMap={this.getMap}
                     getCensors={() => this.state.view == 0 ? this.viewport.neighborhoodCensors : {}}
                     getNeighborhoodNames={() => this.viewport.neighborhoodNames}
                     user={this.props.user}
