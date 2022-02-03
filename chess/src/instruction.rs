@@ -1,5 +1,6 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::program_error::ProgramError;
+use solana_program::pubkey::Pubkey;
 
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
@@ -13,11 +14,15 @@ pub struct InitBoardArgs {
 pub struct StartGameArgs {
     pub neighborhood_x: i64,
     pub neighborhood_y: i64,
-    pub board: u8,
-    pub white_whitelist: [[u8; 2]; 10],
-    pub black_whitelist: [[u8; 2]; 10],
-    pub max_white_player: u16,
-    pub max_black_player: u16,
+    // pub board: u8,
+    // pub white_whitelist: [[u8; 2]; 10],
+    // pub black_whitelist: [[u8; 2]; 10],
+    pub white_pubkey: Pubkey,
+    pub black_pubkey: Pubkey,
+    pub white_type: u8,
+    pub black_type: u8,
+    // pub max_white_player: u16,
+    // pub max_black_player: u16,
     pub min_white_vote: u16,
     pub min_black_vote: u16,
     pub max_timeout_join: u64,
@@ -29,7 +34,7 @@ pub struct StartGameArgs {
 pub struct ChooseSideArgs {
     pub space_x: i64,
     pub space_y: i64,
-    pub board: u8,
+    // pub board: u8,
     pub side: u8,
 }
 
@@ -38,8 +43,8 @@ pub struct ChooseSideArgs {
 pub struct VoteMoveArgs {
     pub space_x: i64,
     pub space_y: i64,
-    pub board: u8,
-    pub step: u8,
+    // pub board: u8,
+    pub num_move: u16,
     pub from: u8,
     pub to: u8,
 }
