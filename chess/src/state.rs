@@ -51,7 +51,8 @@ pub enum Phase {
     WhiteTurn,
     BlackTurn,
     WhiteWin,
-    BlackWin
+    BlackWin,
+    Draw
 }
 
 pub const BOARD_RESERVE: usize = 130000;
@@ -62,17 +63,20 @@ pub struct Board {
     pub game_arr: [u8; 73],
     pub white_whitelist: [[u8; 2]; 10],
     pub black_whitelist: [[u8; 2]; 10],
-    pub max_white_player: u8,
-    pub max_black_player: u8,
-    pub min_white_vote: u8,
-    pub min_black_vote: u8,
-    pub phase: u8,
+    pub max_white_player: u16,
+    pub max_black_player: u16,
+    pub min_white_vote: u16,
+    pub min_black_vote: u16,
+    pub num_white_vote: u16,
+    pub num_black_vote: u16,
     pub max_timeout_join: u64,
     pub max_timeout_vote: u64,
     pub phase_start: u64,
+    pub phase: u8,
+    pub step: u8,
     
 }
 
 impl Board {
-    pub const LEN: usize = 3 * NEIGHBORHOOD_SIZE * NEIGHBORHOOD_SIZE + 73 + 20 + 20 + 1 + 1 + 1 + 1 + 1 + 8 + 8 + 8;
+    pub const LEN: usize = 3 * NEIGHBORHOOD_SIZE * NEIGHBORHOOD_SIZE + 73 + 20 * 2 + 2 * 8 + 8 * 3 + 1 + 1;
 }
