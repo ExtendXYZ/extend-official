@@ -627,7 +627,7 @@ export function Screen(props) {
                             // refresh focus if not changed
                             const focus = game.current?.state.focus;
                             if (focus && focus.focus && focus.x == x && focus.y == y){
-                                game.current?.handleFocusRefresh();
+                                game.current?.focusRefresh();
                             }
                             // if wallet is unchanged, update state
                             if (wallet.publicKey == currentUser){
@@ -1197,7 +1197,7 @@ export function Screen(props) {
                         //     // refresh focus if not changed
                         //     const focus = game.current?.state.focus;
                         //     if (focus && focus.focus && focus.x == x && focus.y == y){
-                        //         game.current?.handleFocusRefresh();
+                        //         game.current?.focusRefresh();
                         //     }
                         //     // if wallet is unchanged, update state
                         //     if (wallet.publicKey == currentUser){
