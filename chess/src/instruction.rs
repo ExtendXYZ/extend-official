@@ -2,58 +2,111 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
 
+use crate::state::{
+    Move, PlayerParams, Side,
+};
+
+/*
+ * RULES OF THE GAME
+ * - Lifecycle
+ *      - A board is initialized through an InitBoard ix.
+ *      - A game can be started by running StartGame. Only the board creator can do this.
+ *      - The account is a PDA derived with the neighborhood location and creator pubkey (PK).
+ *      - Any number of boards can be created but we will only show the one with our hot wallet.
+ *      - An initialized board starts in the "Inactive" state and cycles through three states:
+ *          - Registering
+ *          - Active
+ *          - Inactive
+ *      - An inactive game can be re-initialized by StartGame, returning it to Registering state.
+ * - Registering
+ *      - Any holder can choose a side with a Register ix. Those Spaces are then "assigned".
+ *      - Assigned Spaces cannot re-register.
+ *      - The first Register at least interval_register seconds after the InitGame:
+ *          - If both sides have a PK or quorum_register, shifts the game to Active.
+ *          - If not, extends the registration interval.
+ * - Active
+ *      - Move votes must be made within interval_move seconds.
+ *      - All assigned Spaces can vote for a specific move, which is recorded.
+ *      - Moves cannot be re-voted.
+ *      - A vote for Move::none() counts as a vote for resignation.
+ *      - If any of the following conditions trigger after a vote, the game updates:
+ *          - PK player has voted for a move
+ *          - Majority of assigned Spaces, and at least quorum_move spaces, have voted for the same move
+ *          - At least interval_move seconds have passed since the last update
+ *      - An update works as follows:
+ *          - If there is a valid move (PK or quorum), the move is made and the board state is updated
+ *          - Votes are reset
+ *          - Termination conditions are checked
+ *      - If any of the following conditions trigger after an update, the game becomes Finished.
+ *          - Checkmate
+ *          - Threefold
+ *          - 50-move rule
+ *          - No valid move on an update (no quorum/PK or winning move is Move::none())
+ * - Inactive
+ *      - An inactive game cannot be re-initialized for at least interval_keep seconds.
+ *      - When a board is first created, interval_keep is 0.
+ *      - After interval_keep, the game can be re-initialized by a StartGame ix.
+ *      - Assigned spaces are reset when the game is re-initialized.
+ */
+
+#[repr(C)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+pub struct Neighborhood {
+    pub x: i64,
+    pub y: i64,
+}
+
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
 pub struct InitBoardArgs {
-    pub neighborhood_x: i64,
-    pub neighborhood_y: i64,
+    pub neighborhood: Neighborhood,
 }
 
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
 pub struct StartGameArgs {
-    pub neighborhood_x: i64,
-    pub neighborhood_y: i64,
-    // pub board: u8,
-    // pub white_whitelist: [[u8; 2]; 10],
-    // pub black_whitelist: [[u8; 2]; 10],
-    pub white_pubkey: Pubkey,
-    pub black_pubkey: Pubkey,
-    pub white_type: u8,
-    pub black_type: u8,
-    // pub max_white_player: u16,
-    // pub max_black_player: u16,
-    pub min_white_vote: u16,
-    pub min_black_vote: u16,
-    pub max_timeout_join: u64,
-    pub max_timeout_vote: u64,
+    pub neighborhood: Neighborhood,
+    pub player_white: PlayerParams,
+    pub player_black: PlayerParams,
+    pub interval_register: u64,  // seconds, will convert to blocks
+    pub interval_move: u64,      // seconds, will convert to blocks
+    pub interval_keep: u64,      // seconds, will convert to blocks
 }
 
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
-pub struct ChooseSideArgs {
+pub struct RegisterArgs {
     pub space_x: i64,
     pub space_y: i64,
-    // pub board: u8,
-    pub side: u8,
+    pub side: Side,
 }
 
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
-pub struct VoteMoveArgs {
-    pub space_x: i64,
-    pub space_y: i64,
-    // pub board: u8,
-    pub num_move: u16,
-    pub from: u8,
-    pub to: u8,
+pub struct Space {
+    pub x: i64,
+    pub y: i64,
+}
+
+// Resign is Move::none()
+#[repr(C)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+pub struct VoteArgs {
+    pub space: Space,
+    pub ply: u16,
+    pub vote: Move,
 }
 
 pub enum ChessInstruction {
+    /*
+     * 0. Base account
+     * 1. Fee payer
+     * 2. System program
+     */
     InitBoard,
     StartGame,
-    ChooseSide,
-    VoteMove
+    Register,
+    Vote,
 }
 
 impl ChessInstruction {
@@ -61,8 +114,8 @@ impl ChessInstruction {
         Ok(match tag {
             0 => Self::InitBoard,
             1 => Self::StartGame,
-            2 => Self::ChooseSide,
-            3 => Self::VoteMove,
+            2 => Self::Register,
+            3 => Self::Vote,
             _ => return Err(ProgramError::InvalidInstructionData),
         })
     }

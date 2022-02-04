@@ -1,6 +1,17 @@
+use borsh::BorshDeserialize;
 use solana_program::{
     account_info::AccountInfo, entrypoint::ProgramResult, msg, program_error::ProgramError,
     pubkey::Pubkey,
+};
+
+pub mod init_board;
+pub mod register;
+pub mod start_game;
+pub mod vote;
+
+use crate::instruction::{
+    InitBoardArgs, RegisterArgs, StartGameArgs, VoteArgs,
+    ChessInstruction,
 };
 
 pub struct Processor;
@@ -13,6 +24,28 @@ impl Processor {
         let (tag, rest) = instruction_data
             .split_first()
             .ok_or(ProgramError::InvalidInstructionData)?;
-        Ok(())
+        let instruction = ChessInstruction::unpack(tag)?;
+        match instruction {
+            ChessInstruction::InitBoard => {
+                let args = InitBoardArgs::try_from_slice(rest)?;
+                msg!("init board");
+                init_board::process(program_id, accounts, &args)
+            }
+            ChessInstruction::StartGame => {
+                let args = StartGameArgs::try_from_slice(rest)?;
+                msg!("start game");
+                start_game::process(program_id, accounts, &args)
+            }
+            ChessInstruction::Register => {
+                let args = RegisterArgs::try_from_slice(rest)?;
+                msg!("register");
+                register::process(program_id, accounts, &args)
+            }
+            ChessInstruction::Vote => {
+                let args = VoteArgs::try_from_slice(rest)?;
+                msg!("vote");
+                vote::process(program_id, accounts, &args)
+            }
+        }
     }
 }

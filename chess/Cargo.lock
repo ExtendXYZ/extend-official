@@ -341,7 +341,9 @@ version = "0.1.0"
 dependencies = [
  "borsh",
  "borsh-derive",
+ "legal_chess",
  "solana-program",
+ "thiserror",
 ]
 
 [[package]]
@@ -468,6 +470,12 @@ name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
+
+[[package]]
+name = "legal_chess"
+version = "0.4.42"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1a413c8a25c8e6c1f5627a40d241ef937ab385e96cd75f2aa2caf814dd78c6c"
 
 [[package]]
 name = "libc"
