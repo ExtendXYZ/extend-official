@@ -20,17 +20,24 @@ pub fn process(
     accounts: &[AccountInfo],
     args: &VoteArgs,
 ) -> ProgramResult {
-    // System program ID is correct
-    // Account is signer
-    // PDA derived correctly
+    let account_info_iter = &mut accounts.iter();
+    let base = next_account_info(account_info_iter)?;
+    let space_owner = next_account_info(account_info_iter)?;
+    let space_account = next_account_info(account_info_iter)?;
+    let board_owner = next_account_info(account_info_iter)?;
+    let board_account = next_account_info(account_info_iter)?;
+    // Space account is signer
+    // Board PDA derived correctly
     // Board is initialized and active
+    // Check if deadline has passed, short-circuit if so
+    //      Apply move, update state if valid winning move
+    //      Check for termination and advance phase if applicable
     // Space is inside neighborhood
     // Account owns space
     // Space is assigned to the side to move
     // Space is not already voted
     // Ply is correct
     // Move is valid
-    // Apply move and update state
-    // Advance phase if applicable
+    // Record vote
     Ok(())
 }

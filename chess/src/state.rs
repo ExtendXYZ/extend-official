@@ -55,6 +55,7 @@ pub const BOARD_SEED: &[u8] = b"chessplaya";
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
 pub struct Board {
+    pub owner: Pubkey,
     pub sides: Vec<Side>,
     pub votes: Vec<Move>,
     pub game_arr: Vec<u8>,  // board representation in legal_chess
@@ -69,9 +70,10 @@ pub struct Board {
 
 impl Board {
     pub const LEN: usize =
-        size_of::<usize>() * NEIGHBORHOOD_SPACES +
-        size_of::<Move>() * NEIGHBORHOOD_SPACES +
-        size_of::<u8>() * 73 +
+        size_of::<Pubkey>() +
+        size_of::<u32>() + size_of::<Side>() * NEIGHBORHOOD_SPACES +
+        size_of::<u32>() + size_of::<Move>() * NEIGHBORHOOD_SPACES +
+        size_of::<u32>() + size_of::<u8>() * 73 +
         size_of::<PlayerParams>() * 2 +
         size_of::<u64>() * 4 +
         size_of::<Phase>();

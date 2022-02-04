@@ -6,6 +6,7 @@ use solana_program::{
     msg,
     program_error::ProgramError,
     pubkey::Pubkey,
+    system_program,
 };
 use std::str::FromStr;
 
@@ -20,9 +21,15 @@ pub fn process(
     accounts: &[AccountInfo],
     args: &StartGameArgs,
 ) -> ProgramResult {
+    let account_info_iter = &mut accounts.iter();
+    let base = next_account_info(account_info_iter)?;
+    let board_owner = next_account_info(account_info_iter)?;
+    let board_account = next_account_info(account_info_iter)?;
+    let system_program = next_account_info(account_info_iter)?;
     // System program ID is correct
+    assert_keys_equal(system_program::id(), *system_program.key)?;
     // Account is signer
-    // PDA derived correctly
+    // Board PDA derived correctly
     // Board is initialized
     // Board is inactive
     // Interval_keep is satisfied
