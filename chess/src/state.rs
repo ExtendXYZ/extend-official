@@ -2,82 +2,75 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::pubkey::Pubkey;
 use std::mem::size_of;
 
-pub const NEIGHBORHOOD_SIZE: usize = 200;
+pub const NEIGHBORHOOD_SPACES: usize = 200 * 200;
 
-pub const BASE_RESERVE: usize = 2048;
 #[repr(C)]
-#[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
-pub struct Base {
-    pub neighborhood_count: u64,
-    pub authority: Pubkey,
-    pub authority_privileges: bool,
-}
-impl Base {
-    pub const LEN: usize = size_of::<u64>() + size_of::<Pubkey>() + size_of::<bool>();
-}
-
-// begin color program state
-pub const NEIGHBORHOOD_BOARD_BASE_SEED: &[u8] = b"neighborhood_board_base";
-
-pub const NEIGHBORHOOD_BOARD_BASE_RESERVE: usize = 256;
-#[repr(C)]
-#[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
-pub struct NeighborhoodBoardBase {
-    pub bump: u8,
-    pub boardkey: Pubkey,
-}
-
-impl NeighborhoodBoardBase {
-    pub const LEN: usize = size_of::<u8>() + size_of::<Pubkey>();
-}
-
-pub enum Phase {
-    Initialized,
-    PickSide,
-    WhiteTurn,
-    BlackTurn,
-    WhiteWin,
-    BlackWin,
-    Draw,
-    Resign,
-}
-
-pub enum Whitelist {
-    Neighborhood,
-    Pubkey,
-}
-
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
 pub enum Side {
     Undefined,
     White,
     Black,
 }
 
-pub const BOARD_RESERVE: usize = 130000;
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+pub enum Phase {
+    Registering,
+    Active,
+    Finished,
+}
+
+#[repr(C)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+pub enum Result {
+    BlackWin,
+    Draw,
+    WhiteWin,
+}
+
+// Castling and en passant validated in ix handler
+#[repr(C)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+pub struct Move {
+    pub from: u8,
+    pub to: u8,
+}
+
+impl Move {
+    pub fn none() -> Move {
+        Move { from: 255, to: 255 }
+    }
+}
+
+#[repr(C)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+pub struct PlayerParams {
+    pub has_pk: bool,
+    pub player_pk: Pubkey,      // used if has_pk
+    pub quorum_register: u16,   // used if !has_pk
+    pub quorum_move: u16,       // used if !has_pk
+}
+
+pub const BOARD_SEED: &[u8] = b"chessplaya";
+#[repr(C)]
+#[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
 pub struct Board {
-    pub votes: [[u8; 3]; NEIGHBORHOOD_SIZE * NEIGHBORHOOD_SIZE],
-    pub game_arr: [u8; 73],
-    pub white_pubkey: Pubkey,
-    pub black_pubkey: Pubkey,
-    pub white_type: u8,
-    pub black_type: u8,
-    // pub white_whitelist: [[u8; 2]; 10],
-    // pub black_whitelist: [[u8; 2]; 10],
-    // pub max_white_player: u16,
-    // pub max_black_player: u16,
-    pub min_white_vote: u16,
-    pub min_black_vote: u16,
-    pub num_white_vote: u16,
-    pub num_black_vote: u16,
-    pub max_timeout_join: u64,
-    pub max_timeout_vote: u64,
-    pub phase_start: u64,
-    pub phase: u8,
-    pub num_move: u16,
+    pub sides: Vec<Side>,
+    pub votes: Vec<Move>,
+    pub game_arr: Vec<u8>,  // board representation in legal_chess
+    pub player_white: PlayerParams,
+    pub player_black: PlayerParams,
+    pub interval_register: u64,
+    pub interval_move: u64,
+    pub phase: Phase,
 }
 
 impl Board {
-    pub const LEN: usize = 3 * NEIGHBORHOOD_SIZE * NEIGHBORHOOD_SIZE + 73 + 2 * 32 + 2 * 4 + 4 * 4 + 3 * 8 + 1 + 2;
+    pub const LEN: usize =
+        size_of::<usize>() * NEIGHBORHOOD_SPACES +
+        size_of::<Move>() * NEIGHBORHOOD_SPACES +
+        size_of::<u8>() * 73 +
+        size_of::<PlayerParams>() * 2 +
+        size_of::<u64>() * 2 +
+        size_of::<Phase>();
 }
