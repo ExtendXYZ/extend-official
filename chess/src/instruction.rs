@@ -100,12 +100,33 @@ pub struct VoteArgs {
 pub enum ChessInstruction {
     /*
      * 0. Base account
-     * 1. Fee payer
-     * 2. System program
+     * 1. Board owner
+     * 2. Board account
+     * 3. System program
      */
     InitBoard,
+    /*
+     * 0. Base account
+     * 1. Board owner
+     * 2. Board account
+     * 3. System program
+     */
     StartGame,
+    /*
+     * 0. Base account
+     * 1. Space owner
+     * 2. Space account
+     * 3. Board owner
+     * 4. Board account
+     */
     Register,
+    /*
+     * 0. Base account
+     * 1. Space owner
+     * 2. Space account
+     * 3. Board owner
+     * 4. Board account
+     */
     Vote,
 }
 
