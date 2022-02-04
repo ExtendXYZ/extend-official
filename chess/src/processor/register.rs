@@ -20,5 +20,14 @@ pub fn process(
     accounts: &[AccountInfo],
     args: &RegisterArgs,
 ) -> ProgramResult {
+    // System program ID is correct
+    // Account is signer
+    // PDA derived correctly
+    // Board is initialized and registering
+    // Space is inside neighborhood
+    // Account owns space
+    // Space is not already assigned
+    // Assign space
+    // Advance phase if applicable
     Ok(())
 }
