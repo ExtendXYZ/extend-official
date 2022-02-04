@@ -17,7 +17,7 @@ pub enum Side {
 pub enum Phase {
     Registering,
     Active,
-    Finished,
+    Inactive,
 }
 
 #[repr(C)]
@@ -46,9 +46,9 @@ impl Move {
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
 pub struct PlayerParams {
     pub has_pk: bool,
-    pub player_pk: Pubkey,      // used if has_pk
-    pub quorum_register: u16,   // used if !has_pk
-    pub quorum_move: u16,       // used if !has_pk
+    pub player_pk: Pubkey,     // used if has_pk
+    pub quorum_register: u16,  // used if !has_pk
+    pub quorum_move: u16,      // used if !has_pk
 }
 
 pub const BOARD_SEED: &[u8] = b"chessplaya";
@@ -62,6 +62,8 @@ pub struct Board {
     pub player_black: PlayerParams,
     pub interval_register: u64,
     pub interval_move: u64,
+    pub interval_keep: u64,
+    pub next_deadline: u64,  // set using interval_register or interval_move
     pub phase: Phase,
 }
 
@@ -71,6 +73,6 @@ impl Board {
         size_of::<Move>() * NEIGHBORHOOD_SPACES +
         size_of::<u8>() * 73 +
         size_of::<PlayerParams>() * 2 +
-        size_of::<u64>() * 2 +
+        size_of::<u64>() * 4 +
         size_of::<Phase>();
 }

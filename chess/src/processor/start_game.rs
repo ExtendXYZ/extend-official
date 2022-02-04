@@ -20,5 +20,15 @@ pub fn process(
     accounts: &[AccountInfo],
     args: &StartGameArgs,
 ) -> ProgramResult {
+    // System program ID is correct
+    // Account is signer
+    // PDA derived correctly
+    // Board is initialized
+    // Board is inactive
+    // Interval_keep is satisfied
+    // PKs are valid if given
+    // Quorum values are valid if given
+    // Intervals are valid
+    // Initialize parameters and set the registration end
     Ok(())
 }

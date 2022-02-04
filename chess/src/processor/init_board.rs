@@ -22,5 +22,10 @@ pub fn process(
     accounts: &[AccountInfo],
     args: &InitBoardArgs,
 ) -> ProgramResult {
+    // System program ID is correct
+    // Account is signer
+    // PDA derived correctly
+    // Board is not already initialized
+    // Initialize and serialize inactive game
     Ok(())
 }

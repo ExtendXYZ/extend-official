@@ -20,5 +20,17 @@ pub fn process(
     accounts: &[AccountInfo],
     args: &VoteArgs,
 ) -> ProgramResult {
+    // System program ID is correct
+    // Account is signer
+    // PDA derived correctly
+    // Board is initialized and active
+    // Space is inside neighborhood
+    // Account owns space
+    // Space is assigned to the side to move
+    // Space is not already voted
+    // Ply is correct
+    // Move is valid
+    // Apply move and update state
+    // Advance phase if applicable
     Ok(())
 }
