@@ -3,6 +3,8 @@ use solana_program::{
     pubkey::Pubkey,
 };
 
+pub mod init_board;
+
 pub struct Processor;
 impl Processor {
     pub fn process(

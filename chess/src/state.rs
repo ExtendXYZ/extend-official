@@ -55,9 +55,9 @@ pub enum Side {
 
 pub const BOARD_RESERVE: usize = 130000;
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
 pub struct Board {
-    pub votes: [[u8; 3]; NEIGHBORHOOD_SIZE * NEIGHBORHOOD_SIZE],
+    pub votes: [u8; 3 * 200 * 200],
     pub game_arr: [u8; 73],
     pub white_pubkey: Pubkey,
     pub black_pubkey: Pubkey,
