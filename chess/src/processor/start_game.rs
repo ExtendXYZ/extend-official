@@ -28,7 +28,10 @@ pub fn process(
     let system_program = next_account_info(account_info_iter)?;
     // System program ID is correct
     assert_keys_equal(system_program::id(), *system_program.key)?;
-    // Account is signer
+    // Board owner is signer
+    if !board_owner.is_signer {
+        return Err(ProgramError::MissingRequiredSignature);
+    }
     // Board PDA derived correctly
     // Board is initialized
     // Board is inactive
