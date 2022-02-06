@@ -9,8 +9,8 @@ pub enum CustomError {
     IncorrectPhase,
     #[error("InvalidInitBoardArgs")]
     InvalidInitBoardArgs,
-    #[error("AlreadyInitializedBoard")]
-    AlreadyInitializedBoard,
+    #[error("UninitializedBoard")]
+    UninitializedBoard,
     #[error("InvalidRegisterArgs")]
     InvalidRegisterArgs,
     #[error("InvalidVoteArgs")]
