@@ -28,22 +28,22 @@ impl Processor {
         match instruction {
             ChessInstruction::InitBoard => {
                 let args = InitBoardArgs::try_from_slice(rest)?;
-                msg!("init board");
+                msg!("InitBoard");
                 init_board::process(program_id, accounts, &args)
             }
             ChessInstruction::StartGame => {
                 let args = StartGameArgs::try_from_slice(rest)?;
-                msg!("start game");
+                msg!("StartGame");
                 start_game::process(program_id, accounts, &args)
             }
             ChessInstruction::Register => {
                 let args = RegisterArgs::try_from_slice(rest)?;
-                msg!("register");
+                msg!("Register");
                 register::process(program_id, accounts, &args)
             }
             ChessInstruction::Vote => {
                 let args = VoteArgs::try_from_slice(rest)?;
-                msg!("vote");
+                msg!("Vote");
                 vote::process(program_id, accounts, &args)
             }
         }

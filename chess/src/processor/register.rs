@@ -27,6 +27,9 @@ pub fn process(
     let board_owner = next_account_info(account_info_iter)?;
     let board_account = next_account_info(account_info_iter)?;
     // Space account is signer
+    if !space_owner.is_signer {
+        return Err(ProgramError::MissingRequiredSignature);
+    }
     // Board PDA derived correctly
     // Board is initialized and registering
     // Check if deadline has passed, short-circuit if so

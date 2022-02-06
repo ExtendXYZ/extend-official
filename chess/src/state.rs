@@ -51,7 +51,18 @@ pub struct PlayerParams {
     pub quorum_move: u16,      // used if !has_pk
 }
 
+impl PlayerParams {
+    pub fn none() -> PlayerParams { PlayerParams {
+        has_pk: false,
+        player_pk: Pubkey::new_from_array([0; 32]),
+        quorum_register: 0,
+        quorum_move: 0,
+    }}
+}
+
 pub const BOARD_SEED: &[u8] = b"chessplaya";
+pub const GAME_ARR_LEN: usize = 73;
+
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
 pub struct Board {
@@ -73,8 +84,24 @@ impl Board {
         size_of::<Pubkey>() +
         size_of::<u32>() + size_of::<Side>() * NEIGHBORHOOD_SPACES +
         size_of::<u32>() + size_of::<Move>() * NEIGHBORHOOD_SPACES +
-        size_of::<u32>() + size_of::<u8>() * 73 +
+        size_of::<u32>() + size_of::<u8>() * GAME_ARR_LEN +
         size_of::<PlayerParams>() * 2 +
         size_of::<u64>() * 4 +
         size_of::<Phase>();
+
+    pub fn neighborhood_board(owner: Pubkey) -> Board {
+        Board {
+            owner,
+            sides: vec![Side::Undefined; NEIGHBORHOOD_SPACES],
+            votes: vec![Move::none(); NEIGHBORHOOD_SPACES],
+            game_arr: vec![0; GAME_ARR_LEN],
+            player_white: PlayerParams::none(),
+            player_black: PlayerParams::none(),
+            interval_register: 0,
+            interval_move: 0,
+            interval_keep: 0,
+            next_deadline: 0,
+            phase: Phase::Inactive,
+        }
+    }
 }
