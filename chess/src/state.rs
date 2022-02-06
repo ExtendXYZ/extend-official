@@ -67,8 +67,8 @@ pub const GAME_ARR_LEN: usize = 73;
 #[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
 pub struct Board {
     pub owner: Pubkey,
-    pub sides: Vec<Side>,
-    pub votes: Vec<Move>,
+    pub nx: i64,
+    pub ny: i64,
     pub game_arr: Vec<u8>,  // board representation in legal_chess
     pub player_white: PlayerParams,
     pub player_black: PlayerParams,
@@ -79,21 +79,24 @@ pub struct Board {
     pub phase: Phase,
 }
 
+// Then NEIGHBORHOOD_SPACES * <Side>
+// Then NEIGHBORHOOD_SPACES * <Move>
+
 impl Board {
     pub const LEN: usize =
         size_of::<Pubkey>() +
-        size_of::<u32>() + size_of::<Side>() * NEIGHBORHOOD_SPACES +
-        size_of::<u32>() + size_of::<Move>() * NEIGHBORHOOD_SPACES +
+        size_of::<i64>() +
+        size_of::<i64>() +
         size_of::<u32>() + size_of::<u8>() * GAME_ARR_LEN +
         size_of::<PlayerParams>() * 2 +
         size_of::<u64>() * 4 +
         size_of::<Phase>();
 
-    pub fn neighborhood_board(owner: Pubkey) -> Board {
+    pub fn neighborhood_board(owner: Pubkey, nx: i64, ny: i64) -> Board {
         Board {
             owner,
-            sides: vec![Side::Undefined; NEIGHBORHOOD_SPACES],
-            votes: vec![Move::none(); NEIGHBORHOOD_SPACES],
+            nx,
+            ny,
             game_arr: vec![0; GAME_ARR_LEN],
             player_white: PlayerParams::none(),
             player_black: PlayerParams::none(),
