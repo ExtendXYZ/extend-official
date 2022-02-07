@@ -176,10 +176,10 @@ pub fn process(
         )?;
     }
 
-    let fut_thresh_bytes = u64::to_le_bytes(now_ts + thresh_add);
-    for i in 0..size_of::<u64>(){
-        time_cluster_data[idx_time_start + i] = fut_thresh_bytes[i]; 
-    }
+    // let fut_thresh_bytes = u64::to_le_bytes(now_ts + thresh_add);
+    // for i in 0..size_of::<u64>(){
+    //     time_cluster_data[idx_time_start + i] = fut_thresh_bytes[i]; 
+    // }
 
 
     // change color

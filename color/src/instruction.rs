@@ -92,8 +92,8 @@ pub enum ColorInstruction {
     3. space_ata
     4. [Writable] time cluster account
     */
-    MakeEditable,
-    MakeEditableBrief,
+    // MakeEditable,
+    // MakeEditableBrief,
 
     /* elim */
     TEMPMakeTimeCluster,
@@ -105,8 +105,8 @@ impl ColorInstruction {
             0 => Self::InitFrame,
             1 => Self::ChangeColor,
             2 => Self::ChangeColorBrief,
-            3 => Self::MakeEditable,
-            4 => Self::MakeEditableBrief,
+            // 3 => Self::MakeEditable,
+            // 4 => Self::MakeEditableBrief,
             5 => Self::TEMPMakeTimeCluster,
             _ => return Err(ProgramError::InvalidInstructionData),
         })
