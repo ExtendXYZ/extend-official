@@ -120,6 +120,8 @@ pub fn process(
         }
         time_cluster_data[start_initialized] = 1;
 
+        neighborhood_frame_base_data.time_cluster_account = *time_cluster.key;
+
     }
     else{
         neighborhood_frame_base_data = try_from_slice_unchecked(&neighborhood_frame_base.data.borrow_mut())?;
@@ -127,6 +129,10 @@ pub fn process(
     if neighborhood_frame_base_data.length >= MAX_FRAMES {
         msg!("Already have the maximum number of frames");
         return Err(ProgramError::InvalidInstructionData);
+    }
+    if neighborhood_frame_base_data.time_cluster_account != *time_cluster.key {
+        msg!("Time cluster account doesn't match key stored in neighborhood frame base");
+        return Err(ProgramError::InvalidAccountData);
     }
 
     // verify and create neighborhood frame pointer
