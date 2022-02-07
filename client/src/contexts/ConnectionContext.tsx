@@ -62,10 +62,17 @@ interface BlockhashAndFeeCalculator {
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 // figure out devnet/mainnet endpoint
 console.log("RPC", RPC)
-const name = RPC?.includes("mainnet") ? "mainnet-beta" : "devnet"; 
-console.log("using ", name);
-const chainId = RPC?.includes("mainnet") ? ChainId.MainnetBeta : ChainId.Devnet; 
+let name = "devnet";
+let chainId = ChainId.Devnet;
+if (RPC?.includes("mainnet")) {
+  name = "mainnet-beta";
+  chainId = ChainId.MainnetBeta;
+} else if (RPC?.includes("testnet")) {
+  name = "testnet";
+  chainId = ChainId.Testnet;
+}
 const endpoint = RPC ? RPC : RPC_devnet;
+console.log("using ", name);
 
 export const ENDPOINTS = [
   // {
