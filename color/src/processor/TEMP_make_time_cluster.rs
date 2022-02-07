@@ -63,7 +63,7 @@ pub fn process(
     // zero out data in time cluster
     let mut time_cluster_data = time_cluster.data.borrow_mut();
     for val in time_cluster_data.iter_mut() {
-        *val = 0;
+        *val = 255;
     }
     // write other data into time cluster account
     let buffer_x = args.neighborhood_x.try_to_vec().unwrap();
