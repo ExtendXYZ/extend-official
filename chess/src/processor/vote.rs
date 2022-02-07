@@ -13,6 +13,10 @@ use crate::{
     error::CustomError,
     instruction::VoteArgs,
     utils::assert_keys_equal,
+    state::{
+        Board,
+        Phase,
+    }
 };
 
 pub fn process(
@@ -24,14 +28,20 @@ pub fn process(
     let base = next_account_info(account_info_iter)?;
     let space_owner = next_account_info(account_info_iter)?;
     let space_account = next_account_info(account_info_iter)?;
-    let board_owner = next_account_info(account_info_iter)?;
     let board_account = next_account_info(account_info_iter)?;
     // Space account is signer
     if !space_owner.is_signer {
         return Err(ProgramError::MissingRequiredSignature);
     }
-    // Board PDA derived correctly
-    // Board is initialized and active
+    // Board is initialized
+    msg!("r space {:?}", args.space);
+    msg!("r ply {:?}", args.ply);
+    msg!("r vote {:?}", args.vote);
+    let mut board_state: Board = try_from_slice_unchecked(&board_account.data.borrow())?;
+    // Board is currently active
+    if board_state.phase != Phase::Active {
+        return Err(CustomError::IncorrectPhase.into());
+    }
     // Check if deadline has passed, short-circuit if so
     //      Apply move, update state if valid winning move
     //      Check for termination and advance phase if applicable
