@@ -75,17 +75,16 @@ pub struct StartGameArgs {
 
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
-pub struct RegisterArgs {
-    pub space_x: i64,
-    pub space_y: i64,
-    pub side: Side,
+pub struct Space {
+    pub x: i64,
+    pub y: i64,
 }
 
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
-pub struct Space {
-    pub x: i64,
-    pub y: i64,
+pub struct RegisterArgs {
+    pub space: Space,
+    pub side: Side,
 }
 
 // Resign is Move::none()
@@ -115,16 +114,14 @@ pub enum ChessInstruction {
      * 0. Base account
      * 1. Space owner
      * 2. Space account
-     * 3. Board owner
-     * 4. Board account
+     * 3. Board account
      */
     Register,
     /*
      * 0. Base account
      * 1. Space owner
      * 2. Space account
-     * 3. Board owner
-     * 4. Board account
+     * 3. Board account
      */
     Vote,
 }
