@@ -60,11 +60,7 @@ pub fn process(
     // write bump seed
     neighborhood_frame_base_data = try_from_slice_unchecked(&neighborhood_frame_base.data.borrow_mut())?;
 
-    // zero out data in time cluster
     let mut time_cluster_data = time_cluster.data.borrow_mut();
-    for val in time_cluster_data.iter_mut() {
-        *val = 255;
-    }
     // write other data into time cluster account
     let buffer_x = args.neighborhood_x.try_to_vec().unwrap();
     let buffer_y = args.neighborhood_y.try_to_vec().unwrap();
@@ -74,6 +70,12 @@ pub fn process(
     if time_cluster_data[start_initialized] != 0 {
         return Err(ProgramError::InvalidAccountData);
     }
+
+    // zero out data in time cluster
+    for val in time_cluster_data.iter_mut() {
+        *val = 255;
+    }
+    
     for i in 0..size_of::<i64>(){
         time_cluster_data[start_x + i] = buffer_x[i]; 
     }
