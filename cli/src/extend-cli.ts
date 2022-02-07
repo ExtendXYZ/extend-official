@@ -13,8 +13,9 @@ import { mint } from "./commands/mint";
 import { send_all_nfts } from "./commands/sendAllNfts";
 import {
   createColorClusterInstruction,
-  initColorClusterFrameInstruction,
-} from "./../../client/src/actions/init_color_frame_cluster";
+  createTimeClusterInstruction,
+  initFrameInstruction,
+} from "./../../client/src/actions/init_frame";
 import { initBaseInstruction } from "./../../client/src/actions/init_base";
 import { updateAuthorityInstruction } from "./../../client/src/actions/update_authority";
 import { initNeighborhoodMetadataInstruction } from "./../../client/src/actions/init_neighborhood_metadata";
@@ -303,27 +304,32 @@ programCommand("initialize-cluster")
       );
     }
 
-    const res = await createColorClusterInstruction(
+    const colorRes = await createColorClusterInstruction(
+      solConnection,
+      walletKeyPair
+    );
+    const timeRes = await createTimeClusterInstruction(
       solConnection,
       walletKeyPair
     );
 
     log.debug("Parsed arguments!");
-    const ixs = await initColorClusterFrameInstruction(
+    const ixs = await initFrameInstruction(
       solConnection,
       walletKeyPair,
       base_address,
       neighborhoodRow,
       neighborhoodCol,
-      res["keypair"].publicKey
+      colorRes["keypair"].publicKey,
+      timeRes["keypair"].publicKey,
     );
 
     log.debug("Instructions complete");
     await sendTransactionWithRetryWithKeypair(
       solConnection,
       walletKeyPair,
-      [...res["ix"], ...ixs],
-      [res["keypair"]]
+      [...colorRes["ix"], ...timeRes["ix"], ...ixs],
+      [colorRes["keypair"], timeRes["keypair"]],
     );
 
     console.log("FRAME INITIALIZED");
