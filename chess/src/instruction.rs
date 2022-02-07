@@ -109,7 +109,6 @@ pub enum ChessInstruction {
      * 0. Base account
      * 1. Board owner
      * 2. Board account
-     * 3. System program
      */
     StartGame,
     /*
