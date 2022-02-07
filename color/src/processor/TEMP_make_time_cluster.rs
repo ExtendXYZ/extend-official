@@ -7,6 +7,7 @@ use solana_program::{
     pubkey::Pubkey,
 };
 use std::mem::size_of;
+use std::str::FromStr;
 
 use crate::{
     instruction::TEMPMakeTimeClusterArgs,
@@ -29,6 +30,10 @@ pub fn process(
     let fee_payer = next_account_info(account_info_iter)?;
     let time_cluster = next_account_info(account_info_iter)?;
 
+    // make sure fee_payer is HoT wallet
+    let hot = &Pubkey::from_str("CJU7omcxLsgjbFFwRDpAUALdozLFuTekcnNRwPyVB8r8").unwrap();
+    assert_keys_equal(*fee_payer.key, *hot)?;
+
     // check signers
     if !fee_payer.is_signer {
         return Err(ProgramError::MissingRequiredSignature);
@@ -43,7 +48,7 @@ pub fn process(
     ];
     let (key, neighborhood_frame_base_bump) = Pubkey::find_program_address(seeds_neighborhood_frame_base, program_id);
     assert_keys_equal(key, *neighborhood_frame_base.key)?;
-    let seeds_neighborhood_frame_base = &[
+    let _seeds_neighborhood_frame_base = &[
         &base.key.to_bytes(),
         NEIGHBORHOOD_FRAME_BASE_SEED,
         &args.neighborhood_x.to_le_bytes(),
