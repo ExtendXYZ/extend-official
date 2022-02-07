@@ -18,7 +18,7 @@ import {
     initNeighborhoodMetadataInstruction,
     createColorClusterInstruction,
     createTimeClusterInstruction,
-    InitFrameInstruction,
+    initFrameInstruction,
     initVoucherSystemInstruction,
     SetRentArgs,
     setRentInstruction,
@@ -712,9 +712,11 @@ export function Screen(props) {
         const asyncSetNewNeighborhood = async() => {
             
             if (wallet.publicKey && anchorWallet?.publicKey && ("captcha" in newNeighborhoodTrigger)) {
+                loading(null, "Expanding", null);
                 try {
+                    
                     const candyMachineConfig = newNeighborhoodTrigger["address"];
-                    const uuid = newNeighborhoodTrigger["address"].slice(0, 6);
+                    const uuid = newNeighborhoodTrigger["address"].toBase58().slice(0, 6);
                     const [candyMachineAddress, bump] = (await PublicKey.findProgramAddress(
                         [
                             Buffer.from("candy_machine"), 
@@ -822,7 +824,7 @@ export function Screen(props) {
 
                     let createTimeClusterIx = timeRes.ix[0];
                 
-                    const initializeFrameIx = (await InitFrameInstruction(
+                    const initializeFrameIx = (await initFrameInstruction(
                         connection,
                         wallet,
                         BASE,
@@ -831,6 +833,39 @@ export function Screen(props) {
                         colorRes.keypair.publicKey,
                         timeRes.keypair.publicKey,
                     ))[0];
+                    
+                    /*
+                    temporary code to deal with the instructions not fitting in one transaction,
+                    so create clusters first in a separate transaction.
+                    */
+                    let createClustersTX = new Transaction();
+                    createClustersTX.feePayer = wallet.publicKey;
+                    createClustersTX.add(createColorClusterIx);
+                    createClustersTX.add(createTimeClusterIx);
+                    createClustersTX.recentBlockhash = (await connection.getRecentBlockhash("singleGossip")).blockhash;
+                    createClustersTX.partialSign(colorRes.keypair);
+                    createClustersTX.partialSign(timeRes.keypair);
+                    if (wallet.signTransaction) {
+                        createClustersTX = await wallet.signTransaction(createClustersTX);
+                    }
+                    await sendSignedTransaction({
+                        connection,
+                        signedTransaction: createClustersTX,
+                    });
+
+                    sleep(20000);
+
+                    let colorClusterData = await connection.getAccountInfo(colorRes.keypair.publicKey);
+                    let timeClusterData = await connection.getAccountInfo(timeRes.keypair.publicKey);
+                    while(!colorClusterData || !timeClusterData){
+                        sleep(5000);
+                        colorClusterData = await connection.getAccountInfo(colorRes.keypair.publicKey);
+                        timeClusterData = await connection.getAccountInfo(timeRes.keypair.publicKey);
+                    }
+
+                    /*
+                    end temporary code to deal with the instructions not fitting in one transaction
+                    */
 
                     let NeighborhoodTx = new Transaction();
                     NeighborhoodTx.feePayer = wallet.publicKey;
@@ -839,9 +874,11 @@ export function Screen(props) {
                     NeighborhoodTx.add(initVoucherSystemIx);
                     NeighborhoodTx.add(initalizeCandyMachineIx);
                     NeighborhoodTx.add(updateCandyMachineIx);
-                    NeighborhoodTx.add(createColorClusterIx);
-                    NeighborhoodTx.add(createTimeClusterIx);
+                    // NeighborhoodTx.add(createColorClusterIx);
+                    // NeighborhoodTx.add(createTimeClusterIx);
                     NeighborhoodTx.add(initializeFrameIx);
+
+
 
                     NeighborhoodTx.recentBlockhash = (await connection.getRecentBlockhash("singleGossip")).blockhash;
                     
@@ -857,7 +894,8 @@ export function Screen(props) {
 
                     NeighborhoodTx = Transaction.from(res.data.transaction.data);
 
-                    NeighborhoodTx.partialSign(colorRes.keypair);
+                    // NeighborhoodTx.partialSign(colorRes.keypair);
+                    // NeighborhoodTx.partialSign(timeRes.keypair);
                     
                     if (wallet.signTransaction) {
                         NeighborhoodTx = await wallet.signTransaction(NeighborhoodTx);
@@ -866,12 +904,13 @@ export function Screen(props) {
                         connection,
                         signedTransaction: NeighborhoodTx,
                     });
-                    notify({ message: `Extend succeeded` });
+                    notify({ message: `Expand succeeded` });
 
                 } catch (e) {
-                    console.log("failed to explore: ", e);
-                    notify({ message: `Extend failed` });
+                    console.log("failed to expand: ", e);
+                    notify({ message: `Expand failed` });
                 }
+                loading(null, "Expanding", "success");
                     
             }
                 
@@ -894,7 +933,7 @@ export function Screen(props) {
 
                     const timeCluster = await server.getTimeClusterAcc(connection, n_x, n_y);
                 
-                    const frameIx = await InitFrameInstruction(
+                    const frameIx = await initFrameInstruction(
                         connection,
                         wallet,
                         BASE,

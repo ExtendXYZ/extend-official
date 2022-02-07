@@ -71,7 +71,7 @@ export const createTimeClusterInstruction = async (
   return {keypair: timeClusterKeypair, ix: Ix};
 };
 
-export const InitFrameInstruction = async (
+export const initFrameInstruction = async (
   connection,
   wallet: any,
   base: PublicKey,
