@@ -3,6 +3,7 @@ use solana_program::pubkey::Pubkey;
 use std::mem::size_of;
 
 pub const NEIGHBORHOOD_SPACES: usize = 200 * 200;
+pub const RESTRICTED_SPACES: usize = 32 * 32;
 
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
@@ -42,8 +43,14 @@ impl Move {
     }
 }
 
+pub const MIN_QUORUM_REGISTER: u16 = 0;
+pub const MIN_QUORUM_MOVE: u16 = 0;
+
+pub const MAX_QUORUM_REGISTER: u16 = 40000;
+pub const MAX_QUORUM_MOVE: u16 = 40000;
+
 #[repr(C)]
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone, Copy)]
 pub struct PlayerParams {
     pub has_pk: bool,
     pub player_pk: Pubkey,     // used if has_pk
@@ -62,6 +69,14 @@ impl PlayerParams {
 
 pub const BOARD_SEED: &[u8] = b"chessplaya";
 pub const GAME_ARR_LEN: usize = 73;
+
+pub const MIN_INTERVAL_REGISTER: u64 = 60;
+pub const MIN_INTERVAL_MOVE: u64 = 10;
+pub const MIN_INTERVAL_KEEP: u64 = 60;
+
+pub const MAX_INTERVAL_REGISTER: u64 = 60 * 60 * 24;
+pub const MAX_INTERVAL_MOVE: u64 = 60 * 60;
+pub const MAX_INTERVAL_KEEP: u64 = 60 * 60 * 24 * 7;
 
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
