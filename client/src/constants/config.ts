@@ -2,7 +2,7 @@ import {PublicKey} from "@solana/web3.js";
 // import dotenv from "dotenv";
 // dotenv.config();
 
-export const NEIGHBORHOOD_SIZE = 200;
+export const NEIGHBORHOOD_SIZE = 75;
 export const COLOR_CLUSTER_SIZE = NEIGHBORHOOD_SIZE * NEIGHBORHOOD_SIZE * 3 + 16 + 1;
 export const TIME_CLUSTER_SIZE = NEIGHBORHOOD_SIZE * NEIGHBORHOOD_SIZE * 10;
 export const K = 3;

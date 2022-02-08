@@ -353,12 +353,8 @@ export class Game extends React.Component {
         
         this.viewport.neighborhoodPriceView = tmpNeighborhoodPriceView;
     }
-<<<<<<< HEAD
-    fetchEditableView = async() => {
-=======
   
     fetchEditableTimes = async() => {
->>>>>>> 5aa93c0 (editable view shows colors)
         const connection = this.props.connection;
 
         let neighborhoods = Object.keys(this.viewport.neighborhoodColors).map(x => JSON.parse(x));
@@ -385,21 +381,6 @@ export class Game extends React.Component {
                 let editableTimes = await this.props.server.getEditableTimeData(
                     editableClusterDatas[i]
                 );
-<<<<<<< HEAD
-                this.viewport.neighborhoodEditableTimes[JSON.stringify({n_x, n_y})] = editableTimes;
-                console.log(n_x, n_y);
-                console.log(editableTimes);
-                let colors = Array.from({ length: NEIGHBORHOOD_SIZE }, () => new Array(NEIGHBORHOOD_SIZE).fill(null));
-                for(let x = n_x * NEIGHBORHOOD_SIZE; x < (n_x + 1) * NEIGHBORHOOD_SIZE; x++){
-                    for(let y = n_y * NEIGHBORHOOD_SIZE; y < (n_y + 1) * NEIGHBORHOOD_SIZE; y++){
-                        let key = JSON.stringify({x, y});
-                        let x_relative = x - n_x * NEIGHBORHOOD_SIZE;
-                        let y_relative = y - n_y * NEIGHBORHOOD_SIZE;
-                        colors[y_relative][x_relative] = (now > editableTimes[y_relative][x_relative] ? "#FFFFFF" : "#000000");
-                    }
-                }
-                tmpNeighborhoodEditableView[JSON.stringify({n_x, n_y})] = colors;
-=======
                 this.viewport.neighborhoodEditableTimes[nhash] = editableTimes;
                 // let editableColors = Array.from({ length: NEIGHBORHOOD_SIZE }, () => new Array(NEIGHBORHOOD_SIZE).fill(null));
                 // for(let x = n_x * NEIGHBORHOOD_SIZE; x < (n_x + 1) * NEIGHBORHOOD_SIZE; x++){
@@ -411,7 +392,6 @@ export class Game extends React.Component {
                 //     }
                 // }
                 // tmpNeighborhoodEditableView[nhash] = editableColors;
->>>>>>> 5aa93c0 (editable view shows colors)
             })
         );
         // this.viewport.neighborhoodEditableView = tmpNeighborhoodEditableView;
