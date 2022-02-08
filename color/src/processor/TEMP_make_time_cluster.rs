@@ -31,8 +31,8 @@ pub fn process(
     let time_cluster = next_account_info(account_info_iter)?;
 
     // make sure fee_payer is HoT wallet
-    let hot = &Pubkey::from_str("CJU7omcxLsgjbFFwRDpAUALdozLFuTekcnNRwPyVB8r8").unwrap();
-    assert_keys_equal(*fee_payer.key, *hot)?;
+    // let hot = &Pubkey::from_str("CJU7omcxLsgjbFFwRDpAUALdozLFuTekcnNRwPyVB8r8").unwrap();
+    // assert_keys_equal(*fee_payer.key, *hot)?;
 
     // check signers
     if !fee_payer.is_signer {
