@@ -2,7 +2,7 @@ import {PublicKey} from "@solana/web3.js";
 // import dotenv from "dotenv";
 // dotenv.config();
 
-export const NEIGHBORHOOD_SIZE = 75;
+export const NEIGHBORHOOD_SIZE = 200;
 export const COLOR_CLUSTER_SIZE = NEIGHBORHOOD_SIZE * NEIGHBORHOOD_SIZE * 3 + 16 + 1;
 export const TIME_CLUSTER_SIZE = NEIGHBORHOOD_SIZE * NEIGHBORHOOD_SIZE * 10;
 export const K = 3;
@@ -22,7 +22,7 @@ export const VOUCHER_MINT_SEED = "voucher_mint";
 export const VOUCHER_SINK_SEED = "voucher_sink";
 export const RENT_ACCOUNT_SEED = "rent_account";
 
-export const BATCH_TX_SIZE = 200;
+export const BATCH_TX_SIZE = 75;
 export const BATCH_LOAD_PRICE_SIZE = 600;
 export const MAX_TRANSACTION_SIZE = 1232;
 export const BASE_TRANSACTION_SIZE = 3 + 32 + 65;
