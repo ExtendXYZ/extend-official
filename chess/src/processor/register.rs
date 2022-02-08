@@ -48,6 +48,5 @@ pub fn process(
     // Account owns space
     // Space is not already assigned
     // Assign space
-    // Advance phase if applicable
     Ok(())
 }
