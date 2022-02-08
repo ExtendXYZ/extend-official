@@ -44,13 +44,6 @@ pub struct MakeEditableBriefArgs {
     pub space_y: i16,
 }
 
-#[repr(C)]
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
-pub struct TEMPMakeTimeClusterArgs {
-    pub neighborhood_x: i64,
-    pub neighborhood_y: i64,
-}
-
 pub enum ColorInstruction {
 
 
@@ -94,9 +87,6 @@ pub enum ColorInstruction {
     */
     // MakeEditable,
     // MakeEditableBrief,
-
-    /* elim */
-    TEMPMakeTimeCluster,
 }
 
 impl ColorInstruction {
@@ -107,7 +97,6 @@ impl ColorInstruction {
             2 => Self::ChangeColorBrief,
             // 3 => Self::MakeEditable,
             // 4 => Self::MakeEditableBrief,
-            5 => Self::TEMPMakeTimeCluster,
             _ => return Err(ProgramError::InvalidInstructionData),
         })
     }

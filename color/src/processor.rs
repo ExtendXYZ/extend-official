@@ -6,14 +6,13 @@ use solana_program::{
 
 use crate::{
     instruction::{
-        ColorInstruction, InitFrameArgs, ChangeColorArgs, ChangeColorBriefArgs, MakeEditableArgs, MakeEditableBriefArgs, TEMPMakeTimeClusterArgs
+        ColorInstruction, InitFrameArgs, ChangeColorArgs, ChangeColorBriefArgs, MakeEditableArgs, MakeEditableBriefArgs
     },
 };
 
 pub mod init_frame;
 pub mod change_color;
 pub mod make_editable;
-pub mod TEMP_make_time_cluster;
 
 pub mod processor_utils;
 
@@ -54,11 +53,6 @@ impl Processor {
             //     msg!("Instruction: making editable");
             //     make_editable::process_brief(program_id, accounts, &args)
             // }
-            ColorInstruction::TEMPMakeTimeCluster => {
-                let args = TEMPMakeTimeClusterArgs::try_from_slice(rest)?;
-                msg!("Instruction: making time cluster account");
-                TEMP_make_time_cluster::process(program_id, accounts, &args)
-            }
         }
     }
 }
