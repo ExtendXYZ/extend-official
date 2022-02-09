@@ -20,6 +20,7 @@ export class LoadingScreen extends React.Component {
             <img src={require("../../assets/images/space.gif").default} style={{height: window.innerHeight - 200 + "px"}} />
             <h1> Loading... </h1>
             <h5> Turn on auto-approving transactions for the best experience </h5>
+            <h5> SHIFT + CLICK + DRAG to highlight over multiple spaces </h5>
 
         </div>
     );
