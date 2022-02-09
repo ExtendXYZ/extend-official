@@ -6,7 +6,11 @@ use solana_program::{
     program_pack::{IsInitialized, Pack},
     pubkey::Pubkey,
 };
-use legal_chess::color::Color;
+use legal_chess::{
+    color::Color,
+    game::Game,
+    pieces::{piece::PieceEnum, position},
+};
 use std::convert::TryInto;
 
 use super::error::CustomError;
@@ -82,4 +86,26 @@ pub fn side_to_color(s: Side) -> Color {
         Side::Black => Color::BLACK,
         Side::Undefined => panic!("Cannot convert undefined to legal_chess color"),
     }
+}
+
+pub fn display_game(g: &Game) {
+    for rnk in 1..=8 {
+        let mut row = ['.';8];
+        for fil in 1..=8 {
+            let pos = position::Position(fil, rnk);
+            row[fil as usize - 1] = match g.board().get_square(pos) {
+                None => '.',
+                Some(p) => match (**p).piece() {
+                    PieceEnum::PAWN => 'p',
+                    PieceEnum::KNIGHT => 'N',
+                    PieceEnum::BISHOP => 'B',
+                    PieceEnum::ROOK => 'R',
+                    PieceEnum::QUEEN => 'Q',
+                    PieceEnum::KING => 'K',
+                }
+            }
+        }
+        msg!("{:?}", row);
+    }
+    msg!("To move: {:?}", g.side_to_move());
 }

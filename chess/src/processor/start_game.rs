@@ -14,7 +14,10 @@ use solana_program::{
 use crate::{
     error::CustomError,
     instruction::StartGameArgs,
-    utils::assert_keys_equal,
+    utils::{
+        assert_keys_equal,
+        display_game,
+    },
     state::{
         NEIGHBORHOOD_SPACES,
         RESTRICTED_SPACES,
@@ -105,6 +108,7 @@ pub fn process(
     let now_ts = Clock::get().unwrap().unix_timestamp as u64;
     board_state.next_deadline = now_ts + args.interval_register;
     msg!("Board: {:?}", board_state);
+    display_game(&game);
 
     // Write the board
     let board_data = &mut *board_account.data.borrow_mut();
