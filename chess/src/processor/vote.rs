@@ -8,6 +8,7 @@ use solana_program::{
     pubkey::Pubkey,
 };
 use legal_chess::{
+    color::Color,
     game::Game,
 };
 
@@ -18,6 +19,8 @@ use crate::{
         get_index,
         get_neighborhood_xy,
         side_to_color,
+        display_game,
+        assert_keys_equal,
     },
     state::{
         Board,
@@ -26,7 +29,6 @@ use crate::{
         NEIGHBORHOOD_SPACES,
     }
 };
-use std::convert::TryInto;
 
 pub fn process(
     _program_id: &Pubkey,
@@ -48,35 +50,14 @@ pub fn process(
     msg!("r space {:?}", args.space);
     msg!("r ply {:?}", args.ply);
     msg!("r vote {:?}", args.vote);
-    let board_state: Board = try_from_slice_unchecked(&board_account.data.borrow())?;
-    let game_arr: [u8; 73] = board_state.game_arr.try_into().unwrap();
-    let game = Game::from_game_arr(&game_arr);
+    let mut board_state: Board = try_from_slice_unchecked(&board_account.data.borrow())?;
+    let board_data = &mut *board_account.data.borrow_mut();
+    let mut game = Game::from_game_arr(&board_state.game_arr);
+    display_game(&game);
 
     // Board is currently active
     if board_state.phase != Phase::Active {
         return Err(CustomError::IncorrectPhase.into());
-    }
-
-    // Check if deadline has passed, short-circuit if so
-    //      Apply move, update state, clear votes if valid move selected
-    //      Check for termination and advance phase if applicable
-
-    // Space is inside neighborhood
-    let (nx, ny) = get_neighborhood_xy(args.space.x, args.space.y);
-    if nx != board_state.nx || ny != board_state.ny {
-        return Err(CustomError::SpaceOutsideNeighborhood.into());
-    }
-    let space_index = get_index(args.space.x, args.space.y);
-
-    // Account owns space
-    // TODO
-
-    // Space is assigned to the side to move
-    let side_start = Board::LEN;
-    let side_index: usize = side_start + space_index;
-    let side_registered: Side = try_from_slice_unchecked(&board_account.data.borrow()[side_index..side_index+1])?;
-    if side_to_color(side_registered) != *game.side_to_move() {
-        return Err(CustomError::PlayerMismatch.into());
     }
 
     // Ply is correct
@@ -87,7 +68,53 @@ pub fn process(
     // Move is valid
     let chess_move = args.vote.convert();
     if !game.legal_moves().contains(&chess_move) {
+        msg!("Not a legal move");
         return Err(CustomError::IllegalMove.into());
+    }
+
+    // Account owns space
+    // TODO
+
+    // If player is PK, just play the move
+    let mut terminate_game = false;
+    let active_player = match game.side_to_move() {
+        Color::WHITE => board_state.player_white,
+        Color::BLACK => board_state.player_black,
+    };
+    if active_player.has_pk {
+        assert_keys_equal(active_player.player_pk, *space_owner.key)?;
+        game.make_move(chess_move);
+        board_state.game_arr = game.to_game_arr().to_vec();
+        board_state.serialize(board_data)?;
+        if game.legal_moves().is_empty() { terminate_game = true; }
+    }
+
+    // If deadline has passed, apply the vote
+    //      Count votes, apply move, update state
+    // TODO
+
+    // Terminate if applicable
+    if terminate_game {
+        msg!("Game over");
+        display_game(&game);
+        board_state.phase = Phase::Inactive;
+        board_state.serialize(board_data)?;
+        return Ok(());
+    }
+
+    // Space is inside neighborhood
+    let (nx, ny) = get_neighborhood_xy(args.space.x, args.space.y);
+    if nx != board_state.nx || ny != board_state.ny {
+        return Err(CustomError::SpaceOutsideNeighborhood.into());
+    }
+    let space_index = get_index(args.space.x, args.space.y);
+
+    // Space is assigned to the side to move
+    let side_start = Board::LEN;
+    let side_index: usize = side_start + space_index;
+    let side_registered: Side = try_from_slice_unchecked(&board_account.data.borrow()[side_index..side_index+1])?;
+    if side_to_color(side_registered) != *game.side_to_move() {
+        return Err(CustomError::PlayerMismatch.into());
     }
 
     // Record vote

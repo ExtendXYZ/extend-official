@@ -2,10 +2,12 @@ use borsh::BorshSerialize;
 use solana_program::{
     account_info::{AccountInfo, next_account_info},
     borsh::try_from_slice_unchecked,
+    clock::Clock,
     entrypoint::ProgramResult,
     msg,
     program_error::ProgramError,
     pubkey::Pubkey,
+    sysvar::Sysvar,
 };
 
 use crate::{
@@ -48,18 +50,22 @@ pub fn process(
     }
 
     // Check if deadline has passed, short-circuit if so
-    //      Advance phase if conditions met
-    //      Extend deadline if not
-    //      TODO
+    let now_ts = Clock::get().unwrap().unix_timestamp as u64;
+    if board_state.next_deadline < now_ts {
+        // Advance phase if conditions met
+        // Extend deadline if not
+        // TODO
+        return Ok(());
+    }
+
+    // Account owns space
+    // TODO
 
     // Space is inside neighborhood
     let (nx, ny) = get_neighborhood_xy(args.space.x, args.space.y);
     if nx != board_state.nx || ny != board_state.ny {
         return Err(CustomError::SpaceOutsideNeighborhood.into());
     }
-
-    // Account owns space
-    // TODO
 
     // Assign space
     let space_index = Board::LEN + get_index(args.space.x, args.space.y);
