@@ -1,8 +1,5 @@
 use borsh::BorshSerialize;
-use legal_chess::{
-    chessmove::ChessMove,
-    game::Game
-};
+use legal_chess::game::Game;
 use solana_program::{
     account_info::{AccountInfo, next_account_info},
     borsh::try_from_slice_unchecked,
@@ -11,11 +8,8 @@ use solana_program::{
     msg,
     program_error::ProgramError,
     pubkey::Pubkey,
-    system_program,
     sysvar::Sysvar,
-    log::sol_log_compute_units,
 };
-use std::str::FromStr;
 
 use crate::{
     error::CustomError,
@@ -40,12 +34,12 @@ use crate::{
 };
 
 pub fn process(
-    program_id: &Pubkey,
+    _program_id: &Pubkey,
     accounts: &[AccountInfo],
     args: &StartGameArgs,
 ) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
-    let base = next_account_info(account_info_iter)?;
+    let _base = next_account_info(account_info_iter)?;
     let board_owner = next_account_info(account_info_iter)?;
     let board_account = next_account_info(account_info_iter)?;
 
@@ -67,7 +61,7 @@ pub fn process(
     msg!("y {:?}", board_state.ny);
 
     // Board data matches
-    assert_keys_equal(board_state.owner, *board_owner.key);
+    assert_keys_equal(board_state.owner, *board_owner.key)?;
 
     // Board state is inactive
     if board_state.phase != Phase::Inactive {
@@ -114,18 +108,18 @@ pub fn process(
 
     // Write the board
     let board_data = &mut *board_account.data.borrow_mut();
-    board_state.serialize(board_data);
+    board_state.serialize(board_data)?;
 
     // Zero out the assignment bytes
-    let sideStart = Board::LEN;
+    let side_start = Board::LEN;
     for i in 0..RESTRICTED_SPACES {
-        board_data[sideStart+i] = 0;
+        board_data[side_start+i] = 0;
     }
 
     // Zero out the vote bytes
-    let voteStart = Board::LEN + NEIGHBORHOOD_SPACES;
-    for i in 0..RESTRICTED_SPACES {
-        board_data[sideStart+i] = 0;
+    let vote_start = Board::LEN + NEIGHBORHOOD_SPACES;
+    for i in 0..(3*RESTRICTED_SPACES) {
+        board_data[vote_start+i] = 0;
     }
 
     Ok(())

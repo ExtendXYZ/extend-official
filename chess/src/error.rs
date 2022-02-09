@@ -15,8 +15,12 @@ pub enum CustomError {
     UninitializedBoard,
     #[error("InvalidRegisterArgs")]
     InvalidRegisterArgs,
+    #[error("SpaceOutsideNeighborhood")]
+    SpaceOutsideNeighborhood,
     #[error("InvalidVoteArgs")]
     InvalidVoteArgs,
+    #[error("PlayerMismatch")]
+    PlayerMismatch,
     #[error("PlyMismatch")]
     PlyMismatch,
     #[error("IllegalMove")]

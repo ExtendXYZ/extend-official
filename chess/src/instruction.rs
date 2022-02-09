@@ -1,6 +1,5 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::program_error::ProgramError;
-use solana_program::pubkey::Pubkey;
 
 use crate::state::{
     Move, PlayerParams, Side,
