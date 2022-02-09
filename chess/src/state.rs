@@ -1,45 +1,106 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::pubkey::Pubkey;
 use std::mem::size_of;
+use legal_chess::{
+    chessmove::ChessMove,
+    pieces::piece::PromotionPiece,
+};
 
-pub const NEIGHBORHOOD_SPACES: usize = 200 * 200;
+pub const NEIGHBORHOOD_SIDE: usize = 200;
+pub const NEIGHBORHOOD_SPACES: usize = NEIGHBORHOOD_SIDE * NEIGHBORHOOD_SIDE;
 pub const RESTRICTED_SPACES: usize = 32 * 32;
 
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
 pub enum Side {
-    Undefined,
-    White,
-    Black,
+    Undefined = 0,
+    White = 1,
+    Black = 2,
+}
+
+impl From<u8> for Side {
+    fn from(v: u8) -> Self {
+        return match v {
+            0x0 => Side::Undefined,
+            0x1 => Side::Black,
+            0x2 => Side::Black,
+            _ => Side::Undefined,
+        };
+    }
 }
 
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
 pub enum Phase {
-    Registering,
-    Active,
-    Inactive,
+    Registering = 0,
+    Active = 1,
+    Inactive = 2,
 }
 
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
 pub enum Result {
-    BlackWin,
-    Draw,
-    WhiteWin,
+    BlackWin = 0,
+    Draw = 1,
+    WhiteWin = 2,
 }
 
-// Castling and en passant validated in ix handler
+#[repr(C)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+pub enum Promotion {
+    NA = 0,
+    Queen = 1,
+    Rook = 2,
+    Knight = 3,
+    Bishop = 4,
+}
+
+// a1 = 0, a5 = 5
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
 pub struct Move {
     pub from: u8,
     pub to: u8,
+    pub promotion: Promotion,
 }
 
 impl Move {
     pub fn none() -> Move {
-        Move { from: 255, to: 255 }
+        Move { from: 255, to: 255, promotion: Promotion::NA}
+    }
+    pub fn from_pair(file_rank: (u8, u8)) -> u8 {
+        (file_rank.1-1)*8 + file_rank.0
+    }
+    pub fn to_pair(index: u8) -> (u8, u8) {
+        (index%8 + 1, index/8 + 1)
+    }
+    pub fn from(chess_move: ChessMove) -> Move {
+        Move {
+            from: Move::from_pair(chess_move.from),
+            to: Move::from_pair(chess_move.to),
+            promotion: match &chess_move.promotion {
+                None => Promotion::NA,
+                Some(p) => match p {
+                    PromotionPiece::Rook => Promotion::Rook,
+                    PromotionPiece::Knight => Promotion::Knight,
+                    PromotionPiece::Bishop => Promotion::Bishop,
+                    PromotionPiece::Queen => Promotion::Queen,
+                },
+            },
+        }
+    }
+    pub fn convert(&self) -> ChessMove {
+        ChessMove {
+            from: Move::to_pair(self.from),
+            to: Move::to_pair(self.to),
+            promotion: match &self.promotion {
+                Promotion::NA => None,
+                Promotion::Rook => Some(PromotionPiece::Rook),
+                Promotion::Knight => Some(PromotionPiece::Knight),
+                Promotion::Bishop => Some(PromotionPiece::Bishop),
+                Promotion::Queen => Some(PromotionPiece::Queen),
+            },
+        }
     }
 }
 
