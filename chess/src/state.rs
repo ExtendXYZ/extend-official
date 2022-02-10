@@ -8,7 +8,7 @@ use legal_chess::{
 
 pub const NEIGHBORHOOD_SIDE: usize = 200;
 pub const NEIGHBORHOOD_SPACES: usize = NEIGHBORHOOD_SIDE * NEIGHBORHOOD_SIDE;
-pub const RESTRICTED_SPACES: usize = 32 * 32;
+pub const RESTRICTED_SPACES: usize = 8 * 8;
 
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]

@@ -19,8 +19,6 @@ use crate::{
         display_game,
     },
     state::{
-        NEIGHBORHOOD_SPACES,
-        RESTRICTED_SPACES,
         MAX_INTERVAL_REGISTER,
         MAX_INTERVAL_MOVE,
         MAX_INTERVAL_KEEP,
@@ -107,7 +105,7 @@ pub fn process(
     // Set registration end
     let now_ts = Clock::get().unwrap().unix_timestamp as u64;
     board_state.next_deadline = now_ts + args.interval_register;
-    msg!("Board: {:?}", board_state);
+    board_state.phase = Phase::Registering;
     display_game(&game);
 
     // Write the board
@@ -115,16 +113,16 @@ pub fn process(
     board_state.serialize(board_data)?;
 
     // Zero out the assignment bytes
-    let side_start = Board::LEN;
-    for i in 0..RESTRICTED_SPACES {
-        board_data[side_start+i] = 0;
-    }
+    // let side_start = Board::LEN;
+    // for i in 0..RESTRICTED_SPACES {
+    //     board_data[side_start+i] = 0;
+    // }
 
     // Zero out the vote bytes
-    let vote_start = Board::LEN + NEIGHBORHOOD_SPACES;
-    for i in 0..(3*RESTRICTED_SPACES) {
-        board_data[vote_start+i] = 0;
-    }
+    // let vote_start = Board::LEN + NEIGHBORHOOD_SPACES;
+    // for i in 0..(3*RESTRICTED_SPACES) {
+    //     board_data[vote_start+i] = 0;
+    // }
 
     Ok(())
 }

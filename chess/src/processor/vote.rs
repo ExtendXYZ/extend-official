@@ -2,10 +2,12 @@ use borsh::BorshSerialize;
 use solana_program::{
     account_info::{AccountInfo, next_account_info},
     borsh::try_from_slice_unchecked,
+    clock::Clock,
     entrypoint::ProgramResult,
     msg,
     program_error::ProgramError,
     pubkey::Pubkey,
+    sysvar::Sysvar,
 };
 use legal_chess::{
     color::Color,
@@ -53,20 +55,22 @@ pub fn process(
     let mut board_state: Board = try_from_slice_unchecked(&board_account.data.borrow())?;
     let board_data = &mut *board_account.data.borrow_mut();
     let mut game = Game::from_game_arr(&board_state.game_arr);
-    display_game(&game);
 
     // Board is currently active
     if board_state.phase != Phase::Active {
+        msg!("Incorrect phase");
         return Err(CustomError::IncorrectPhase.into());
     }
 
     // Ply is correct
-    if args.ply/2 != game.full_moves() {
+    if (args.ply/2 + 1) != game.full_moves() {
+        msg!("Mismatched ply");
         return Err(CustomError::PlyMismatch.into());
     }
 
     // Move is valid
     let chess_move = args.vote.convert();
+    msg!("Move: {:?}", chess_move);
     if !game.legal_moves().contains(&chess_move) {
         msg!("Not a legal move");
         return Err(CustomError::IllegalMove.into());
@@ -84,9 +88,16 @@ pub fn process(
     if active_player.has_pk {
         assert_keys_equal(active_player.player_pk, *space_owner.key)?;
         game.make_move(chess_move);
+        msg!("Made move");
         board_state.game_arr = game.to_game_arr().to_vec();
-        board_state.serialize(board_data)?;
-        if game.legal_moves().is_empty() { terminate_game = true; }
+        board_state.next_deadline = Clock::get().unwrap().unix_timestamp as u64 + board_state.interval_move;
+        if game.legal_moves().is_empty() {
+            terminate_game = true;
+        } else {
+            display_game(&game);
+            board_state.serialize(board_data)?;
+            return Ok(());
+        }
     }
 
     // If deadline has passed, apply the vote

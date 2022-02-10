@@ -90,10 +90,10 @@ pub fn side_to_color(s: Side) -> Color {
 
 pub fn display_game(g: &Game) {
     for rnk in 1..=8 {
-        let mut row = ['.';8];
+        let mut row = "".to_owned();
         for fil in 1..=8 {
             let pos = position::Position(fil, rnk);
-            row[fil as usize - 1] = match g.board().get_square(pos) {
+            row.push(match g.board().get_square(pos) {
                 None => '.',
                 Some(p) => match (**p).piece() {
                     PieceEnum::PAWN => 'p',
@@ -103,9 +103,9 @@ pub fn display_game(g: &Game) {
                     PieceEnum::QUEEN => 'Q',
                     PieceEnum::KING => 'K',
                 }
-            }
+            })
         }
-        msg!("{:?}", row);
+        msg!(&row);
     }
     msg!("To move: {:?}", g.side_to_move());
 }
