@@ -6,7 +6,7 @@ import {
   TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { parseDate, parsePrice } from "./helpers/various";
+import { parseDate, parsePrice, getVoucherMint, getVoucherSink, getNeighborhoodMetadata } from "./helpers/various";
 import { clusterApiUrl, Keypair, PublicKey } from "@solana/web3.js";
 import { upload } from "./commands/upload";
 import { mint } from "./commands/mint";
@@ -20,7 +20,9 @@ import { initBaseInstruction } from "./../../client/src/actions/init_base";
 import { updateAuthorityInstruction } from "./../../client/src/actions/update_authority";
 import { initNeighborhoodMetadataInstruction } from "./../../client/src/actions/init_neighborhood_metadata";
 import { initVoucherSystemInstruction } from "./../../client/src/actions/init_voucher_system";
-import { sendTransactionWithRetryWithKeypair } from "./helpers/transactions";
+import { mintOneTokenInstructions, getCandyMachine } from "./../../client/src/components/Mint/candy-machine";
+import { MintLayout } from "@solana/spl-token";
+import { sendInstructionsGreedyBatchMint, sendTransactionWithRetryWithKeypair } from "./helpers/transactions";
 import base58 from "bs58";
 import {
   getCandyMachineAddress,
@@ -55,34 +57,64 @@ programCommand("send-all-nfts")
   });
 
 programCommand("mint-tokens")
-  .option("-r, --creator-signature <string>", "Creator's signature")
   .option("-nx, --neighborhood-row <number>", `Neighborhood x`, undefined)
   .option("-ny, --neighborhood-col <number>", `Neighborhood y`, undefined)
   .option("-t, --number-of-tokens <number>", `Number of tokens`, "1")
-  .option("-b, --base <string>", `Base`, undefined)
   .action(async (directory, cmd) => {
     const {
       keypair,
       env,
-      cacheName,
-      creatorSignature,
       neighborhoodRow,
       neighborhoodCol,
       numberOfTokens,
-      base,
     } = cmd.opts();
 
-    const n = parseInt(numberOfTokens);
-    const cacheContent = loadCache(
-      neighborhoodRow,
-      neighborhoodCol,
-      cacheName,
-      env
+    const n = parseInt(numberOfTokens); // parse args
+    const solConnection = new anchor.web3.Connection(clusterApiUrl(env));
+    const walletKeyPair = await loadWalletKey(keypair);
+    const neighborhoodX = Number(neighborhoodRow);
+    const neighborhoodY = Number(neighborhoodCol);
+
+    const voucherSink = await getVoucherSink(neighborhoodX, neighborhoodY); // find relevant accounts
+    const voucherMint = await getVoucherMint(neighborhoodX, neighborhoodY);
+    const nhoodAcc = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
+    const account = await solConnection.getAccountInfo(nhoodAcc);
+    const candyConfig = new anchor.web3.PublicKey(account.data.slice(33, 65));
+    const candyId = new anchor.web3.PublicKey(account.data.slice(65, 97));
+    const wallet = new anchor.Wallet(walletKeyPair);
+    const candyMachine = await getCandyMachine(wallet, solConnection, candyId);
+
+    let ixs: anchor.web3.TransactionInstruction[][] = [];
+    let mints: anchor.web3.Keypair[] = [];
+    const rent = await solConnection.getMinimumBalanceForRentExemption(
+      MintLayout.span
     );
-    const configAddress = new PublicKey(cacheContent.program.config);
-    for (let i = 0; i < n; i++) {
-      const res = await mint(keypair, env, configAddress, creatorSignature);
+    
+    for (let i = 0; i < n; i++) { // get mint instructions
+      let mint = anchor.web3.Keypair.generate();
+      let mintInstructions = await mintOneTokenInstructions(
+        candyMachine,
+        candyConfig,
+        walletKeyPair.publicKey,
+        VOUCHER_MINT_AUTH,
+        wallet, // not using wallet to get instructions
+        mint,
+        voucherMint,
+        rent,
+        voucherSink,
+      );
+      ixs.push(mintInstructions);
+      mints.push(mint);
     }
+
+    const response = await sendInstructionsGreedyBatchMint(
+      solConnection,
+      wallet,
+      ixs,
+      mints,
+    )
+
+    console.log(`Mint successful for ${response.numSucceed} out of ${response.total} NFTS`)
   });
 
 programCommand("initialize-base")

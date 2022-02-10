@@ -10,14 +10,31 @@ import {
     Transaction,
     TransactionInstruction,
     TransactionSignature,
+    PublicKey,
 } from "@solana/web3.js";
-import {getUnixTs, sleep} from "./various";
+import {getUnixTs, sleep, shuffle} from "./various";
 import {DEFAULT_TIMEOUT} from "./constants";
+import { BATCH_TX_SIZE } from "../../../client/src/constants";
 import log from "loglevel";
 import { LedgerKeypair, getPublicKey, signTransaction, getDerivationPath } from '../ledger/utils'
 import Transport from '@ledgerhq/hw-transport-node-hid';
 import base58 from "bs58"
 import { transform } from "lodash";
+import * as anchor from "@project-serum/anchor";
+
+export interface WalletAdapter {
+  publicKey: PublicKey;
+  autoApprove: boolean;
+  connected: boolean;
+  signTransaction: (transaction: Transaction) => Promise<Transaction>;
+  signAllTransactions: (transaction: Transaction[]) => Promise<Transaction[]>;
+  connect: () => any; // eslint-disable-line
+  disconnect: () => any; // eslint-disable-line
+  on(event: string, fn: () => void): this;
+}
+
+export type WalletSigner = Pick<WalletAdapter,
+    "publicKey" | "signTransaction" | "signAllTransactions">;
 
 interface BlockhashAndFeeCalculator {
   blockhash: Blockhash;
@@ -90,7 +107,7 @@ export async function sendSignedTransaction({
     }
   );
 
-  log.debug("Started awaiting confirmation for", txid);
+  // log.debug("Started awaiting confirmation for", txid);
 
   let done = false;
   (async () => {
@@ -150,7 +167,7 @@ export async function sendSignedTransaction({
     done = true;
   }
 
-  log.debug("Latency", txid, getUnixTs() - startTime);
+  // log.debug("Latency", txid, getUnixTs() - startTime);
   return { txid, slot };
 }
 
@@ -218,7 +235,7 @@ async function awaitTransactionSignatureConfirmation(
             log.warn("Rejected via websocket", result.err);
             reject(status);
           } else {
-            log.debug("Resolved via websocket", result);
+            // log.debug("Resolved via websocket", result);
             resolve(status);
           }
         },
@@ -238,7 +255,7 @@ async function awaitTransactionSignatureConfirmation(
           status = signatureStatuses && signatureStatuses.value[0];
           if (!done) {
             if (!status) {
-              log.debug("REST null result for", txid, status);
+              // log.debug("REST null result for", txid, status);
             } else if (status.err) {
               log.error("REST error for", txid, status);
               done = true;
@@ -265,6 +282,227 @@ async function awaitTransactionSignatureConfirmation(
   if (connection._signatureSubscriptions[subId])
     connection.removeSignatureListener(subId);
   done = true;
-  log.debug("Returning status", status);
+  // log.debug("Returning status", status);
   return status;
 }
+
+export async function sendTransactionsWithManualRetry(
+  connection: Connection,
+  wallet: WalletSigner,
+  instructions: TransactionInstruction[][],
+  signers: Keypair[][],
+) {
+  let toRemoveSigners: Record<number, boolean> = {};
+
+  instructions = instructions.filter((instr, i) => {
+    if (instr.length > 0) {
+      return true;
+    } else {
+      toRemoveSigners[i] = true;
+      return false;
+    }
+  });
+  let filteredSigners = signers.filter((_, i) => !toRemoveSigners[i]);
+
+  let responses: boolean[] = [];
+
+  try {
+    responses = await sendTransactions(
+      connection,
+      wallet,
+      instructions,
+      filteredSigners,
+      "single",
+    );
+  } catch (e) {
+    console.error(e);
+  }
+  console.log(
+    "Finished instructions length is",
+    instructions.length
+  );
+
+  // make response know whether the transactions failed or succeeded
+  return responses;
+}
+
+export const sendTransactions = async (
+  connection: Connection,
+  wallet: WalletSigner,
+  instructionSet: TransactionInstruction[][],
+  signersSet: Keypair[][],
+  commitment: Commitment = "singleGossip",
+  successCallback: (txid: string, ind: number) => void = (txid, ind) => {},
+  failCallback: (reason: string, ind: number) => boolean = (txid, ind) => false,
+  block?: BlockhashAndFeeCalculator,
+): Promise<boolean[]> => {
+
+  const unsignedTxns: Transaction[] = [];
+  if (!block) {
+    block = await connection.getRecentBlockhash(commitment);
+  }
+
+  for (let i = 0; i < instructionSet.length; i++) {
+    // batchsize --> pack instructions together
+    const instructions = instructionSet[i];
+    const signers = signersSet[i];
+
+    if (instructions.length === 0) {
+      continue;
+    }
+
+    let transaction = new Transaction();
+    instructions.forEach((instruction) => transaction.add(instruction));
+    transaction.recentBlockhash = block.blockhash;
+    transaction.setSigners(
+      // fee payed by the wallet owner
+      wallet.publicKey,
+      ...signers.map((s) => s.publicKey)
+    );
+
+    unsignedTxns.push(transaction);
+  }
+
+  const pendingTxns: Promise<{ txid: string; slot: number }>[] = [];
+
+  let breakEarlyObject = { breakEarly: false, i: 0 };
+  let totalResponses: boolean[] = [];
+
+  for (let i = 0; i < unsignedTxns.length; i+=BATCH_TX_SIZE) {
+    let currArr = unsignedTxns.slice(i,i+BATCH_TX_SIZE);
+    
+    let nloops = 0;
+
+    let finalResponses: boolean[] = [];
+    let idxMap: number[] = [];
+    for(let j = 0; j < currArr.length; j++) {
+      finalResponses.push(false);
+      idxMap.push(j);
+    }
+
+    while (currArr.length != 0 && nloops < 2) {
+      // get recent blockhash and sign transactions
+      let currBlock = await connection.getRecentBlockhash(commitment);
+      currArr.forEach((tx) => tx.recentBlockhash = currBlock.blockhash);
+
+      // sign each transaction in current slice
+      for (let j = 0; j < currArr.length; j++) { 
+        if (signersSet[j + i].length > 0) {
+          currArr[j].partialSign(...signersSet[j + i]);
+        }
+      }
+
+      const signedTx = await wallet.signAllTransactions(currArr);
+
+      let promises = signedTx.map((item) => (sendSignedTransaction({
+        connection,
+        signedTransaction: item,
+        timeout: 1000000000,
+        })
+        .then(({ txid, slot }) => {
+              successCallback(txid, slot);
+              return 2;
+            })
+            .catch((reason) => {
+              if (reason.toString().includes("retries")) { // for retries
+                return 1;
+              }
+              failCallback(reason, -1);
+              return 0;
+            })
+      ))
+
+      console.log("Sending transactions", i, "try", nloops+1)
+
+      let responses = await Promise.all(promises);
+      for (let j = 0; j < responses.length; j++) { // populate finalResponses with whether each tx succeed
+        finalResponses[idxMap[j]] = (responses[j] === 2);
+      }
+
+      nloops += 1;
+      let nextArr: Transaction[] = [];
+      let newIdxMap: number[] = [];
+      for (let k = 0; k < responses.length; k++) {
+        if (responses[k] === 1){
+          nextArr.push(currArr[k]);
+          newIdxMap.push(idxMap[k]);
+        }
+      }
+      console.log("Need to retry", nextArr.length);
+
+      // shuffling nextArr
+      let outp = shuffle(nextArr, newIdxMap);
+      nextArr = outp[0];
+      newIdxMap = outp[1];
+
+      currArr = nextArr;
+      idxMap = newIdxMap;
+    }
+
+    // push into totalResponses
+    totalResponses.push(...finalResponses);
+  }
+  return totalResponses;
+};
+
+export const sendInstructionsGreedyBatchMint = async (
+  connection,
+  wallet: any,
+  Ixs: anchor.web3.TransactionInstruction[][],
+  mints: anchor.web3.Keypair[],
+) => {
+
+  let transactions: anchor.web3.TransactionInstruction[][] = [];
+  let signers: anchor.web3.Keypair[][] = [];
+
+  let transaction: anchor.web3.TransactionInstruction[] = [];
+  let newTx = new Transaction();
+  let commitment: Commitment = "singleGossip";
+  let staleBlockhash = (await connection.getRecentBlockhash(commitment)).blockhash;
+  let ixPerTx: number[] = [];
+  let idx = 0;
+  for (let i = 0; i < Ixs.length; i++){
+    let newTransaction = [...transaction];
+    Ixs[i].forEach((instruction) => newTransaction.push(instruction));
+    Ixs[i].forEach((instruction) => newTx.add(instruction));
+    newTx.recentBlockhash = staleBlockhash;
+    newTx.feePayer = wallet.publicKey;
+    try {
+      let _ = newTx.serialize({requireAllSignatures: false});
+      transaction = newTransaction;
+    }
+    catch (e) {
+      //console.log(e)
+      // size limit reached, register the batched transaction and start a new batch
+      transactions.push(transaction);
+      signers.push(mints.slice(idx, i));
+      ixPerTx.push(i - idx); // length of ix
+      idx = i;
+      transaction = [];
+      newTx = new Transaction();
+      i = i-1;
+    }
+  }
+
+  transactions.push(transaction);
+  signers.push(mints.slice(idx, Ixs.length));
+  ixPerTx.push(Ixs.length - idx);
+
+  console.log("Num Transactions", transactions.length)
+
+  const responses = await sendTransactionsWithManualRetry(
+    connection,
+    wallet,
+    transactions,
+    signers,
+  );
+
+  let numSucceed = 0;
+  let total = 0;
+  for (let i = 0; i < responses.length; i++) {
+    numSucceed += Number(responses[i]) * ixPerTx[i];
+    total += ixPerTx[i];
+  }
+
+  return {numSucceed, total};
+};

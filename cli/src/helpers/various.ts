@@ -2,6 +2,9 @@ import {AccountInfo, LAMPORTS_PER_SOL} from "@solana/web3.js";
 import fs from "fs";
 import weighted from "weighted";
 import path from "path";
+import * as anchor from "@project-serum/anchor";
+import {BASE, VOUCHER_MINT_SEED, VOUCHER_SINK_SEED, NEIGHBORHOOD_METADATA_SEED, SPACE_PROGRAM_ID} from "../../../client/src/constants"
+import { twoscomplement_i2u } from "../../../client/src/utils/borsh"
 
 const { readFile } = fs.promises;
 
@@ -175,6 +178,69 @@ export const getMetadata = (
     collection,
   };
 };
+
+export const getVoucherMint = async (x: number, y: number) => {
+  const n_x = twoscomplement_i2u(x);
+  const n_y = twoscomplement_i2u(y);
+  return (await anchor.web3.PublicKey.findProgramAddress(
+    [
+      BASE.toBuffer(),
+      Buffer.from(VOUCHER_MINT_SEED),
+      Buffer.from(n_x),
+      Buffer.from(n_y)],
+    SPACE_PROGRAM_ID
+  )
+  )[0];
+}
+
+export const getVoucherSink = async (x: number, y: number) => {
+  const n_x = twoscomplement_i2u(x);
+  const n_y = twoscomplement_i2u(y);
+  return (await anchor.web3.PublicKey.findProgramAddress(
+    [
+      BASE.toBuffer(),
+      Buffer.from(VOUCHER_SINK_SEED),
+      Buffer.from(n_x),
+      Buffer.from(n_y)],
+    SPACE_PROGRAM_ID
+  )
+  )[0];
+}
+
+export const getNeighborhoodMetadata = async (x: number, y: number) => {
+  const n_x = twoscomplement_i2u(x);
+  const n_y = twoscomplement_i2u(y);
+  return (await anchor.web3.PublicKey.findProgramAddress(
+    [
+      BASE.toBuffer(),
+      Buffer.from(NEIGHBORHOOD_METADATA_SEED),
+      Buffer.from(n_x),
+      Buffer.from(n_y)],
+    SPACE_PROGRAM_ID
+  )
+  )[0];
+}
+
+export function shuffle(array, indexArray) {
+  let currentIndex = array.length,  randomIndex;
+
+  // While there remain elements to shuffle...
+  while (currentIndex != 0) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+
+    [indexArray[currentIndex], indexArray[randomIndex]] = [
+      indexArray[randomIndex], indexArray[currentIndex]];
+  }
+
+  return [array, indexArray];
+}
 
 const getMultipleAccountsCore = async (
   connection: any,
