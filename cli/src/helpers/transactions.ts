@@ -14,13 +14,14 @@ import {
 } from "@solana/web3.js";
 import {getUnixTs, sleep, shuffle} from "./various";
 import {DEFAULT_TIMEOUT} from "./constants";
-import { BATCH_TX_SIZE } from "../../../client/src/constants";
 import log from "loglevel";
 import { LedgerKeypair, getPublicKey, signTransaction, getDerivationPath } from '../ledger/utils'
 import Transport from '@ledgerhq/hw-transport-node-hid';
 import base58 from "bs58"
 import { times, transform } from "lodash";
 import * as anchor from "@project-serum/anchor";
+
+const BATCH_SIZE = 200;
 
 export interface WalletAdapter {
   publicKey: PublicKey;
@@ -371,8 +372,8 @@ export const sendTransactions = async (
   let breakEarlyObject = { breakEarly: false, i: 0 };
   let totalResponses: boolean[] = [];
 
-  for (let i = 0; i < unsignedTxns.length; i+=BATCH_TX_SIZE) {
-    let currArr = unsignedTxns.slice(i,i+BATCH_TX_SIZE);
+  for (let i = 0; i < unsignedTxns.length; i+=BATCH_SIZE) {
+    let currArr = unsignedTxns.slice(i,i+BATCH_SIZE);
     
     let nloops = 0;
 
