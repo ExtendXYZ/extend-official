@@ -71,7 +71,7 @@ programCommand("mint-tokens")
 
     const n = parseInt(numberOfTokens); // parse args
     // const solConnection = new anchor.web3.Connection(clusterApiUrl(env));
-    const solConnection = new anchor.web3.Connection(`https://extend.${env}.rpcpool.com`);
+    const solConnection = new anchor.web3.Connection(`https://extend.${env}.rpcpool.com/30af34cbb7f1e44cf8776c7ecae8`);
     const walletKeyPair = await loadWalletKey(keypair);
     const neighborhoodX = Number(neighborhoodRow);
     const neighborhoodY = Number(neighborhoodCol);
