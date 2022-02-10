@@ -19,7 +19,7 @@ import log from "loglevel";
 import { LedgerKeypair, getPublicKey, signTransaction, getDerivationPath } from '../ledger/utils'
 import Transport from '@ledgerhq/hw-transport-node-hid';
 import base58 from "bs58"
-import { transform } from "lodash";
+import { times, transform } from "lodash";
 import * as anchor from "@project-serum/anchor";
 
 export interface WalletAdapter {
@@ -97,7 +97,12 @@ export async function sendSignedTransaction({
   successMessage?: string;
   timeout?: number;
 }): Promise<{ txid: string; slot: number }> {
-  const rawTransaction = signedTransaction.serialize();
+  let rawTransaction;
+  try {
+    rawTransaction = signedTransaction.serialize();
+  } catch(e){
+    console.log(e)
+  }
   const startTime = getUnixTs();
   let slot = 0;
   const txid: TransactionSignature = await connection.sendRawTransaction(
@@ -107,67 +112,75 @@ export async function sendSignedTransaction({
     }
   );
 
-  // log.debug("Started awaiting confirmation for", txid);
+  // console.log("Started awaiting confirmation for", txid);
 
   let done = false;
+  await sleep(2000);
   (async () => {
+    let maxTime = 6000;
+    await sleep(maxTime);
     while (!done && getUnixTs() - startTime < timeout) {
-      connection.sendRawTransaction(rawTransaction, {
+      // console.log("Run 2nd time")
+      const newTxid = await connection.sendRawTransaction(rawTransaction, {
         skipPreflight: true,
       });
-      await sleep(500);
+      // console.log("Same txid", newTxid === txid)
+      await sleep(maxTime);
     }
   })();
-  try {
-    const confirmation = await awaitTransactionSignatureConfirmation(
-      txid,
-      timeout,
-      connection,
-      "recent",
-      true
-    );
-
-    if (!confirmation)
-      throw new Error("Timed out awaiting confirmation on transaction");
-
-    if (confirmation.err) {
-      log.error(confirmation.err);
-      throw new Error("Transaction failed: Custom instruction error");
-    }
-
-    slot = confirmation?.slot || 0;
-  } catch (err) {
-    log.error("Timeout Error caught", err);
-    if (err.timeout) {
-      throw new Error("Timed out awaiting confirmation on transaction");
-    }
-    let simulateResult: SimulatedTransactionResponse | null = null;
+  while(!done) {
     try {
-      simulateResult = (
-        await simulateTransaction(connection, signedTransaction, "single")
-      ).value;
-    } catch (e) {
-      log.error("Simulate Transaction error", e);
-    }
-    if (simulateResult && simulateResult.err) {
-      if (simulateResult.logs) {
-        for (let i = simulateResult.logs.length - 1; i >= 0; --i) {
-          const line = simulateResult.logs[i];
-          if (line.startsWith("Program log: ")) {
-            throw new Error(
-              "Transaction failed: " + line.slice("Program log: ".length)
-            );
+      const confirmation = await awaitTransactionSignatureConfirmation(
+        txid,
+        timeout,
+        connection,
+        "recent",
+        true
+      );
+      if (!confirmation) {
+        // console.log("Not confirmed, max retry hit")
+        throw new Error("Max signature retries hit")
+      }
+      if (confirmation.err) {
+        console.error(confirmation.err);
+        throw new Error("Transaction failed: Custom instruction error");
+      }
+
+      slot = confirmation?.slot || 0;
+    } catch (err) {
+      console.error("Error caught", err);
+      if ((err as any).timeout) {
+        throw new Error("Timed out awaiting confirmation on transaction");
+      }
+      if ((err as Error).toString().includes("retries")) {
+        throw new Error("Max signature retries hit");
+      }
+      let simulateResult: SimulatedTransactionResponse | null = null;
+      try {
+        simulateResult = (
+          await simulateTransaction(connection, signedTransaction, "single")
+        ).value;
+      } catch (e) {}
+      if (simulateResult && simulateResult.err) {
+        if (simulateResult.logs) {
+          for (let i = simulateResult.logs.length - 1; i >= 0; --i) {
+            const line = simulateResult.logs[i];
+            if (line.startsWith("Program log: ")) {
+              throw new Error(
+                "Transaction failed: " + line.slice("Program log: ".length)
+              );
+            }
           }
         }
+        throw new Error(JSON.stringify(simulateResult.err));
       }
-      throw new Error(JSON.stringify(simulateResult.err));
+      // throw new Error('Transaction failed');
+    } finally {
+      done = true;
     }
-    // throw new Error('Transaction failed');
-  } finally {
-    done = true;
   }
 
-  // log.debug("Latency", txid, getUnixTs() - startTime);
+  // console.log("Latency", txid, getUnixTs() - startTime);
   return { txid, slot };
 }
 
@@ -204,85 +217,75 @@ async function awaitTransactionSignatureConfirmation(
   commitment: Commitment = "recent",
   queryStatus = false
 ): Promise<SignatureStatus | null | void> {
+
   let done = false;
   let status: SignatureStatus | null | void = {
     slot: 0,
     confirmations: 0,
     err: null,
   };
-  let subId = 0;
-  // eslint-disable-next-line no-async-promise-executor
+  let hitMaxRetry = false;
   status = await new Promise(async (resolve, reject) => {
     setTimeout(() => {
       if (done) {
         return;
       }
       done = true;
-      log.warn("Rejecting for timeout...");
+      // console.log("Rejecting for timeout...");
       reject({ timeout: true });
     }, timeout);
-    try {
-      subId = connection.onSignature(
-        txid,
-        (result, context) => {
-          done = true;
-          status = {
-            err: result.err,
-            slot: context.slot,
-            confirmations: 0,
-          };
-          if (result.err) {
-            log.warn("Rejected via websocket", result.err);
-            reject(status);
-          } else {
-            // log.debug("Resolved via websocket", result);
-            resolve(status);
-          }
-        },
-        commitment
-      );
-    } catch (e) {
-      done = true;
-      log.error("WS error in setup", txid, e);
-    }
-    while (!done && queryStatus) {
+
+    let numTries = 0;
+    let maxTries = 3;
+    while (!done && numTries < maxTries && queryStatus) {
       // eslint-disable-next-line no-loop-func
-      (async () => {
+      await (async () => {
         try {
           const signatureStatuses = await connection.getSignatureStatuses([
             txid,
           ]);
+          numTries += 1;
+          // console.log("After try", numTries)
           status = signatureStatuses && signatureStatuses.value[0];
+          // console.log(`https://explorer.solana.com/tx/${txid}?cluster=${env}`); // TODO
           if (!done) {
             if (!status) {
-              // log.debug("REST null result for", txid, status);
+              // console.log("Not status", signatureStatuses.value[0])
+              // console.log("REST null result for", txid, status);
             } else if (status.err) {
-              log.error("REST error for", txid, status);
+              // console.log("REST error for", txid, status);
               done = true;
               reject(status.err);
             } else if (!status.confirmations) {
-              log.error("REST no confirmations for", txid, status);
+              // console.log("REST no confirmations for", txid, status);
             } else {
-              log.debug("REST confirmation for", txid, status);
+              // console.log("REST confirmation for", txid, status);
               done = true;
               resolve(status);
             }
           }
         } catch (e) {
           if (!done) {
-            log.error("REST connection error: txid", txid, e);
+            // console.log("REST connection error: txid", txid, e);
+            reject();
           }
         }
       })();
-      await sleep(2000);
+      await sleep(5000);
+    }
+    
+    if (numTries === maxTries && !done) { // met max retries
+      done = true;
+      hitMaxRetry = true;
+      resolve(status);
     }
   });
 
-  //@ts-ignore
-  if (connection._signatureSubscriptions[subId])
-    connection.removeSignatureListener(subId);
+  if(hitMaxRetry) {
+    status = null;
+  }
+  
   done = true;
-  // log.debug("Returning status", status);
   return status;
 }
 
@@ -441,6 +444,8 @@ export const sendTransactions = async (
 
     // push into totalResponses
     totalResponses.push(...finalResponses);
+
+    sleep(5000);
   }
   return totalResponses;
 };
