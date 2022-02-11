@@ -2,7 +2,7 @@ import React from "react";
 import { PublicKey } from "@solana/web3.js";
 import "./index.css";
 import { Captcha } from "./captcha.js";
-import { priceToColor, rentPriceToColor, colorHighlight } from "../../utils";
+import { priceToColor, rentPriceToColor, colorHighlight, complementaryColor } from "../../utils";
 import { NEIGHBORHOOD_SIZE, UPPER } from "../../constants";
 import {
     Button,
@@ -17,6 +17,11 @@ import {
 const CLICK_THRESHOLD = 5;
 const TOUCH_THRESHOLD = 10;
 const LEFT = 500;
+
+// these must be #RRGGBB
+const SELECTED_COLOR = "#CC0000";
+const OWNED_COLOR = "#00CC00";
+const PURCHASABLE_COLOR = "#0000CC";
 
 export class Board extends React.Component {
     constructor(props) {
@@ -496,7 +501,7 @@ export class Board extends React.Component {
             const p_x = this.focus.x - n_x * NEIGHBORHOOD_SIZE;
             const p_y = this.focus.y - n_y * NEIGHBORHOOD_SIZE;
             const color = this.map[key][p_y][p_x];
-            const newColor = colorHighlight(color);
+            const newColor = complementaryColor(color);
             currentMouse.style.borderColor = newColor;
         }
     }
@@ -565,8 +570,8 @@ export class Board extends React.Component {
                 currentRef.style.top = deltay + 0.1 * scale + "px";
                 currentRef.style.width = scale - 0.2 * scale + "px";
                 currentRef.style.height = scale - 0.2 * scale + "px";
-                currentRef.style.border = 0.1 * scale + "px solid blue";
-                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight("#0000FF");
+                currentRef.style.border = 0.1 * scale + "px solid " + OWNED_COLOR;
+                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(OWNED_COLOR);
             });
             this.props.selecting.purchasableInfo.forEach((info) => {
                 // purchasable spaces
@@ -575,28 +580,13 @@ export class Board extends React.Component {
                 const deltax = x * scale + this.x;
                 const deltay = y * scale + this.y;
                 const currentRef = document.getElementById(`boxTracker${pos}`);
-                const color = "#" + priceToColor(price);
+                // const color = "#" + priceToColor(price);
                 currentRef.style.left = deltax + 0.1 * scale + "px";
                 currentRef.style.top = deltay + 0.1 * scale + "px";
                 currentRef.style.width = scale - 0.2 * scale + "px";
                 currentRef.style.height = scale - 0.2 * scale + "px";
-                currentRef.style.border = 0.1 * scale + "px solid " + color;
-                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(color);
-            });
-            this.props.selecting.purchasableInfo.forEach((info) => {
-                // purchasable spaces
-                const { x, y, mint, price} = info;
-                const pos = JSON.stringify({ x, y });
-                const deltax = x * scale + this.x;
-                const deltay = y * scale + this.y;
-                const currentRef = document.getElementById(`boxTracker${pos}`);
-                const color = "#" + priceToColor(price);
-                currentRef.style.left = deltax + 0.1 * scale + "px";
-                currentRef.style.top = deltay + 0.1 * scale + "px";
-                currentRef.style.width = scale - 0.2 * scale + "px";
-                currentRef.style.height = scale - 0.2 * scale + "px";
-                currentRef.style.border = 0.1 * scale + "px solid " + color;
-                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(color);
+                currentRef.style.border = 0.1 * scale + "px solid " + PURCHASABLE_COLOR;
+                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(PURCHASABLE_COLOR);
             });
             // this.props.selecting.rentableInfo.forEach((info) => {
             //     // purchasable spaces
@@ -633,8 +623,8 @@ export class Board extends React.Component {
                 currentRef.style.top = deltay + 0.1 * scale + "px";
                 currentRef.style.width = scale - 0.2 * scale + "px";
                 currentRef.style.height = scale - 0.2 * scale + "px";
-                currentRef.style.border = 0.1 * scale + "px solid red";
-                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight("#FF0000");
+                currentRef.style.border = 0.1 * scale + "px solid " + SELECTED_COLOR;
+                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(SELECTED_COLOR);
             });
         } else if (this.props.clicked) {
             const deltax = this.props.clicked_x * scale + this.x;
@@ -864,8 +854,8 @@ export class Board extends React.Component {
                                 top: deltay + 0.1 * scale,
                                 width: scale - 0.2 * scale,
                                 height: scale - 0.2 * scale,
-                                border: 0.1 * scale + "px solid blue",
-                                outline: 0.1 * scale + "px solid " + colorHighlight("#0000FF")
+                                border: 0.1 * scale + "px solid " + OWNED_COLOR,
+                                outline: 0.1 * scale + "px solid " + colorHighlight(OWNED_COLOR)
                             }}
                             key={pos}
                         >
@@ -880,7 +870,7 @@ export class Board extends React.Component {
                     const pos = JSON.stringify({ x, y });
                     const deltax = x * scale + this.x;
                     const deltay = y * scale + this.y;
-                    const color = "#" + priceToColor(price);
+                    // const color = "#" + priceToColor(price);
                     return (
                         <div
                             className="boxTracker"
@@ -890,8 +880,8 @@ export class Board extends React.Component {
                                 top: deltay + 0.1 * scale,
                                 width: scale - 0.2 * scale,
                                 height: scale - 0.2 * scale,
-                                border: 0.1 * scale + "px solid " + color,
-                                outline: 0.1 * scale + "px solid " + colorHighlight(color)
+                                border: 0.1 * scale + "px solid " + PURCHASABLE_COLOR,
+                                outline: 0.1 * scale + "px solid " + colorHighlight(PURCHASABLE_COLOR)
                             }}
                             key={pos}
                         >
@@ -950,8 +940,8 @@ export class Board extends React.Component {
                                     top: deltay + 0.1 * scale,
                                     width: scale - 0.2 * scale,
                                     height: scale - 0.2 * scale,
-                                    border: 0.1 * scale + "px solid red",
-                                    outline: 0.1 * scale + "px solid " + colorHighlight("#FF0000")
+                                    border: 0.1 * scale + "px solid " + SELECTED_COLOR,
+                                    outline: 0.1 * scale + "px solid " + colorHighlight(SELECTED_COLOR)
                                 }}
                                 key={pos}
                             >
