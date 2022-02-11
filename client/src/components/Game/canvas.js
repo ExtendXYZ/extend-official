@@ -19,9 +19,9 @@ const TOUCH_THRESHOLD = 10;
 const LEFT = 500;
 
 // these must be #RRGGBB
-const SELECTED_COLOR = "#FF0000";
-const OWNED_COLOR = "#0000FF";
-const PURCHASABLE_COLOR = "#00FF00";
+const SELECTED_COLOR = "#CC0000";
+const OWNED_COLOR = "#0000CC";
+const PURCHASABLE_COLOR = "#00CC00";
 
 export class Board extends React.Component {
     constructor(props) {
