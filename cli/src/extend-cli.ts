@@ -6,7 +6,7 @@ import {
   TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { parseDate, parsePrice, getVoucherMint, getVoucherSink, getNeighborhoodMetadata } from "./helpers/various";
+import { parseDate, parsePrice, getVoucherMint, getVoucherSink, getNeighborhoodMetadata, sleep, getSpacesByOwner, registerDB, batchGetMultipleAccountsInfo } from "./helpers/various";
 import { clusterApiUrl, Keypair, PublicKey } from "@solana/web3.js";
 import { upload } from "./commands/upload";
 import { mint } from "./commands/mint";
@@ -19,10 +19,11 @@ import {
 import { initBaseInstruction } from "./../../client/src/actions/init_base";
 import { updateAuthorityInstruction } from "./../../client/src/actions/update_authority";
 import { initNeighborhoodMetadataInstruction } from "./../../client/src/actions/init_neighborhood_metadata";
+import { initSpaceMetadataInstructions } from "./../../client/src/actions/init_space_metadata";
 import { initVoucherSystemInstruction } from "./../../client/src/actions/init_voucher_system";
 import { mintOneTokenInstructions, getCandyMachine } from "./../../client/src/components/Mint/candy-machine";
 import { MintLayout } from "@solana/spl-token";
-import { sendInstructionsGreedyBatchMint, sendTransactionWithRetryWithKeypair } from "./helpers/transactions";
+import { sendInstructionsGreedyBatchMint, sendInstructionsGreedyBatch, sendTransactionWithRetryWithKeypair } from "./helpers/transactions";
 import base58 from "bs58";
 import {
   getCandyMachineAddress,
@@ -39,6 +40,8 @@ import {
   VOUCHER_SINK_SEED,
   SPACE_PROGRAM_ID,
   VOUCHER_MINT_AUTH,
+  SPACE_METADATA_SEED,
+  MAX_REGISTER_ACCS
 } from "../../client/src/constants";
 import { twoscomplement_i2u } from "../../client/src/utils/borsh";
 
@@ -116,6 +119,94 @@ programCommand("mint-tokens")
     )
 
     console.log(`Mint successful for ${response.numSucceed} out of ${response.total} NFTS`)
+  });
+
+  programCommand("register")
+  .action(async (directory, cmd) => {
+    const {
+      keypair,
+      env,
+    } = cmd.opts();
+
+    const solConnection = new anchor.web3.Connection(`https://extend.${env}.rpcpool.com/30af34cbb7f1e44cf8776c7ecae8`);
+    const walletKeyPair = await loadWalletKey(keypair);
+    const wallet = new anchor.Wallet(walletKeyPair);
+
+    const currSpaceAccs = {};
+    const currMints = {};
+    let accs: any[] = [];
+
+    const data = await getSpacesByOwner(solConnection, walletKeyPair.publicKey);
+    let ownedSpacesArray: any[] = [...data.spaces]; // get unregistered spaces and mints
+    let ownedMintsDict = data.mints;
+
+    for (const p of ownedSpacesArray) {
+      const pos = JSON.parse(p);
+      const space_x = twoscomplement_i2u(pos.x);
+      const space_y = twoscomplement_i2u(pos.y);
+      const spaceAcc = (await PublicKey.findProgramAddress(
+        [
+          BASE.toBuffer(),
+          Buffer.from(SPACE_METADATA_SEED),
+          Buffer.from(space_x),
+          Buffer.from(space_y),
+        ],
+        SPACE_PROGRAM_ID
+      ))[0];
+      accs.push(spaceAcc);
+    }
+    console.log("Accounts", accs.length)
+    const accInfos = await batchGetMultipleAccountsInfo(solConnection, accs);
+    
+    // pass the accounts and mints we want to initialize
+    let numAccountsToRegister = 0;
+    for (let i = 0; i < accInfos.length; i++) {
+      if (accInfos[i] === null) {
+        if (numAccountsToRegister < MAX_REGISTER_ACCS) { // limit to MAX register accs in current batch
+          currSpaceAccs[ownedSpacesArray[i]] = accs[i];
+          currMints[ownedSpacesArray[i]] = ownedMintsDict[ownedSpacesArray[i]];
+        }
+        numAccountsToRegister++;
+      }
+    }
+
+    const numRegistering = Object.keys(currMints).length;
+    console.log("Need to register", numRegistering)
+
+    if (numRegistering === 0) { // if there are no spaces to register
+      console.log("Nothing to register")
+    } else {
+      try {
+        let ixs = await initSpaceMetadataInstructions(wallet, BASE, currSpaceAccs, currMints);
+        let res = await sendInstructionsGreedyBatch(solConnection, wallet, ixs); 
+
+        // update mints that have been registered
+        let responses = res.responses;
+        let ixPerTx = res.ixPerTx;
+        let allPositions = Object.keys(currSpaceAccs);
+        let ind = 0;
+        let doneMints = {};
+        for (let i = 0; i < responses.length; i++) {
+          if (responses[i]) { // if tx success
+            for (let j = 0; j < ixPerTx[i]; j++) {
+              doneMints[allPositions[ind + j]] = currMints[allPositions[ind + j]];
+            }
+          }
+          ind += ixPerTx[i];
+        }
+
+        // update database for mints that have registered
+        await sleep(20000); // sleep 20 seconds metadata completion
+        await registerDB(walletKeyPair.publicKey, doneMints, env);
+
+        // notify if need to reclick register
+        let numSucceed = res.spacesSucceed;
+        console.log("Number of registered spaces that succeeded", numSucceed)
+      }
+      catch (e) {
+        console.log(e);
+      }
+    }
   });
 
 programCommand("initialize-base")

@@ -12,7 +12,7 @@ import {
     TransactionSignature,
     PublicKey,
 } from "@solana/web3.js";
-import {getUnixTs, sleep, shuffle} from "./various";
+import {getUnixTs, sleep, shuffle, compact_u16_len} from "./various";
 import {DEFAULT_TIMEOUT} from "./constants";
 import log from "loglevel";
 import { LedgerKeypair, getPublicKey, signTransaction, getDerivationPath } from '../ledger/utils'
@@ -20,6 +20,7 @@ import Transport from '@ledgerhq/hw-transport-node-hid';
 import base58 from "bs58"
 import { times, transform } from "lodash";
 import * as anchor from "@project-serum/anchor";
+import {BASE_TRANSACTION_SIZE, MAX_TRANSACTION_SIZE} from "../../../client/src/constants"
 
 const BATCH_SIZE = 200;
 
@@ -511,4 +512,83 @@ export const sendInstructionsGreedyBatchMint = async (
   }
 
   return {numSucceed, total};
+};
+
+export const sendInstructionsGreedyBatch = async (
+  connection,
+  wallet: any,
+  instructions: TransactionInstruction[],
+) => {
+
+  let transactions: TransactionInstruction[][] = [];
+  let signers: Keypair[][] = [];
+
+  let transaction: TransactionInstruction[] = [];
+  let transactionSize = BASE_TRANSACTION_SIZE;
+  let transactionAccounts = new Set();
+  let numInstructions = 0;
+  let ixPerTx: number[] = [];
+
+  for (let i = 0; i < instructions.length; i++) {
+      let instruction = instructions[i];
+      let delta = 0;
+      let instructionAccounts = new Set(instruction.keys.map(key => key.pubkey.toBase58()));
+      instructionAccounts.add(instruction.programId.toBase58());
+      for (let account of instructionAccounts) {
+          if (!transactionAccounts.has(account)) {
+              transactionAccounts.add(account);
+              delta += 32;
+          }
+      }
+      delta += 1
+          + compact_u16_len(instruction.keys.length)
+          + instruction.keys.length
+          + compact_u16_len(instruction.data.length)
+          + instruction.data.length;
+
+      let newTransactionSize = transactionSize + delta + compact_u16_len(transactionAccounts.size) + compact_u16_len(numInstructions + 1);
+
+      if (newTransactionSize <= MAX_TRANSACTION_SIZE) {
+          transactionSize += delta;
+          transaction.push(instruction);
+          numInstructions = numInstructions + 1;
+          //code to allow us to check correctness
+          // tx.add(instruction);
+          // console.log(tx.serialize({requireAllSignatures: false}).length, newTransactionSize);
+      }
+      else {
+          // register batched ransaction
+          transactions.push(transaction);
+          signers.push([]); // assume no signers other than wallet
+          ixPerTx.push(transaction.length); // update number of ix per tx
+          transaction = [];
+          transactionSize = BASE_TRANSACTION_SIZE;
+          transactionAccounts = new Set();
+          i = i - 1;
+          numInstructions = 0;
+      }
+  }
+
+  transactions.push(transaction);
+  signers.push([]);
+  ixPerTx.push(transaction.length);
+
+  console.log("Num Transactions", transactions.length)
+
+  const responses = await sendTransactionsWithManualRetry(
+      connection,
+      wallet,
+      transactions,
+      signers,
+  );
+
+  // notify user how many spaces succeeded
+  let spacesSucceed = 0;
+  let totalSpaces = 0;
+  for (let i = 0; i < responses.length; i++) {
+      spacesSucceed += Number(responses[i]) * ixPerTx[i];
+      totalSpaces += ixPerTx[i];
+  }
+  
+  return { responses, ixPerTx, spacesSucceed };
 };
