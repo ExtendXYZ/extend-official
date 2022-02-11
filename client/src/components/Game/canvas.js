@@ -17,8 +17,9 @@ import {
 const CLICK_THRESHOLD = 5;
 const TOUCH_THRESHOLD = 10;
 const LEFT = 500;
-const OWNED_COLOR = "#00FF00";
-const SELECTED_COLOR = "#FFFFFF";
+const SELECTED_COLOR = "#FF0000";
+const OWNED_COLOR = "#0000FF";
+const PURCHASABLE_COLOR = "#00FF00";
 
 export class Board extends React.Component {
     constructor(props) {
@@ -577,13 +578,13 @@ export class Board extends React.Component {
                 const deltax = x * scale + this.x;
                 const deltay = y * scale + this.y;
                 const currentRef = document.getElementById(`boxTracker${pos}`);
-                const color = "#" + priceToColor(price);
+                // const color = "#" + priceToColor(price);
                 currentRef.style.left = deltax + 0.1 * scale + "px";
                 currentRef.style.top = deltay + 0.1 * scale + "px";
                 currentRef.style.width = scale - 0.2 * scale + "px";
                 currentRef.style.height = scale - 0.2 * scale + "px";
-                currentRef.style.border = 0.1 * scale + "px solid " + color;
-                // currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(color);
+                currentRef.style.border = 0.1 * scale + "px solid " + PURCHASABLE_COLOR;
+                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(PURCHASABLE_COLOR);
             });
             // this.props.selecting.rentableInfo.forEach((info) => {
             //     // purchasable spaces
@@ -867,7 +868,7 @@ export class Board extends React.Component {
                     const pos = JSON.stringify({ x, y });
                     const deltax = x * scale + this.x;
                     const deltay = y * scale + this.y;
-                    const color = "#" + priceToColor(price);
+                    // const color = "#" + priceToColor(price);
                     return (
                         <div
                             className="boxTracker"
@@ -877,8 +878,8 @@ export class Board extends React.Component {
                                 top: deltay + 0.1 * scale,
                                 width: scale - 0.2 * scale,
                                 height: scale - 0.2 * scale,
-                                border: 0.1 * scale + "px solid " + color,
-                                // outline: 0.1 * scale + "px solid " + colorHighlight(color)
+                                border: 0.1 * scale + "px solid " + PURCHASABLE_COLOR,
+                                outline: 0.1 * scale + "px solid " + colorHighlight(PURCHASABLE_COLOR)
                             }}
                             key={pos}
                         >
