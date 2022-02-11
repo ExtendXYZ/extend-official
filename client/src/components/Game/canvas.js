@@ -17,6 +17,8 @@ import {
 const CLICK_THRESHOLD = 5;
 const TOUCH_THRESHOLD = 10;
 const LEFT = 500;
+
+// these must be #RRGGBB
 const SELECTED_COLOR = "#FF0000";
 const OWNED_COLOR = "#0000FF";
 const PURCHASABLE_COLOR = "#00FF00";
