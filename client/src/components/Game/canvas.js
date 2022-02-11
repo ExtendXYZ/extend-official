@@ -2,7 +2,7 @@ import React from "react";
 import { PublicKey } from "@solana/web3.js";
 import "./index.css";
 import { Captcha } from "./captcha.js";
-import { priceToColor, rentPriceToColor, colorHighlight } from "../../utils";
+import { priceToColor, rentPriceToColor, colorHighlight, complementaryColor } from "../../utils";
 import { NEIGHBORHOOD_SIZE, UPPER } from "../../constants";
 import {
     Button,
@@ -20,8 +20,8 @@ const LEFT = 500;
 
 // these must be #RRGGBB
 const SELECTED_COLOR = "#CC0000";
-const OWNED_COLOR = "#0000CC";
-const PURCHASABLE_COLOR = "#00CC00";
+const OWNED_COLOR = "#00CC00";
+const PURCHASABLE_COLOR = "#0000CC";
 
 export class Board extends React.Component {
     constructor(props) {
@@ -501,7 +501,7 @@ export class Board extends React.Component {
             const p_x = this.focus.x - n_x * NEIGHBORHOOD_SIZE;
             const p_y = this.focus.y - n_y * NEIGHBORHOOD_SIZE;
             const color = this.map[key][p_y][p_x];
-            const newColor = colorHighlight(color);
+            const newColor = complementaryColor(color);
             currentMouse.style.borderColor = newColor;
         }
     }
