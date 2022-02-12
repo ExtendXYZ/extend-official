@@ -1,5 +1,7 @@
+use borsh::BorshSerialize;
 use solana_program::{
     account_info::AccountInfo,
+    borsh::try_from_slice_unchecked,
     entrypoint::ProgramResult,
     msg,
     program_error::ProgramError,
@@ -11,12 +13,18 @@ use legal_chess::{
     game::Game,
     pieces::{piece::PieceEnum, position},
 };
-use std::convert::TryInto;
+use std::{
+    convert::TryInto,
+    mem::size_of,
+};
 
 use super::error::CustomError;
 use crate::state::{
-    NEIGHBORHOOD_SIDE,
+    Board,
     Side,
+    Vote,
+    VoteCount,
+    NEIGHBORHOOD_SIDE,
 };
 
 pub fn assert_keys_equal(key1: Pubkey, key2: Pubkey) -> ProgramResult {
@@ -108,4 +116,50 @@ pub fn display_game(g: &Game) {
         msg!(&row);
     }
     msg!("To move: {:?}", g.side_to_move());
+}
+
+pub fn mod_ply(ply: u16) -> u8 {
+    (ply % 256) as u8
+}
+
+pub fn has_voted(p: &Vote, c: &Vote) -> bool {
+    p.idx == c.idx && p.ply == c.ply
+}
+
+pub const ZERO_LEN: u32 = 0;
+pub fn reset_votes(board_data: &mut [u8]) -> ProgramResult {
+    let start = Board::LEN;
+    let votes_len_data = &mut (&mut board_data[start..start+size_of::<u32>()]);
+    ZERO_LEN.serialize(votes_len_data)?;
+    Ok(())
+}
+
+pub enum Dir {
+    Upvote = 1,
+    Downvote = -1,
+}
+
+pub fn update_vote(board_data: &mut [u8], v: &Vote, vote_direction: Dir) -> ProgramResult {
+    let start = Board::LEN;
+    let votes_len: usize = try_from_slice_unchecked(&board_data[start..start+size_of::<usize>()])?;
+    for i in 0..votes_len {
+        let vc_start = Board::LEN + i as usize * size_of::<VoteCount>();
+        let mut vote_count: VoteCount = try_from_slice_unchecked(&board_data[vc_start..vc_start+size_of::<VoteCount>()])?;
+        if &vote_count.vote == v {
+            vote_count.count += 1;
+            vote_count.serialize(&mut (&mut board_data[vc_start..vc_start+size_of::<VoteCount>()]))?;
+            return Ok(());
+        }
+    }
+    match vote_direction {
+        Dir::Upvote => {
+            let votes_len_data = &mut (&mut board_data[start..start+size_of::<usize>()]);
+            (votes_len+1).serialize(votes_len_data)?;
+            let vc_start = Board::LEN + votes_len * size_of::<VoteCount>();
+            let vote_count_data = &mut (&mut board_data[vc_start..vc_start+size_of::<VoteCount>()]);
+            VoteCount {vote: *v, count: 0}.serialize(vote_count_data)?;
+            Ok(())
+        },
+        Dir::Downvote => panic!("Vote not found in tally"),
+    }
 }

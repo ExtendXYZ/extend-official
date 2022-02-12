@@ -9,6 +9,7 @@ use solana_program::{
     pubkey::Pubkey,
     sysvar::Sysvar,
 };
+use std::mem::size_of;
 
 use crate::{
     error::CustomError,
@@ -20,6 +21,7 @@ use crate::{
     state::{
         Board,
         Phase,
+        Reg,
     }
 };
 
@@ -39,10 +41,10 @@ pub fn process(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
-    // Board is initialized
+    // Parse board
     msg!("r space {:?}", args.space);
     msg!("r side {:?}", args.side);
-    let mut board_state: Board = try_from_slice_unchecked(&board_account.data.borrow())?;
+    let board_state: Board = try_from_slice_unchecked(&board_account.data.borrow())?;
     let board_data = &mut *board_account.data.borrow_mut();
 
     // Board is currently registering
@@ -50,43 +52,29 @@ pub fn process(
         return Err(CustomError::IncorrectPhase.into());
     }
 
-    // Check if deadline has passed, short-circuit if so
+    // Deadline not yet elapsed
     let now_ts = Clock::get().unwrap().unix_timestamp as u64;
-    if board_state.next_deadline < now_ts {
-        msg!("Deadline hit, checking whether to advance phase");
-        let mut advance = false;
-        if board_state.player_white.has_pk && board_state.player_black.has_pk {
-            advance = true;
-        } else {
-            // Quorum met where applicable
-            // TODO
-        }
-        if advance {
-            msg!("Advance phase to active");
-            board_state.phase = Phase::Active;
-            board_state.next_deadline = now_ts + board_state.interval_move;
-            board_state.serialize(board_data)?;
-            return Ok(());
-        } else {
-            msg!("Conditions not met; extending");
-            board_state.next_deadline = now_ts + board_state.interval_register;
-            board_state.serialize(board_data)?;
-        }
+    if board_state.register_deadline < now_ts {
+        msg!("Cannot register - past deadline");
+        return Err(CustomError::PastRegistrationDeadline.into());
     }
 
     // Account owns space
     // TODO
 
-    // Space is inside neighborhood
+    // Space inside neighborhood
     let (nx, ny) = get_neighborhood_xy(args.space.x, args.space.y);
     if nx != board_state.nx || ny != board_state.ny {
         return Err(CustomError::SpaceOutsideNeighborhood.into());
     }
 
     // Assign space
-    let space_index = Board::LEN + get_index(args.space.x, args.space.y);
-    let space_data = &mut (&mut board_data[space_index..space_index+1]);
-    args.side.serialize(space_data)?;
+    let space_index = get_index(args.space.x, args.space.y);
+    let reg_size = size_of::<Reg>();
+    let reg_start: usize = Board::LEN + space_index * reg_size;
+    let reg = Reg {idx: board_state.idx, side: args.side};
+    let space_data: &mut &mut[u8] = &mut (&mut board_data[reg_start..reg_start+reg_size]);
+    reg.serialize(space_data)?;
 
     Ok(())
 }
