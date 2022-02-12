@@ -42,7 +42,7 @@ pub fn process(
 
     // Initialize board data
     msg!("Initializing board data");
-    let board = Board::neighborhood_board(*board_owner.key, args.neighborhood.x, args.neighborhood.y);
+    let board = Board::neighborhood_board(*board_owner.key, args.nx, args.ny);
     let board_data = &mut *board_account.data.borrow_mut();
 
     board.serialize(board_data)?;
