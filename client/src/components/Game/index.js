@@ -1447,6 +1447,7 @@ export class Game extends React.Component {
             clearInterval(this.intervalChangeFrame);
             await this.fetch_colors(this.state.frame);
             requestAnimationFrame(() => {
+                this.board.current.resetCanvas();
                 this.board.current.drawCanvas();
             });
             this.intervalFetchColors = setInterval(async () => {
@@ -1495,6 +1496,7 @@ export class Game extends React.Component {
             },
         });
         requestAnimationFrame(() => {
+            this.board.current.resetCanvas();
             this.board.current.drawCanvas();
         });
     }
