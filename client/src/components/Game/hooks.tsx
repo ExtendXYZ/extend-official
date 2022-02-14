@@ -164,6 +164,7 @@ export function Screen(props) {
                     setLoadedOwned(true);
                     // game.current?.resetTargets();
                 }
+                game.current?.refreshSidebar();
             }
         }
         getTokens();
@@ -486,11 +487,8 @@ export function Screen(props) {
                             let newOwnedMints = {};
                             finalOwnedSpaces.add(position);
                             newOwnedMints[position] = mint;
-                            // refresh focus if not changed
-                            const focus = game.current?.state.focus;
-                            if (focus && focus.focus && focus.x == x && focus.y == y){
-                                game.current?.handleFocusRefresh();
-                            }
+                            game.current?.refreshSidebar();
+
                             // if wallet is unchanged, update state
                             if (wallet.publicKey == currentUser){
                                 setOwnedSpaces(finalOwnedSpaces);
@@ -544,6 +542,8 @@ export function Screen(props) {
                                 }
                             }
                         }
+                        game.current?.refreshSidebar();
+
                         // if wallet is unchanged, update state
                         if (wallet.publicKey == currentUser){
                             setOwnedSpaces(finalOwnedSpaces);
