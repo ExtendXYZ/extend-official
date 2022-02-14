@@ -45,11 +45,6 @@ export class Board extends React.Component {
         const height = window.innerHeight - UPPER;
         this.width = width;
         this.height = height;
-        this.fit = Math.min(
-            100,
-            this.height / NEIGHBORHOOD_SIZE,
-            this.width / NEIGHBORHOOD_SIZE
-        );
 
         this.scale = ("scale" in locator)? parseInt(locator.scale) * this.height / 100 / NEIGHBORHOOD_SIZE : height / 2 / NEIGHBORHOOD_SIZE;
         this.scale = Math.max(1, Math.round(this.scale));
@@ -493,6 +488,7 @@ export class Board extends React.Component {
         const n_x = Math.floor(this.focus.x / NEIGHBORHOOD_SIZE);
         const n_y = Math.floor(this.focus.y / NEIGHBORHOOD_SIZE);
         const key = JSON.stringify({ n_x, n_y });
+        currentMouse.style.display = "block";
         currentMouse.style.left = this.x + this.focus.x * this.scale + "px";
         currentMouse.style.top = this.y + this.focus.y * this.scale + "px";
         currentMouse.style.width = this.scale + "px";
@@ -511,6 +507,7 @@ export class Board extends React.Component {
         const n_x = Math.floor(this.focus.x / NEIGHBORHOOD_SIZE);
         const n_y = Math.floor(this.focus.y / NEIGHBORHOOD_SIZE);
         const neighborhood_scale = NEIGHBORHOOD_SIZE * this.scale;
+        currentMouse.style.display = "block";
         currentMouse.style.left = this.x + n_x * neighborhood_scale + "px";
         currentMouse.style.top = this.y + n_y * neighborhood_scale + "px";
         currentMouse.style.width = neighborhood_scale + "px";
@@ -518,13 +515,10 @@ export class Board extends React.Component {
         let key = JSON.stringify({ n_x, n_y });
         let neighborhood_names = this.props.getNeighborhoodNames();
         const currentNeighborhood = document.getElementById("neighborhood");
+        currentNeighborhood.style.bottom = neighborhood_scale + "px";
         if (neighborhood_names && (key in neighborhood_names)) {
             this.neighborhood_name = neighborhood_names[key];
-            if (this.scale <= this.fit - 1) {
-                currentNeighborhood.innerHTML = "<h1>" + this.neighborhood_name + "</h1>";
-            } else {
-                currentNeighborhood.innerHTML = "";
-            }
+            currentNeighborhood.innerHTML = "<h1>" + this.neighborhood_name + "</h1>";
         } else {
             this.neighborhood_name = null;
             currentNeighborhood.innerHTML = "<h1> Expand </h1>";
@@ -985,8 +979,7 @@ export class Board extends React.Component {
             <div className="myboard">
                 <canvas className="canvas" id="canvas" ref={this.canvas}></canvas>
                 <div className="nTracker" id="nTracker">
-                    <div className="examine">
-                        <div id="neighborhood" className="name" href="#" onClick={() => {
+                    <div id="neighborhood" className="name" href="#" style={{marginBottom: "-20px"}} onClick={() => {
                             if (this.neighborhood_name) {
                                 this.examine();
                             } else {
@@ -994,7 +987,6 @@ export class Board extends React.Component {
                             }
                         }}>
                         <h1> {this.neighborhood_name ? this.neighborhood_name : "Expand"} </h1>
-                        </div>
                     </div>
                 </div>
                 <Dialog
