@@ -22,6 +22,7 @@ use crate::{
         Board,
         Phase,
         Reg,
+        Side,
     }
 };
 
@@ -41,10 +42,15 @@ pub fn process(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
+    // Args valid
+    if args.side == Side::Undefined {
+        return Err(CustomError::InvalidRegisterArgs.into());
+    }
+
     // Parse board
     msg!("r space {:?}", args.space);
     msg!("r side {:?}", args.side);
-    let board_state: Board = try_from_slice_unchecked(&board_account.data.borrow())?;
+    let mut board_state: Board = try_from_slice_unchecked(&board_account.data.borrow())?;
     let board_data = &mut *board_account.data.borrow_mut();
 
     // Board is currently registering
@@ -68,13 +74,27 @@ pub fn process(
         return Err(CustomError::SpaceOutsideNeighborhood.into());
     }
 
-    // Assign space
+    // Space not already registered
     let space_index = get_index(args.space.x, args.space.y);
     let reg_size = size_of::<Reg>();
     let reg_start: usize = Board::LEN + space_index * reg_size;
+    let side_registered: Reg = try_from_slice_unchecked(&board_account.data.borrow()[reg_start..reg_start+reg_size])?;
+    if side_registered.idx == board_state.idx {
+        return Err(CustomError::AlreadyRegistered.into());
+    }
+
+    // Assign space
     let reg = Reg {idx: board_state.idx, side: args.side};
-    let space_data: &mut &mut[u8] = &mut (&mut board_data[reg_start..reg_start+reg_size]);
+    let space_data: &mut &mut [u8] = &mut (&mut board_data[reg_start..reg_start+reg_size]);
     reg.serialize(space_data)?;
+
+    // Update count
+    match args.side {
+        Side::White => board_state.reg_white += 1,
+        Side::Black => board_state.reg_black += 1,
+        _ => panic!("Unexpected side arg"),
+    }
+    board_state.serialize(board_data)?;
 
     Ok(())
 }
