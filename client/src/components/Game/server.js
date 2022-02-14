@@ -66,8 +66,8 @@ export class Server {
             const n_meta = (await PublicKey.findProgramAddress([
                 BASE.toBuffer(),
                 Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-                twoscomplement_i2u(n_x),
-                twoscomplement_i2u(n_y),
+                Buffer.from(twoscomplement_i2u(n_x)),
+                Buffer.from(twoscomplement_i2u(n_y)),
             ], SPACE_PROGRAM_ID))[0];
             neighborhood_metadatas.push(n_meta);
         }
@@ -129,8 +129,8 @@ export class Server {
         const n_meta = await PublicKey.findProgramAddress([
             BASE.toBuffer(),
             Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-            twoscomplement_i2u(n_x),
-            twoscomplement_i2u(n_y),
+            Buffer.from(twoscomplement_i2u(n_x)),
+            Buffer.from(twoscomplement_i2u(n_y)),
         ], SPACE_PROGRAM_ID);
         const account = await connection.getAccountInfo(n_meta[0]);
         if (account === null) {
@@ -146,8 +146,8 @@ export class Server {
         const n_meta = await PublicKey.findProgramAddress([
             BASE.toBuffer(),
             Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-            twoscomplement_i2u(n_x),
-            twoscomplement_i2u(n_y),
+            Buffer.from(twoscomplement_i2u(n_x)),
+            Buffer.from(twoscomplement_i2u(n_y)),
         ], SPACE_PROGRAM_ID);
         const account = await connection.getAccountInfo(n_meta[0]);
         if (account === null) {
@@ -201,8 +201,8 @@ export class Server {
         const spaceMetadata = await PublicKey.findProgramAddress([
                 BASE.toBuffer(),
                 Buffer.from(SPACE_METADATA_SEED),
-                twoscomplement_i2u(p_x),
-                twoscomplement_i2u(p_y),
+                Buffer.from(twoscomplement_i2u(p_x)),
+                Buffer.from(twoscomplement_i2u(p_y)),
             ],
             SPACE_PROGRAM_ID
         );
@@ -258,7 +258,7 @@ export class Server {
             const SPACE_METADATA_SEEDBuffer = Buffer.from(SPACE_METADATA_SEED);
             const spaceMetas = await Promise.all(poses_arr.map(async (x) => {
                 let coord = JSON.parse(x);
-                return (await PublicKey.findProgramAddress([BASEBuffer, SPACE_METADATA_SEEDBuffer, twoscomplement_i2u(coord.x), twoscomplement_i2u(coord.y),], SPACE_PROGRAM_ID))[0];
+                return (await PublicKey.findProgramAddress([BASEBuffer, SPACE_METADATA_SEEDBuffer, Buffer.from(twoscomplement_i2u(coord.x)), Buffer.from(twoscomplement_i2u(coord.y)),], SPACE_PROGRAM_ID))[0];
             }));
             let spaceDatas = await this.batchGetMultipleAccountsInfoLoading(connection, spaceMetas, 'Loading Info', user, false, 0, 10);
 
