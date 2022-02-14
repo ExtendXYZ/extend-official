@@ -355,6 +355,7 @@ export const Home = (props: HomeProps) => {
     }
     try {
       setIsReceivingToken(true);
+      setClicked(false);
       const connection = props.connection;
       let transaction = tokenTransaction;
       try {
@@ -615,7 +616,7 @@ export const Home = (props: HomeProps) => {
 
   const changeNum = (e) => {
     const tokens = parseInt(e.target.value);
-    setNumTokens(tokens <= 100 ? tokens : NaN);
+    setNumTokens(tokens > 100 ? 100 : (tokens < 0 ? NaN : tokens) );
     setClicked(false);
     setVerified(false);
   };
@@ -900,13 +901,6 @@ export const Home = (props: HomeProps) => {
         <p style={{marginRight: "10%", color: "#B9A06E", textAlign: "center", fontSize: "20px"}}>
           <b>
             Your Space Vouchers: {totalTokens} 
-          </b>
-        </p>
-      }
-      {wallet && !(neighborhoodX === undefined && neighborhoodY === undefined) && 
-        <p style={{marginRight: "10%", color: "#CA59AE", textAlign: "center", fontSize: "20px"}}>
-          <b>
-            Turn on auto-approving transactions for the best experience.
           </b>
         </p>
       }
