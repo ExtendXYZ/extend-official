@@ -1929,9 +1929,7 @@ export class Game extends React.Component {
         }
 
         // set focus, if focus hasn't changed
-        if (x == this.state.focus.x && y == this.state.focus.y){
-            this.setFocus(this.state.focus.x, this.state.focus.y);
-        }
+        this.refreshSidebar();
     }
 
     handleSelectingRefresh = async () => {
@@ -1960,6 +1958,7 @@ export class Game extends React.Component {
             const data = await this.props.database.getSpacesByOwner(this.props.user);
             this.props.setOwnedSpaces(data.spaces); // set spaces and mints on hooks side
             this.props.setOwnedMints(data.mints);
+            this.refreshSidebar();
         }
         catch(e){
             console.error(e);
