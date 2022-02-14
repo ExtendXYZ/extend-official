@@ -534,8 +534,8 @@ export const Home = (props: HomeProps) => {
       accs.push(spaceAcc);
     }
     console.log("Accounts", accs.length)
-    const accInfos = await server.batchGetMultipleAccountsInfoLoading(props.connection, accs, 'Registering');
-    loading(null, 'Registering', "success");
+    const accInfos = await server.batchGetMultipleAccountsInfoLoading(props.connection, accs, 'Getting info');
+    loading(null, 'Getting info', "success");
 
     // pass the accounts and mints we want to initialize
     let numAccountsToRegister = 0;
@@ -561,8 +561,8 @@ export const Home = (props: HomeProps) => {
     } else {
       try {
         let ixs = await initSpaceMetadataInstructions(wallet, BASE, currSpaceAccs, currMints);
-        let res = await sendInstructionsGreedyBatch(props.connection, wallet, ixs, "Register", false); loading(null, 'Registering', null);
-        loading(null, 'Registering', null);
+        let res = await sendInstructionsGreedyBatch(props.connection, wallet, ixs, "Register", false); 
+        // loading(null, 'Registering', "success");
 
         // update mints that have been registered
         let responses = res.responses;
@@ -580,7 +580,17 @@ export const Home = (props: HomeProps) => {
         }
 
         // update database for mints that have registered
-        await sleep(20000); // sleep 20 seconds metadata completion
+        // await sleep(20000); // sleep 20 seconds metadata completion
+        const start_time = Date.now();
+        let curr_time = start_time;
+        while (curr_time < start_time + 20000) {
+          loading((curr_time-start_time) / (20000) * (100), 'Preparing to register', null);
+          await sleep(2000);
+          curr_time = Date.now();
+        }
+        loading(null, 'Preparing to register', 'success');
+        
+        loading(null, 'Registering', null);
         await database.register(wallet.publicKey, doneMints);
 
         // notify if need to reclick register

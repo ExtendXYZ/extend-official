@@ -173,7 +173,6 @@ export class Database {
         let mintsStrings = {};
         let cntr = 0;
         for(let key in mints){
-            loading((cntr + 1) / Object.keys(mints).length()  * (100), "Registering...", null);
             cntr++;
             mintsStrings[key] = mints[key].toBase58();
         }
