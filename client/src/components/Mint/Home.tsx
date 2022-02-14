@@ -42,6 +42,7 @@ import {
   SPACE_METADATA_SEED,
   MAX_REGISTER_ACCS,
   NEIGHBORHOOD_SIZE,
+  MINT_NOT_READY_NBDS,
 } from "../../constants";
 import { Divider } from "antd";
 
@@ -916,59 +917,70 @@ export const Home = (props: HomeProps) => {
 
           {neighborhoodX != null && neighborhoodY != null && !noMint ? (
             <div>
-              {wallet && 
+              
+              
+              {wallet && !MINT_NOT_READY_NBDS.has([neighborhoodX, neighborhoodY]) ? (
               <div>
               <h3 style={{color: "#B687D8", display: "inline-block"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>
               <Tooltip title="Enter the number of Space vouchers (max 100) you want and solve the captcha to receive them! Receiving more vouchers at a time will cost more SOL." placement="right">
                 <InfoIcon sx={{marginLeft: "10px"}}/>
               </Tooltip>
-              </div>
+              {wallet && <p>Get Space Vouchers to mint your Spaces. </p>}
+              </div> )
+              :
+                <div>
+                  <h3 style={{color: "#B687D8", display: "inline-block"}}><b>1. Mint Coming Soon, Check Back Shortly </b></h3>
+                </div>
               }
-              {wallet && <p>Get Space Vouchers to mint your Spaces </p>}
               <MintContainer>
                 <div>
-                  <TextField
-                    required
-                    id="outlined-required"
-                    label="Space vouchers to buy"
-                    type="number"
-                    defaultValue={1}
-                    onChange={changeNum}
-                    value={numTokens}
-                  />
-                  <TextField
-                    disabled
-                    label="Price"
-                    type="number"
-                    id="outlined-disabled"
-                    value={getPrice(numTokens).toFixed(4)} />
-                  <Button
-                    disabled={tokensSoldOut || disableToken}
-                    variant="contained"
-                    onClick={(e) => { setClicked(true) }}
-                    sx={{ marginLeft: "10px", marginTop: "10px" }}>
-                    {tokensSoldOut ? (
-                      "SOLD OUT"
-                    ) :
-                      ("GET VOUCHERS")
-                    }
-                  </Button>
-                  {clicked && numTokens > 0 && wallet && candyMachine?.program ?
-                    [
-                      <Reaptcha
-                        sitekey={CAPTCHA_SITE_KEY}
-                        ref={captchaRef}
-                        onVerify={onVerify}
-                        onExpire={onExpire}
-                      />,
+                  {wallet && !MINT_NOT_READY_NBDS.has([neighborhoodX, neighborhoodY]) ? (
+                    <div>
+                      <TextField
+                        required
+                        id="outlined-required"
+                        label="Space vouchers to buy"
+                        type="number"
+                        defaultValue={1}
+                        onChange={changeNum}
+                        value={numTokens}
+                      />
+                      <TextField
+                        disabled
+                        label="Price"
+                        type="number"
+                        id="outlined-disabled"
+                        value={getPrice(numTokens).toFixed(4)} />
                       <Button
-                        disabled={isReceivingToken || !verified}
-                        onClick={onReceiveToken}
-                        variant="contained">
-                        Receive Vouchers
+                        disabled={tokensSoldOut || disableToken}
+                        variant="contained"
+                        onClick={(e) => { setClicked(true) }}
+                        sx={{ marginLeft: "10px", marginTop: "10px" }}>
+                        {tokensSoldOut ? (
+                          "SOLD OUT"
+                        ) :
+                          ("GET VOUCHERS")
+                        }
                       </Button>
-                    ]
-                    : null
+                      {clicked && numTokens > 0 && wallet && candyMachine?.program ?
+                        [
+                          <Reaptcha
+                            sitekey={CAPTCHA_SITE_KEY}
+                            ref={captchaRef}
+                            onVerify={onVerify}
+                            onExpire={onExpire}
+                          />,
+                          <Button
+                            disabled={isReceivingToken || !verified}
+                            onClick={onReceiveToken}
+                            variant="contained">
+                            Receive Vouchers
+                          </Button>
+                        ]
+                        : null
+                      }
+                    </div>
+                    ) : null
                   }
                   <Divider />
                   {wallet && 
