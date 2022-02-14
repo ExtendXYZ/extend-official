@@ -33,8 +33,6 @@ export const MINT_PRICE = 0.014;
 
 export const MINT_NOT_READY_NBDS = new ObjectSet();
 MINT_NOT_READY_NBDS.add([1,0]);
-console.log(MINT_NOT_READY_NBDS)
-console.log(MINT_NOT_READY_NBDS.has([1,0]))
 
 export const BASE = new PublicKey(
   "XBSEZzB7ojaKgXqfCSpNbPLnuMGk3JVtSKYjXYqg7Pn"
@@ -62,6 +60,9 @@ export const METADATA_PROGRAM_ID = new PublicKey(
 );
 export const CANDY_MACHINE_PROGRAM_ID = new PublicKey(
   "XCNDrq9XYHPWi6BBWJg8huhtf6ZciNAQunkrtQgFHEz"
+);
+export const CANDY_MACHINE_PROGRAM_OLD = new PublicKey(
+  "cndyAnrLdpjq1Ssp1z8xxDsB8dxe7u4HL5Nxi2K5WXZ"
 );
 
 export const CANDY_START_DATE = "1634841157";
