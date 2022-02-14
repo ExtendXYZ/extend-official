@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Progress, Spin} from 'antd';
-import {Box} from "@mui/material";
 import "./loading.css"
 
 const taskCache = {};

@@ -247,6 +247,7 @@
     letter-spacing: -0.01em;
     text-transform: none !important;
     -webkit-background-clip: text;
+    background-clip: text;
 }
 
 .dm-24{

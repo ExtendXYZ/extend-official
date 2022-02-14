@@ -1,10 +1,10 @@
 import { useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { ENDPOINTS, ModalEnum, useConnectionConfig, useModal, useWalletModal } from "../../contexts";
+import { ModalEnum, useModal, useWalletModal } from "../../contexts";
 import { notify, shortenAddress } from "../../utils";
 import { CopyOutlined } from "@ant-design/icons";
 import { Box } from "@mui/system";
-import { Button, FormControl, NativeSelect } from "@mui/material";
+import { Button } from "@mui/material";
 
 export function Settings({
                            additionalSettings,
@@ -12,9 +12,7 @@ export function Settings({
   additionalSettings?: JSX.Element;
 }) {
   const { connected, disconnect, publicKey } = useWallet();
-  const { setEndpoint, env, endpoint } = useConnectionConfig();
   const { setVisible } = useWalletModal();
-  const open = useCallback(() => setVisible(true), [setVisible]);
   const { setModal } = useModal();
 
   const handleConnect = useCallback(() => {
