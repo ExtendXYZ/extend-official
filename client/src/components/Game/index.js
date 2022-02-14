@@ -106,6 +106,8 @@ export class Game extends React.Component {
                 selecting: false,
                 poses: new Set(),
                 color: "#000000",
+                imgUpload: null,
+                hasImage: false,
                 price: null,
                 targetStatus: 0,
                 purchasableInfoAll: new Array(),
@@ -137,8 +139,6 @@ export class Game extends React.Component {
             anims: false,
             animsInfoLoaded: true,
             floor: false,
-            img_upl: null,
-            has_img: false,
             frame: 0,
             maxFrame: 1,
             viewMenuOpen: false, 
@@ -656,7 +656,7 @@ export class Game extends React.Component {
         }.bind(this);
 
         // Read in the image file as a data URL.
-        reader.readAsDataURL(this.state.img_upl);
+        reader.readAsDataURL(this.state.selecting.imgUpload);
     }
 
     handleChangeColorApplyAll = (e) => {
@@ -1516,7 +1516,12 @@ export class Game extends React.Component {
         // use the 1st file from the list if it exists
         if (files.length > 0) {
             let f = files[0];
-            this.setState({ img_upl: f, has_img: true });
+            this.setState({ 
+                selecting: {
+                    ...this.state.selecting,
+                    imgUpload: f, hasImage: true 
+                }
+            });
         }
     }
 
@@ -1599,6 +1604,8 @@ export class Game extends React.Component {
                 selecting: false,
                 poses: new Set(),
                 color: "#000000",
+                imgUpload: null,
+                hasImage: false,
                 price: null,
                 purchasableInfoAll: new Array(),
                 purchasableInfo: new Array(),
@@ -1751,6 +1758,8 @@ export class Game extends React.Component {
                     ...this.state.selecting,
                     selecting: true,
                     poses,
+                    imgUpload: null,
+                    hasImage: false,
                     infoLoaded: false,
                     purchasableInfoAll: new Array(),
                     purchasableInfo: new Array(),
@@ -1790,8 +1799,6 @@ export class Game extends React.Component {
                     purchasableInfoAll,
                     owners,
                 },
-                img_upl: null,
-                has_img: false,
             });
         }
     }
@@ -2122,7 +2129,6 @@ export class Game extends React.Component {
                 changeColors={this.changeColors}
                 handleChangeImg={this.handleChangeImg}
                 uploadImage={this.uploadImage}
-                hasImage={this.state.has_img}
                 handleChangeSelectingPrice={this.handleChangeSelectingPrice}
                 changePrices={this.changePrices}
                 delistSpaces={this.delistSpaces}
@@ -2144,7 +2150,6 @@ export class Game extends React.Component {
                 scale={this.board.current ? this.board.current.scale : null}
                 height={this.board.current ? this.board.current.height : null}
                 canvasSize = {Math.min(SIDE_NAV_WIDTH, window.innerWidth - 48)}
-                img_upl={this.state.img_upl}
             />
         }
         else if (this.state.neighborhood.focused) {
