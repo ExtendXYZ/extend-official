@@ -19,7 +19,7 @@ import {ExplorerLink} from "../components/ExplorerLink";
 import {ENV as ChainId, TokenInfo, TokenListProvider,} from "@solana/spl-token-registry";
 import {WalletSigner} from "./WalletContext/WalletContext";
 import {WalletNotConnectedError} from "@solana/wallet-adapter-base";
-import {loading} from '../utils';
+import {loading} from '../utils/loading';
 
 import { RateLimiter } from 'limiter'
 import { first } from "lodash";
@@ -393,6 +393,7 @@ export const sendTransactions = async (
     let elapsed = 0;
     let beginTime = startTime;
     for (let i = 0; i < unsignedTxns.length; i+=BATCH_TX_SIZE) {
+      loading((i + 1) / (unsignedTxns.length) * (100), "Sending transactions...", null);
       let currArr = unsignedTxns.slice(i,i+BATCH_TX_SIZE);
       
       let nloops = 0;

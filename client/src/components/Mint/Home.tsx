@@ -974,7 +974,7 @@ export const Home = (props: HomeProps) => {
                     </div>
                   }
 
-                  {wallet && <p>Use your Space Vouchers to mint Spaces </p>} 
+                  {wallet && <p>Use your {totalTokens} Space Vouchers to mint Spaces </p>} 
 
                   {wallet && <p>Estimated cost to mint and register all of your Spaces: {Math.round(totalTokens * (MINT_PRICE) * 1000) / 1000} SOL</p>}
 
