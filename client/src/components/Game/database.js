@@ -1,5 +1,6 @@
 import { RPC, DATABASE_SERVER_URL } from "../../constants";
 import {PublicKey, LAMPORTS_PER_SOL} from "@solana/web3.js";
+import {loading} from '../../utils/loading';
 const axios = require('axios');
 
 /*c
@@ -171,7 +172,9 @@ export class Database {
 
     async register(owner, mints) {
         let mintsStrings = {};
+        let cntr = 0;
         for(let key in mints){
+            cntr++;
             mintsStrings[key] = mints[key].toBase58();
         }
 

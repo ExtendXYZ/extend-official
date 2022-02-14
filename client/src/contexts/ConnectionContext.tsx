@@ -19,7 +19,7 @@ import {ExplorerLink} from "../components/ExplorerLink";
 import {ENV as ChainId, TokenInfo, TokenListProvider,} from "@solana/spl-token-registry";
 import {WalletSigner} from "./WalletContext/WalletContext";
 import {WalletNotConnectedError} from "@solana/wallet-adapter-base";
-import {loading} from '../utils';
+import {loading} from '../utils/loading';
 
 import { RateLimiter } from 'limiter'
 import { first } from "lodash";
@@ -249,7 +249,6 @@ export async function sendTransactionsWithManualRetry(
   signers: Keypair[][],
   sequenceType: SequenceType = SequenceType.Parallel,
 ) {
-  loading(null, 'Sending Transactions', null);
   let stopPoint = 0;
   let tries = 0;
   let lastInstructionsLength: any = null;
@@ -277,10 +276,8 @@ export async function sendTransactionsWithManualRetry(
         "single"
       );
       if (!response) {
-        loading(null, 'Sending Transactions', 'exception');
         return [false];
       }
-      loading(null, 'Sending Transactions', 'success');
       return [true];
     } else {
       responses = await sendTransactions(
@@ -291,11 +288,10 @@ export async function sendTransactionsWithManualRetry(
         sequenceType,
         "single",
       );
-      // loading(100, 'Sending Transactions', null);
     }
   } catch (e) {
-    loading(null, 'Sending Transactions', 'exception');
     console.error(e);
+    loading(null, "Sending transactions...", "Exception");
   }
   console.log(
     "Finished instructions length is",
@@ -303,7 +299,6 @@ export async function sendTransactionsWithManualRetry(
   );
 
   // make response know whether the transactions failed or succeeded
-  loading(null, 'Sending Transactions', 'success');
   return responses;
 }
 
@@ -393,6 +388,7 @@ export const sendTransactions = async (
     let elapsed = 0;
     let beginTime = startTime;
     for (let i = 0; i < unsignedTxns.length; i+=BATCH_TX_SIZE) {
+      loading(i / (unsignedTxns.length) * (100), "Sending transactions...", null);
       let currArr = unsignedTxns.slice(i,i+BATCH_TX_SIZE);
       
       let nloops = 0;
@@ -436,8 +432,6 @@ export const sendTransactions = async (
               })
         ))
 
-        console.log("Sending transactions", i, "try", nloops+1)
-
         let responses = await Promise.all(promises);
         for (let j = 0; j < responses.length; j++) { // populate finalResponses with whether each tx succeed
           finalResponses[idxMap[j]] = (responses[j] === 2);
@@ -476,6 +470,7 @@ export const sendTransactions = async (
       // push into totalResponses
       totalResponses.push(...finalResponses);
     }
+    loading(null, "Sending transactions...", 'success');
 
     // const promises = signedTxns.map((item) => (
     //   rateLimiter.acquireToken(async () => await sendSignedTransaction({

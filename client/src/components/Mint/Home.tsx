@@ -356,6 +356,7 @@ export const Home = (props: HomeProps) => {
     }
     try {
       setIsReceivingToken(true);
+      setClicked(false);
       const connection = props.connection;
       let transaction = tokenTransaction;
       try {
@@ -534,8 +535,8 @@ export const Home = (props: HomeProps) => {
       accs.push(spaceAcc);
     }
     console.log("Accounts", accs.length)
-    const accInfos = await server.batchGetMultipleAccountsInfoLoading(props.connection, accs, 'Registering');
-    loading(null, 'Registering', "success");
+    const accInfos = await server.batchGetMultipleAccountsInfoLoading(props.connection, accs, 'Getting info');
+    loading(null, 'Getting info', "success");
 
     // pass the accounts and mints we want to initialize
     let numAccountsToRegister = 0;
@@ -561,8 +562,8 @@ export const Home = (props: HomeProps) => {
     } else {
       try {
         let ixs = await initSpaceMetadataInstructions(wallet, BASE, currSpaceAccs, currMints);
-        let res = await sendInstructionsGreedyBatch(props.connection, wallet, ixs, "Register", false); loading(null, 'Registering', null);
-        loading(null, 'Registering', null);
+        let res = await sendInstructionsGreedyBatch(props.connection, wallet, ixs, "Register", false); 
+        // loading(null, 'Registering', "success");
 
         // update mints that have been registered
         let responses = res.responses;
@@ -580,7 +581,17 @@ export const Home = (props: HomeProps) => {
         }
 
         // update database for mints that have registered
-        await sleep(20000); // sleep 20 seconds metadata completion
+        // await sleep(20000); // sleep 20 seconds metadata completion
+        const start_time = Date.now();
+        let curr_time = start_time;
+        while (curr_time < start_time + 20000) {
+          loading((curr_time-start_time) / (20000) * (100), 'Preparing to register', null);
+          await sleep(2000);
+          curr_time = Date.now();
+        }
+        loading(null, 'Preparing to register', 'success');
+        
+        loading(null, 'Registering', null);
         await database.register(wallet.publicKey, doneMints);
 
         // notify if need to reclick register
@@ -616,7 +627,7 @@ export const Home = (props: HomeProps) => {
 
   const changeNum = (e) => {
     const tokens = parseInt(e.target.value);
-    setNumTokens(tokens <= 100 ? tokens : NaN);
+    setNumTokens(tokens > 100 ? 100 : (tokens < 0 ? NaN : tokens) );
     setClicked(false);
     setVerified(false);
   };
@@ -904,13 +915,6 @@ export const Home = (props: HomeProps) => {
           </b>
         </p>
       }
-      {wallet && !(neighborhoodX === undefined && neighborhoodY === undefined) && 
-        <p style={{marginRight: "10%", color: "#CA59AE", textAlign: "center", fontSize: "20px"}}>
-          <b>
-            Turn on auto-approving transactions for the best experience.
-          </b>
-        </p>
-      }
 
       {wallet ? (
         <div>
@@ -992,7 +996,7 @@ export const Home = (props: HomeProps) => {
                     </div>
                   }
 
-                  {wallet && <p>Use your Space Vouchers to mint Spaces </p>} 
+                  {wallet && <p>Use your {totalTokens} Space Vouchers to mint Spaces </p>} 
 
                   {wallet && <p>Estimated cost to mint and register all of your Spaces: {Math.round(totalTokens * (MINT_PRICE) * 1000) / 1000} SOL</p>}
 
