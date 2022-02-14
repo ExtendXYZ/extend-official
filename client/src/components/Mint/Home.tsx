@@ -924,7 +924,7 @@ export const Home = (props: HomeProps) => {
               </Tooltip>
               </div>
               }
-              {wallet && <p>Get Space Vouchers to mint your Spaces. </p>}
+              {wallet && <p>Get Space Vouchers to mint your Spaces </p>}
               <MintContainer>
                 <div>
                   <TextField
@@ -974,7 +974,7 @@ export const Home = (props: HomeProps) => {
                   {wallet && 
                     <div>
                       <h3 style={{color: "#B687D8", display: "inline-block"}}><b>2. Mint your Spaces ({itemsRedeemed} / {itemsAvailable} minted)</b></h3>
-                      <Tooltip title="Tip: Redeeming multiple Space vouchers at once is more likely to result in contiguous Spaces on the canvas" placement="right">
+                      <Tooltip title="Minting can take minutes depending on number of spaces, so approve all phantom pop-ups until you receive a success notification. Redeeming multiple Space vouchers at once is more likely to result in contiguous Spaces on the canvas. " placement="right">
                         <InfoIcon sx={{marginLeft: "10px"}}/>
                       </Tooltip>
                     </div>
@@ -1029,7 +1029,7 @@ export const Home = (props: HomeProps) => {
                   <div>
                     <div>
                       <h3 style={{color: "#B687D8", display: "inline-block"}}><b>3. Register your Spaces </b></h3>
-                      <Tooltip title="Tip: Registering will take around 30 seconds, and it will take longer depending on the number of Spaces you own" placement="right">
+                      <Tooltip title="Registering will take at least 30 seconds, and it will take longer depending on the number of Spaces you own. Approve all phantom pop-ups until you receive a success notification." placement="right">
                         <InfoIcon sx={{marginLeft: "10px"}}/>
                       </Tooltip>
                     </div>
