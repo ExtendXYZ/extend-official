@@ -1794,6 +1794,21 @@ export class Game extends React.Component {
         }
     }
 
+    refreshSidebar = () =>{
+        if (!this.state.showNav){
+            return;
+        }
+        if (this.state.focus.focus){
+            this.setFocus(this.state.focus.x, this.state.focus.y);
+        }
+        else if (this.state.selecting.selecting){
+            this.setSelecting(this.state.selecting.poses);
+        }
+        else if (this.state.neighborhood.focused){
+            this.setNeighborhood(this.state.neighborhood.n_x, this.state.neighborhood.n_y);
+        }
+    }
+
     getSelectOwnedBlocks = () => {
         var options = this.props.ownedSpaces;
         let keys = [];
