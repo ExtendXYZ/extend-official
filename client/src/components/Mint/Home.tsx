@@ -43,6 +43,8 @@ import {
   MAX_REGISTER_ACCS,
   NEIGHBORHOOD_SIZE,
   MINT_NOT_READY_NBDS,
+  CANDY_MACHINE_PROGRAM_ID,
+  CANDY_MACHINE_PROGRAM_OLD,
 } from "../../constants";
 import { Divider } from "antd";
 
@@ -118,8 +120,9 @@ export const Home = (props: HomeProps) => {
 
   const [neighborhoodX, setNeighborhoodX] = useState<Number>(); // for switching neighborhoods
   const [neighborhoodY, setNeighborhoodY] = useState<Number>();
-  const [currNeighborhood, setCurrNeighborhood] = useState<String>();
+  const [currNeighborhood, setCurrNeighborhood] = useState<string>();
   const [neighborhoods, setNeighborhoods] = useState<string[]>();
+  const [neighborhoodsToColor, setNeighborhoodsToColor] = useState({});
   const [nhoodNames, setNhoodNames] = useState<string[]>();
   const [doneFetching, setDoneFetching] = useState(false);
   const [noMint, setNoMint] = useState(false);
@@ -191,7 +194,9 @@ export const Home = (props: HomeProps) => {
     if (neighborhoods && statuses && nhoodNames) {
       for (let i = 0; i < neighborhoods.length; i++) {
         const n = neighborhoods[i];
-        if (statuses[i] !== "") {
+        if (statuses[i] === "[MINTED OUT]") {
+          keys.push(<MenuItem value={n} key={n} sx={{ color: "#CC380B" }}>{"Neighborhood (" + n + "): " + nhoodNames[i] + statuses[i]}</MenuItem>);
+        } else if (statuses[i] === "[SOLD OUT]") {
           keys.push(<MenuItem value={n} key={n} sx={{ color: "#E0714F" }}>{"Neighborhood (" + n + "): " + nhoodNames[i] + statuses[i]}</MenuItem>);
         } else {
           keys.push(<MenuItem value={n} key={n}>{"Neighborhood (" + n + "): " + nhoodNames[i] + statuses[i]}</MenuItem>);
@@ -224,10 +229,15 @@ export const Home = (props: HomeProps) => {
       let itemsRemaining;
       let itemsRedeemed;
       try {
+        let candyProgram = CANDY_MACHINE_PROGRAM_ID;
+        if (neighborhoodX === 0 && neighborhoodY === 0) {
+          candyProgram = CANDY_MACHINE_PROGRAM_OLD;
+        }
         let res = await getCandyMachineState(
           wallet as anchor.Wallet,
           candyId,
-          props.connection
+          props.connection,
+          candyProgram,
         );
         candyMachine = res.candyMachine;
         goLiveDate = res.goLiveDate;
@@ -639,7 +649,7 @@ export const Home = (props: HomeProps) => {
   const changeNeighborhood = (e) => {
     setDisableMint(true);
     setDisableToken(true);
-    const n: String = e.target.value;
+    const n: string = e.target.value;
     const split = n.split(',');
     const n_x = parseInt(split[0]);
     const n_y = parseInt(split[1]);
@@ -733,31 +743,42 @@ export const Home = (props: HomeProps) => {
       setNhoodNames(names);
 
       const currStatuses: string[] = [];
+      let map = {};
       for (let i = 0; i < neighborhoods.length; i++) { // update statuses
         const id = new anchor.web3.PublicKey(nhoodInfos[i].data.slice(65, 97));
+        let candyProgram = CANDY_MACHINE_PROGRAM_ID;
+        if(i === 0) {
+          candyProgram = CANDY_MACHINE_PROGRAM_OLD;
+        }
         let res = await getCandyMachineState(
           wallet as anchor.Wallet,
           id,
-          props.connection
+          props.connection,
+          candyProgram,
         );
         const itemsRemaining = res.itemsRemaining;
         if (itemsRemaining === 0) {
           currStatuses.push("[MINTED OUT]"); // minted out
+          map[neighborhoods[i]] = "#CC380B";
           continue;
         }
         if (!ataInfos[i]) {
           currStatuses.push("[SOLD OUT]"); // sold out
+          map[neighborhoods[i]] = "#E0714F";
           continue;
         }
         const b = (await props.connection.getTokenAccountBalance(atas[i])).value.amount;
         const balance = Number(b);
         if (balance === 0) {
           currStatuses.push("[SOLD OUT]"); // sold out
+          map[neighborhoods[i]] = "#E0714F";
         } else {
           currStatuses.push(""); // active
+          map[neighborhoods[i]] = "#FFFFFF";
         }
       }
       setStatuses(currStatuses);
+      setNeighborhoodsToColor(map);
     }
     getNeighborhoodStatuses();
   }, [neighborhoods]);
@@ -858,6 +879,7 @@ export const Home = (props: HomeProps) => {
           labelId="demo-simple-select-label"
           id="demo-simple-select"
           value={currNeighborhood}
+          sx={{color: currNeighborhood ? neighborhoodsToColor[currNeighborhood] : "#000000"}}
           label="Select Neighborhood"
           onChange={changeNeighborhood}
         >

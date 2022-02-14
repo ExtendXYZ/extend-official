@@ -171,17 +171,18 @@ export const getCandyMachineState = async (
   anchorWallet: anchor.Wallet,
   candyMachineId: anchor.web3.PublicKey,
   connection: anchor.web3.Connection,
+  candyProgram: anchor.web3.PublicKey,
 ): Promise<CandyMachineState> => {
   const provider = new anchor.Provider(connection, anchorWallet, {
     preflightCommitment: "recent",
   });
 
   const idl = await anchor.Program.fetchIdl(
-    CANDY_MACHINE_PROGRAM_ID,
+    candyProgram,
     provider
   );
 
-  const program = new anchor.Program(idl, CANDY_MACHINE_PROGRAM_ID, provider);
+  const program = new anchor.Program(idl, candyProgram, provider);
   const candyMachine = {
     id: candyMachineId,
     connection,
