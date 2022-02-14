@@ -932,31 +932,7 @@ export const Home = (props: HomeProps) => {
                   <h3 style={{color: "#B687D8", display: "inline-block"}}><b>1. Mint Coming Soon, Check Back Shortly </b></h3>
                 </div>
               }
-              {/* {!MINT_NOT_READY_NBDS.has([neighborhoodX, neighborhoodY]) ? (
-                <div>
-                  {wallet && 
-                  <div>
-                    <h3 style={{color: "#B687D8", display: "inline-block"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>
-                    <Tooltip title="Enter the number of Space vouchers (max 100) you want and solve the captcha to receive them! Receiving more vouchers at a time will cost more SOL." placement="right">
-                      <InfoIcon sx={{marginLeft: "10px"}}/>
-                    </Tooltip>
-                  </div>
-                }
-                )
-                  :
-                  (
-                  <div>
-                    {<div>
-                        No Mint Available, Check Back Soon
-                      </div>
-                    }
-                  </div>
-                  )
-                </div>
-              } */}
-
-
-              {/* {wallet && <p>Get Space Vouchers to mint your Spaces. </p>} */}
+              
               <MintContainer>
                 <div>
                   {wallet && !MINT_NOT_READY_NBDS.has([neighborhoodX, neighborhoodY]) ? (
