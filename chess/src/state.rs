@@ -3,6 +3,7 @@ use solana_program::pubkey::Pubkey;
 use std::mem::size_of;
 use legal_chess::{
     chessmove::ChessMove,
+    color::Color,
     pieces::piece::PromotionPiece,
 };
 
@@ -19,12 +20,21 @@ pub enum Side {
 
 impl From<u8> for Side {
     fn from(v: u8) -> Self {
-        return match v {
+        match v {
             0x0 => Side::Undefined,
             0x1 => Side::White,
             0x2 => Side::Black,
             _ => Side::Undefined,
-        };
+        }
+    }
+}
+
+impl From<Color> for Side {
+    fn from(v: Color) -> Self {
+        match v {
+            Color::WHITE => Side::White,
+            Color::BLACK => Side::Black,
+        }
     }
 }
 

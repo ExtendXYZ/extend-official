@@ -127,7 +127,7 @@ pub fn has_voted(p: &Vote, c: &Vote) -> bool {
 }
 
 pub const ZERO_LEN: u32 = 0;
-pub fn reset_votes(board_data: &mut [u8]) -> ProgramResult {
+pub fn reset_votes(board_data: &mut &mut [u8]) -> ProgramResult {
     let start = Board::LEN;
     let votes_len_data = &mut (&mut board_data[start..start+size_of::<u32>()]);
     ZERO_LEN.serialize(votes_len_data)?;
@@ -139,7 +139,7 @@ pub enum Dir {
     Downvote = -1,
 }
 
-pub fn update_vote(board_data: &mut [u8], v: &Vote, vote_direction: Dir) -> ProgramResult {
+pub fn update_vote(board_data: &mut &mut [u8], v: &Vote, vote_direction: Dir) -> ProgramResult {
     let start = Board::LEN;
     let votes_len: usize = try_from_slice_unchecked(&board_data[start..start+size_of::<usize>()])?;
     for i in 0..votes_len {
@@ -162,4 +162,19 @@ pub fn update_vote(board_data: &mut [u8], v: &Vote, vote_direction: Dir) -> Prog
         },
         Dir::Downvote => panic!("Vote not found in tally"),
     }
+}
+
+pub fn tally_winner(board_data: &mut &mut [u8]) -> Result<VoteCount, ProgramError> {
+    let mut leader = VoteCount::empty();
+    let mut vc: VoteCount;
+    let start = Board::LEN;
+    let votes_len: usize = try_from_slice_unchecked(&board_data[start..start+size_of::<usize>()])?;
+    for i in 0..votes_len {
+        let vc_start = Board::LEN + i as usize * size_of::<VoteCount>();
+        vc = try_from_slice_unchecked(&board_data[vc_start..vc_start+size_of::<VoteCount>()])?;
+        if vc.count > leader.count {
+            leader = vc;
+        }
+    }
+    Ok(leader)
 }

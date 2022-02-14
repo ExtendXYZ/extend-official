@@ -4,12 +4,14 @@ use solana_program::{
     borsh::try_from_slice_unchecked,
     clock::Clock,
     entrypoint::ProgramResult,
+    // log::sol_log_compute_units,
     msg,
     program_error::ProgramError,
     pubkey::Pubkey,
     sysvar::Sysvar,
 };
 use legal_chess::{
+    chessmove::ChessMove,
     color::Color,
     game::Game,
 };
@@ -23,21 +25,69 @@ use crate::{
         get_index,
         get_neighborhood_xy,
         side_to_color,
-        display_game,
+        // display_game,
         assert_keys_equal,
         has_voted,
+        reset_votes,
         update_vote,
         mod_ply,
+        tally_winner,
     },
+    utils_chess::moves_and_king_attacked,
     state::{
         Board,
         Phase,
         Reg,
+        Result,
         Vote,
         TALLY_OFFSET,
         REG_OFFSET,
     }
 };
+
+pub fn apply_move(
+    board_state: &mut Board,
+    game: &mut Game,
+    chess_move: ChessMove
+) -> ProgramResult {
+    game.make_move(chess_move);
+    msg!("Made move");
+    board_state.game_arr = game.to_game_arr().to_vec();
+    board_state.move_deadline = Clock::get().unwrap().unix_timestamp as u64 + board_state.move_interval;
+    let (legal_moves, king_attacked) = moves_and_king_attacked(game);
+    if legal_moves.is_empty() {
+        msg!("Game over");
+        board_state.result = match king_attacked {
+            false => Result::Draw,
+            true => match game.side_to_move() {
+                Color::WHITE => Result::BlackWin,
+                Color::BLACK => Result::WhiteWin,
+            },
+        };
+        board_state.phase = Phase::Inactive;
+    }
+    Ok(())
+}
+
+pub fn tally_and_apply(
+    board_data: &mut &mut [u8],
+    board_state: &mut Board,
+    game: &mut Game,
+) -> ProgramResult {
+    msg!("Counting votes and updating");
+    let winner = tally_winner(board_data)?;
+    if winner.count == 0 {
+        msg!("No votes; resign");
+        board_state.result = match game.side_to_move() {
+            Color::WHITE => Result::WhiteWin,
+            Color::BLACK => Result::BlackWin,
+        };
+        board_state.phase = Phase::Inactive;
+    } else {
+        apply_move(board_state, game,winner.vote.mv.convert())?;
+    }
+    Ok(())
+}
 
 pub fn process(
     _program_id: &Pubkey,
@@ -57,10 +107,19 @@ pub fn process(
 
     // Board is initialized
     let mut board_state: Board = try_from_slice_unchecked(&board_account.data.borrow())?;
-    let board_data = &mut *board_account.data.borrow_mut();
+    let board_data: &mut &mut [u8] = &mut *board_account.data.borrow_mut();
     let mut game = Game::from_game_arr(&board_state.game_arr);
+    let active_player = match game.side_to_move() {
+        Color::WHITE => board_state.player_white,
+        Color::BLACK => board_state.player_black,
+    };
 
-    if board_state.phase == Phase::Registering {
+    let both_pk = board_state.player_white.has_pk && board_state.player_black.has_pk;
+    if both_pk && board_state.phase == Phase::Registering {
+        msg!("Activating");
+        board_state.phase = Phase::Active;
+        board_state.move_deadline = board_state.register_deadline + board_state.move_interval;
+    } else if board_state.phase == Phase::Registering {
         msg!("Still in registration, checking whether to advance");
         let now_ts = Clock::get().unwrap().unix_timestamp as u64;
         if board_state.register_deadline < now_ts {
@@ -87,10 +146,15 @@ pub fn process(
         return Err(CustomError::IncorrectPhase.into());
     }
 
-    // Update board with move if move deadline expired
-    // Count votes, apply move or resign, update state
-    // Reset votes: SET VOTES COUNT TO ZERO
-    // TODO
+    // If deadline expired: count votes, apply move or resign, update state
+    let now_ts = Clock::get().unwrap().unix_timestamp as u64;
+    if board_state.move_deadline < now_ts {
+        msg!("Move deadline hit, tallying");
+        tally_and_apply(board_data, &mut board_state, &mut game)?;
+        reset_votes(board_data)?;
+        board_state.serialize(board_data)?;
+        return Ok(());
+    }
 
     // Ply is correct
     if (args.ply/2 + 1) != game.full_moves() {
@@ -110,31 +174,9 @@ pub fn process(
     // TODO
 
     // If player is PK, play move
-    let mut terminate_game = false;
-    let active_player = match game.side_to_move() {
-        Color::WHITE => board_state.player_white,
-        Color::BLACK => board_state.player_black,
-    };
     if active_player.has_pk {
         assert_keys_equal(active_player.player_pk, *space_owner.key)?;
-        game.make_move(chess_move);
-        msg!("Made move");
-        board_state.game_arr = game.to_game_arr().to_vec();
-        board_state.move_deadline = Clock::get().unwrap().unix_timestamp as u64 + board_state.move_interval;
-        if game.legal_moves().is_empty() {
-            terminate_game = true;
-        } else {
-            display_game(&game);
-            board_state.serialize(board_data)?;
-            return Ok(());
-        }
-    }
-
-    // Terminate if applicable
-    if terminate_game {
-        msg!("Game over");
-        display_game(&game);
-        board_state.phase = Phase::Inactive;
+        apply_move(&mut board_state, &mut game, chess_move)?;
         board_state.serialize(board_data)?;
         return Ok(());
     }
@@ -172,11 +214,11 @@ pub fn process(
         update_vote(board_data, &current_vote, Dir::Upvote)?;
     }
     update_vote(board_data, &current_vote, Dir::Downvote)?;
-    board_state.serialize(board_data)?;
 
     // Also record this vote for the Space itself
     let vote_data = &mut (&mut board_account.data.borrow_mut()[vote_index..vote_index+vote_size]);
     current_vote.serialize(vote_data)?;
 
+    board_state.serialize(board_data)?;
     Ok(())
 }

@@ -7,10 +7,14 @@ pub enum CustomError {
     IncorrectPhase,
     #[error("UninitializedBoard")]
     UninitializedBoard,
+    #[error("InvalidRegisterArgs")]
+    InvalidRegisterArgs,
     #[error("PastRegistrationDeadline")]
     PastRegistrationDeadline,
     #[error("SpaceOutsideNeighborhood")]
     SpaceOutsideNeighborhood,
+    #[error("AlreadyRegistered")]
+    AlreadyRegistered,
     #[error("UnregisteredSpace")]
     UnregisteredSpace,
     #[error("PlayerMismatch")]
