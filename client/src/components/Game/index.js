@@ -2232,7 +2232,7 @@ export class Game extends React.Component {
                                 aria-expanded={this.state.viewMenuOpen ? 'true' : undefined}
                                 onClick={(e) => this.handleViewMenuOpen(e)}
                                 endIcon={<KeyboardArrowDownIcon />}
-                                sx={{marginRight: "10px"}}
+                                sx={{marginRight: "5px"}}
                             >
                                 {this.viewport.view == 0 ? "Colors" : "Prices"}
                             </Button>
@@ -2247,18 +2247,22 @@ export class Game extends React.Component {
                             <MenuItem onClick={(e) => this.setColorView()}>Colors</MenuItem>
                             <MenuItem onClick={(e) => this.setPriceView()}>Prices</MenuItem>
                         </Menu>
-                        <FormControl>
-                            <FormControlLabel
-                                disabled={!this.state.animsInfoLoaded || this.viewport.view != 0}
-                                control={
-                                    <Switch
-                                        onChange={(e) => this.handleChangeAnims(e)}
-                                        checked={this.state.anims}
-                                    />
-                                }
-                                label="Animations"
-                            />
-                        </FormControl>
+                        <Tooltip title="Toggle animations">
+                            <FormControl>
+                                <FormControlLabel
+                                    disabled={!this.state.animsInfoLoaded || this.viewport.view != 0}
+                                    control={
+                                        <Switch
+                                            onChange={(e) => this.handleChangeAnims(e)}
+                                            checked={this.state.anims}
+                                            sx={{marginRight: "10px"}}
+                                        />
+                                    }
+                                    label="Animations"
+                                    labelPlacement="start"
+                                />
+                            </FormControl>
+                        </Tooltip>
                         <Tooltip title="Select frame to view" placement="top">
                             <Select
                                 variant="standard"
