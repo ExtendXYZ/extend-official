@@ -148,6 +148,25 @@ export const awaitTransactionSignatureConfirmation = async (
   });
 }
 
+export const getCandyMachine = async(wallet, connection, candyMachineId) => {
+  const provider = new anchor.Provider(connection, wallet, {
+    preflightCommitment: "recent",
+  });
+
+  const idl = await anchor.Program.fetchIdl(
+    CANDY_MACHINE_PROGRAM_ID,
+    provider
+  );
+
+  const program = new anchor.Program(idl, CANDY_MACHINE_PROGRAM_ID, provider);
+  const candyMachine = {
+    id: candyMachineId,
+    connection,
+    program,
+  }
+  return candyMachine;
+}
+
 export const getCandyMachineState = async (
   anchorWallet: anchor.Wallet,
   candyMachineId: anchor.web3.PublicKey,

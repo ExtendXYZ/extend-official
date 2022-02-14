@@ -86,47 +86,56 @@ export class SelectingSidebar extends React.Component {
                 this.selectionSize = this.props.selecting.poses.size;
         }
 
-        // draw image on sidebar
-        let reader = new FileReader();
-        reader.onload = function (e) {
-            let bfile = e.target.result;
+        // if new image upload, render preview
+        if (this.props.selecting.hasImage && this.props.selecting.imgUpload != prevProps.selecting.imgUpload) {
+          // draw image on sidebar
+          let reader = new FileReader();
+          reader.onload = function (e) {
+              let bfile = e.target.result;
 
-            let image = new Image();
+              let image = new Image();
 
-            // draw image in sidebar
-            const img = document.getElementById("img-render");
+              // draw image in sidebar
+              const img = document.getElementById("img-render");
 
-            let bounds = getBounds(this.props.selecting.poses);
-            const height = bounds.bottom - bounds.top + 1;
-            const width = bounds.right - bounds.left + 1;
+              let bounds = getBounds(this.props.selecting.poses);
+              const height = bounds.bottom - bounds.top + 1;
+              const width = bounds.right - bounds.left + 1;
 
-            let imgwidth;
-            let imgheight;
+              let imgwidth;
+              let imgheight;
 
-            if (width >= height) {
-                imgwidth = 0.6*this.props.canvasSize;
-                imgheight = (height/width) * imgwidth;
-            }
-            else {
-                imgheight = 0.6*this.props.canvasSize;
-                imgwidth = (width/height) * imgheight;
-            }
+              if (width >= height) {
+                  imgwidth = 0.6*this.props.canvasSize;
+                  imgheight = (height/width) * imgwidth;
+              }
+              else {
+                  imgheight = 0.6*this.props.canvasSize;
+                  imgwidth = (width/height) * imgheight;
+              }
 
-            image.onload = function () {
-                const context = img.getContext("2d", {
-                    alpha: false,
-                    desynchronized: true,
-                });
-                context.clearRect(0, 0, img.width, img.height);
-                context.fillStyle = "#000000";
-                context.fillRect(0, 0, img.width, img.height);
-                context.drawImage(image, 0, 0, imgwidth, imgheight);
-            }.bind(this);
-            image.setAttribute("src",bfile);
-        }.bind(this);
+              image.onload = function () {
+                  const context = img.getContext("2d", {
+                      alpha: false,
+                      desynchronized: true,
+                  });
+                  context.clearRect(0, 0, img.width, img.height);
+                  context.fillStyle = "#000000";
+                  context.fillRect(0, 0, img.width, img.height);
+                  context.drawImage(image, 0, 0, imgwidth, imgheight);
+              }.bind(this);
+              image.setAttribute("src",bfile);
+          }.bind(this);
 
-        if (this.props.img_upl !== null) {
-          reader.readAsDataURL(this.props.img_upl);
+          reader.readAsDataURL(this.props.selecting.imgUpload);
+        }
+        else if (!this.props.selecting.hasImage){ // if no image, clear preview
+          const img = document.getElementById("img-render");
+          const context = img.getContext("2d", {
+              alpha: false,
+              desynchronized: true,
+          });
+          context.clearRect(0, 0, img.width, img.height);
         }
     }
 
@@ -274,13 +283,13 @@ export class SelectingSidebar extends React.Component {
                               />
                             </Button>
                           </Tooltip>
-                          {this.props.hasImage && 
+                          {this.props.selecting.hasImage && 
                             <Box className="infoText1" style={{marginLeft: "10px"}}>
-                              {this.props.img_upl.name}
+                              {this.props.selecting.imgUpload.name}
                             </Box> 
                           }
                         </div>
-                        {/* {this.props.hasImage &&  */}
+                        {/* {this.props.selecting.hasImage &&  */}
                         <canvas id="img-render" style={{marginTop: "20px"}} width={0.6*this.props.canvasSize + "px"} height={0.6*this.props.canvasSize + "px"}/> 
                           {/* } */}
                         <Tooltip placement={'right'} title={tooltipModifyColorTitle}>
@@ -296,7 +305,7 @@ export class SelectingSidebar extends React.Component {
                               color: "#FFFFFF",
                               background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                             }}
-                            disabled={!this.props.hasImage}
+                            disabled={!this.props.selecting.hasImage}
                           >
                             Upload
                           </Button>

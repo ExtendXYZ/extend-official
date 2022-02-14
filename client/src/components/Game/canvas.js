@@ -639,14 +639,15 @@ export class Board extends React.Component {
             const n_y = Math.floor(this.props.clicked_y / NEIGHBORHOOD_SIZE);
             const key = JSON.stringify({ n_x, n_y });
 
+            let newColor = "white";
             if (this.map && key in this.map) {
                 const p_x = this.props.clicked_x - n_x * NEIGHBORHOOD_SIZE;
                 const p_y = this.props.clicked_y - n_y * NEIGHBORHOOD_SIZE;
                 const color = this.map[key][p_y][p_x];
-                const newColor = colorHighlight(color);
-                const colorstr = `px dashed ${newColor}`;
-                currentRef.style.border = 0.1 * scale + colorstr;
+                newColor = colorHighlight(color);
             }
+            const colorstr = `px dashed ${newColor}`;
+            currentRef.style.border = 0.1 * scale + colorstr;
         }
     }
 

@@ -64,14 +64,16 @@ export const CANDY_MACHINE_PROGRAM_ID = new PublicKey(
   "XCNDrq9XYHPWi6BBWJg8huhtf6ZciNAQunkrtQgFHEz"
 );
 
-// This can be removed after metadata app is deployed
-export const IMAGE_GENERATOR_URL = 'https://metadata.extend.xyz/api/';
-
 export const CANDY_START_DATE = "1634841157";
 
+export const CAPTCHA_SITE_KEY = "6LcsJZ4dAAAAADt6g3s1WR47si9byFbhEfge1vD9"; 
 export const CAPTCHA_VERIFY_URL = "https://captcha.extend.xyz/api/verify";
 
 export const DATABASE_SERVER_URL = 'https://db.solanapixelexchange.com:3000';
 
-export const CAPTCHA_SITE_KEY = "6LcsJZ4dAAAAADt6g3s1WR47si9byFbhEfge1vD9"; 
+export const HELP_URL = "https://www.notion.so/impossiblefinance/EXTEND-FAQ-5e89a5b3082b47b786c927e131264997";
+
 export const LEDGER_KEYPAIR_INDEX = 0;
+
+// This can be removed after metadata app is deployed
+export const IMAGE_GENERATOR_URL = 'https://metadata.extend.xyz/api/';

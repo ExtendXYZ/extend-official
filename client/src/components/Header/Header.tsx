@@ -6,6 +6,7 @@ import { ModalEnum, useModal, useWalletModal } from "../../contexts";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Link, useLocation } from "react-router-dom";
 import { Tab, Tabs } from "@mui/material";
+import {HELP_URL} from "../../constants";
 
 export const Header = (props: { setNotificationsBar?: (type: string) => void }) => {
   const { setModal } = useModal();
@@ -76,6 +77,9 @@ export const Header = (props: { setNotificationsBar?: (type: string) => void }) 
               <Link to={"/mint"} style={{ color: '#FFFFFF' }}>
                 <Tab value={2} label="Mint" sx={{ fontWeight: "bold" }} />
               </Link>
+              <a href={HELP_URL} target="_blank" rel="noopener noreferrer" style={{ color: '#FFFFFF' }}>
+                <Tab value={2} label="Help" sx={{ fontWeight: "bold" }} />
+              </a>
 
             </Tabs>
           </div>
