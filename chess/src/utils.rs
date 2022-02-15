@@ -20,11 +20,12 @@ use std::{
 
 use super::error::CustomError;
 use crate::state::{
-    Board,
     Side,
     Vote,
     VoteCount,
     NEIGHBORHOOD_SIDE,
+    TALLY_START,
+    TALLY_VOTE_START,
 };
 
 pub fn assert_keys_equal(key1: Pubkey, key2: Pubkey) -> ProgramResult {
@@ -126,38 +127,31 @@ pub fn has_voted(p: &Vote, c: &Vote) -> bool {
     p.idx == c.idx && p.ply == c.ply
 }
 
-pub const ZERO_LEN: u32 = 0;
+pub const ZERO_LEN: usize = 0;
 pub fn reset_votes(board_data: &mut &mut [u8]) -> ProgramResult {
-    let start = Board::LEN;
-    let votes_len_data = &mut (&mut board_data[start..start+size_of::<u32>()]);
-    ZERO_LEN.serialize(votes_len_data)?;
-    Ok(())
+    Ok(ZERO_LEN.serialize(&mut &mut board_data[TALLY_START..TALLY_START+size_of::<usize>()])?)
 }
 
 pub enum Dir {
     Upvote = 1,
     Downvote = -1,
 }
-
 pub fn update_vote(board_data: &mut &mut [u8], v: &Vote, vote_direction: Dir) -> ProgramResult {
-    let start = Board::LEN;
-    let votes_len: usize = try_from_slice_unchecked(&board_data[start..start+size_of::<usize>()])?;
+    let votes_len: usize = try_from_slice_unchecked(&board_data[TALLY_START..TALLY_START+size_of::<usize>()])?;
     for i in 0..votes_len {
-        let vc_start = Board::LEN + i as usize * size_of::<VoteCount>();
+        let vc_start = TALLY_VOTE_START + i as usize * size_of::<VoteCount>();
         let mut vote_count: VoteCount = try_from_slice_unchecked(&board_data[vc_start..vc_start+size_of::<VoteCount>()])?;
         if &vote_count.vote == v {
             vote_count.count += 1;
-            vote_count.serialize(&mut (&mut board_data[vc_start..vc_start+size_of::<VoteCount>()]))?;
+            vote_count.serialize(&mut &mut board_data[vc_start..vc_start+size_of::<VoteCount>()])?;
             return Ok(());
         }
     }
     match vote_direction {
         Dir::Upvote => {
-            let votes_len_data = &mut (&mut board_data[start..start+size_of::<usize>()]);
-            (votes_len+1).serialize(votes_len_data)?;
-            let vc_start = Board::LEN + votes_len * size_of::<VoteCount>();
-            let vote_count_data = &mut (&mut board_data[vc_start..vc_start+size_of::<VoteCount>()]);
-            VoteCount {vote: *v, count: 0}.serialize(vote_count_data)?;
+            (votes_len+1).serialize(&mut &mut board_data[TALLY_START..TALLY_START+size_of::<usize>()])?;
+            let vc_start = TALLY_VOTE_START + votes_len * size_of::<VoteCount>();
+            VoteCount {vote: *v, count: 1}.serialize(&mut &mut board_data[vc_start..vc_start+size_of::<VoteCount>()])?;
             Ok(())
         },
         Dir::Downvote => panic!("Vote not found in tally"),
@@ -167,10 +161,10 @@ pub fn update_vote(board_data: &mut &mut [u8], v: &Vote, vote_direction: Dir) ->
 pub fn tally_winner(board_data: &mut &mut [u8]) -> Result<VoteCount, ProgramError> {
     let mut leader = VoteCount::empty();
     let mut vc: VoteCount;
-    let start = Board::LEN;
-    let votes_len: usize = try_from_slice_unchecked(&board_data[start..start+size_of::<usize>()])?;
+    let votes_len: usize = try_from_slice_unchecked(&board_data[TALLY_START..TALLY_START+size_of::<usize>()])?;
+    msg!("Distinct votes: {:?}", votes_len);
     for i in 0..votes_len {
-        let vc_start = Board::LEN + i as usize * size_of::<VoteCount>();
+        let vc_start = TALLY_VOTE_START + i as usize * size_of::<VoteCount>();
         vc = try_from_slice_unchecked(&board_data[vc_start..vc_start+size_of::<VoteCount>()])?;
         if vc.count > leader.count {
             leader = vc;

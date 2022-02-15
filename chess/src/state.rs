@@ -193,6 +193,11 @@ pub const REG_OFFSET: usize = NEIGHBORHOOD_SPACES * size_of::<Reg>();
 // Then NEIGHBORHOOD_SPACES * <Vote>, should be a ZeroCopy
 pub const VOTE_OFFSET: usize = NEIGHBORHOOD_SPACES * size_of::<Vote>();
 
+pub const TALLY_START: usize = Board::LEN;
+pub const TALLY_VOTE_START: usize = TALLY_START + size_of::<usize>();
+pub const REG_START: usize = Board::LEN + TALLY_OFFSET;
+pub const VOTE_START: usize = Board::LEN + TALLY_OFFSET + REG_OFFSET;
+
 impl Board {
     // 32 + 8 * 2 + 1 + (4 + 73) + (1 + 32) * 2 + 2 * 2 + 8 * 3 + 1 + 1
     pub const LEN: usize =
