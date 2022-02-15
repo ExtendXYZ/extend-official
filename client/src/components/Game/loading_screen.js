@@ -19,7 +19,7 @@ export class LoadingScreen extends React.Component {
         <div className="loadingScreen">
             <img src={require("../../assets/images/space.gif").default} style={{height: window.innerHeight - 200 + "px"}} />
             <h1> Loading... </h1>
-            <h5> Tip: Visit the Help tab for information about using the Canvas </h5>
+            <h5> Tip: Visit the Help tab for tutorials on using the Canvas </h5>
 
         </div>
     );
