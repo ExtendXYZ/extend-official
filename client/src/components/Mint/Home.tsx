@@ -945,7 +945,7 @@ export const Home = (props: HomeProps) => {
             <div>
               
               
-              {wallet && !MINT_NOT_READY_NBDS.has([neighborhoodX, neighborhoodY]) ? (
+              {wallet && !MINT_NOT_READY_NBDS.has(`(${neighborhoodX},${neighborhoodY})`) ? (
               <div>
               <h3 style={{color: "#B687D8", display: "inline-block"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>
               <Tooltip title="Enter the number of Space vouchers (max 100) you want and solve the captcha to receive them! Receiving more vouchers at a time will cost more SOL." placement="right">
@@ -960,7 +960,7 @@ export const Home = (props: HomeProps) => {
               }
               <MintContainer>
                 <div>
-                  {wallet && !MINT_NOT_READY_NBDS.has([neighborhoodX, neighborhoodY]) ? (
+                  {wallet && !MINT_NOT_READY_NBDS.has(`(${neighborhoodX},${neighborhoodY})`)  ? (
                     <div>
                       <TextField
                         required
