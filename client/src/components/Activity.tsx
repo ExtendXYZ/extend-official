@@ -175,6 +175,7 @@ export function Activity() {
   >([]);
   const [transactionHistory, setTransactionHistory] = useState<any[]>([]);
   const [detailsList, setDetailsList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const columns = [
     {
@@ -352,6 +353,11 @@ export function Activity() {
     );
   }, [transactionHistory, type]);
 
+  useEffect(()=>{
+    setLoading(detailsList.length == 0);
+  }, [detailsList]);
+
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -385,6 +391,7 @@ export function Activity() {
           disableColumnSelector
           disableSelectionOnClick
           pageSize={10}
+          loading={loading}
         />
       </div>
     </ThemeProvider>
