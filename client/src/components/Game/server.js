@@ -174,14 +174,14 @@ export class Server {
         const account = await connection.getTokenLargestAccounts(mint);
         if (account !== null) {
             const account_data = await connection.getAccountInfo(account.value[0].address);
-            // console.log("account_data", account_data);
+            // // console.log("account_data", account_data);
             let owner = account_data.data.slice(32, 64);
             let has_delegate = (new BN(account_data.data.slice(72, 76))).toNumber();
             let delegate = account_data.data.slice(76, 108);
             if (!has_delegate){
                 delegate.fill(0);
             }
-            // console.log("owner", owner)
+            // // console.log("owner", owner)
             return { 
                 owner: new PublicKey(owner),
                 delegate: new PublicKey(delegate)
@@ -206,7 +206,7 @@ export class Server {
             ],
             SPACE_PROGRAM_ID
         );
-        //console.log(spaceMetadata[0].toBase58());
+        //// console.log(spaceMetadata[0].toBase58());
         const account = await connection.getAccountInfo(spaceMetadata[0]);
         if (account) {
             let mint = new PublicKey(account.data.slice(1, 33));
@@ -420,13 +420,13 @@ export class Server {
                     }
                 }
             }
-            console.log("Done getting owner Spaces")
+            // console.log("Done getting owner Spaces")
 
             loading(null, infoText, 'success');
             return { spaces, mints };
         } catch (e) {
             loading(null, infoText, 'exception');
-            console.log(e);
+            // console.log(e);
             return null;
         }
     }
@@ -473,7 +473,7 @@ export class Server {
                 neighborhoodsFiltered.push({n_x, n_y});
             }
         }
-        // console.log("cache", window.frameKeyCache);
+        // // console.log("cache", window.frameKeyCache);
         neighborhoods = neighborhoodsFiltered;
 
         for (const {n_x, n_y} of neighborhoods){
@@ -723,7 +723,7 @@ export class Server {
     //         ],
     //         RENT_PROGRAM_ID
     //     );
-    //     //console.log(spaceMetadata[0].toBase58());
+    //     //// console.log(spaceMetadata[0].toBase58());
     //     const account = await connection.getAccountInfo(rent_account[0]);
     //     if (owner && account) {
     //         let rentPrice = this.bytesToNumber(account.data.slice(1, 1 + 8));
@@ -733,7 +733,7 @@ export class Server {
     //         let renter = new PublicKey(account.data.slice(33, 33 + 32));
     //         let rentEnd = this.bytesToNumber(account.data.slice(65, 65 + 8));
     //         let rentee = new PublicKey(account.data.slice(73, 73 + 32));
-    //         console.log(rentPrice);
+    //         // console.log(rentPrice);
 
     //         let now = Date.now() / 1000;
     //         let hasRentPrice = true;
@@ -840,7 +840,7 @@ export class Server {
     //         }
     //     }
     //     rentableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
-    //     console.log(rentableInfo);
+    //     // console.log(rentableInfo);
 
     //     return rentableInfo;
     // }

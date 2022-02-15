@@ -456,7 +456,7 @@ export class Game extends React.Component {
             try {
                 this.setFocus(parseInt(this.props.locator.col), parseInt(this.props.locator.row));
             } catch (e) {
-                console.log(e)
+                // console.log(e)
                 notify({
                     message: `(${this.props.locator.col}, ${this.props.locator.row}) is not a valid Space coordinate.`
                 });
@@ -472,7 +472,7 @@ export class Game extends React.Component {
                 }
                 this.setSelecting(spaces);
             } catch (e) {
-                console.log(e)
+                // console.log(e)
                 notify({
                     message: `[${this.props.locator.colStart},${this.props.locator.colEnd}] x [${this.props.locator.rowStart},${this.props.locator.rowEnd}] is not a valid range of Spaces.`
                 })
@@ -937,7 +937,7 @@ export class Game extends React.Component {
             // throw Error;
         } catch(e) { // if error getting from db, run RPC calls
             console.error(e);
-            console.log("RPC call for getting purchasable info");
+            // console.log("RPC call for getting purchasable info");
             purchasableInfoAll = await this.props.server.getPurchasableInfo(this.props.connection, this.props.user, this.state.selecting.poses);
         }
         loading(null, "loading price info", "success");
@@ -967,7 +967,7 @@ export class Game extends React.Component {
             rentableInfoAll = await this.props.database.getRentableInfo(this.props.user, this.state.selecting.poses);
         } catch(e) { // if error getting from db, run RPC calls
             console.error(e);
-            console.log("RPC call for getting rentable info");
+            // console.log("RPC call for getting rentable info");
             rentableInfoAll = await this.props.server.getRentableInfo(this.props.connection, this.props.user, this.state.selecting.poses);
         }
         loading(null, "loading rent info", "success");
@@ -1330,7 +1330,7 @@ export class Game extends React.Component {
                         found = true;
                     }
                 } catch (e) {
-                    console.log(e);
+                    // console.log(e);
                     found = false;
                 }
             } else {
@@ -1374,7 +1374,7 @@ export class Game extends React.Component {
                     }
                     loading(null, "Finding Spaces", "success");
                 } catch (e) {
-                    console.log(e);
+                    // console.log(e);
                     loading(null, "Finding Spaces", "error");
                     found = false;
                 }
@@ -1651,7 +1651,7 @@ export class Game extends React.Component {
             info = await this.props.database.getSpaceMetadata(x, y);
         } catch(e) { // if fails, run RPC call
             console.error(e);
-            console.log("RPC call for Space metadata");
+            // console.log("RPC call for Space metadata");
             // info = await this.props.server.getSpaceInfoWithRent(connection, x, y);
             info = await this.props.server.getSpaceMetadata(connection, x, y);
         }
@@ -1854,7 +1854,7 @@ export class Game extends React.Component {
             mySpacesMenuAnchorEl: null,
         });
         this.setState({refreshingUserSpaces: true});
-        console.log("refreshing user Spaces");
+        // console.log("refreshing user Spaces");
         let data = await this.props.server.getSpacesByOwner(this.props.connection, this.props.user);
         const spaces = data.spaces;
         const mints = data.mints;
