@@ -294,9 +294,9 @@ export async function sendTransactionsWithManualRetry(
     loading(null, "Sending transactions...", "Exception");
   }
   // console.log(
-    "Finished instructions length is",
-    instructions.length
-  );
+  //   "Finished instructions length is",
+  //   instructions.length
+  // );
 
   // make response know whether the transactions failed or succeeded
   return responses;
