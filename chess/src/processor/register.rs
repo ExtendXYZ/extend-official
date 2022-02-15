@@ -19,6 +19,7 @@ use crate::{
         get_index,
     },
     state::{
+        REG_START,
         Board,
         Phase,
         Reg,
@@ -48,10 +49,10 @@ pub fn process(
     }
 
     // Parse board
-    msg!("r space {:?}", args.space);
-    msg!("r side {:?}", args.side);
-    let mut board_state: Board = try_from_slice_unchecked(&board_account.data.borrow())?;
-    let board_data = &mut *board_account.data.borrow_mut();
+    msg!("Space: {:?}", args.space);
+    msg!("Side: {:?}", args.side);
+    let board_data: &mut &mut [u8] = &mut *board_account.data.borrow_mut();
+    let mut board_state: Board = try_from_slice_unchecked(&board_data[0..Board::LEN])?;
 
     // Board is currently registering
     if board_state.phase != Phase::Registering {
@@ -75,20 +76,22 @@ pub fn process(
     }
 
     // Space not already registered
+    msg!("Checking space registration");
     let space_index = get_index(args.space.x, args.space.y);
     let reg_size = size_of::<Reg>();
-    let reg_start: usize = Board::LEN + space_index * reg_size;
-    let side_registered: Reg = try_from_slice_unchecked(&board_account.data.borrow()[reg_start..reg_start+reg_size])?;
+    let reg_index: usize = REG_START + space_index * reg_size;
+    let side_registered: Reg = try_from_slice_unchecked(&board_data[reg_index..reg_index+reg_size])?;
     if side_registered.idx == board_state.idx {
         return Err(CustomError::AlreadyRegistered.into());
     }
 
     // Assign space
+    msg!("Assigning space");
     let reg = Reg {idx: board_state.idx, side: args.side};
-    let space_data: &mut &mut [u8] = &mut (&mut board_data[reg_start..reg_start+reg_size]);
-    reg.serialize(space_data)?;
+    reg.serialize(&mut &mut board_data[reg_index..reg_index+reg_size])?;
 
     // Update count
+    msg!("Updating registration count");
     match args.side {
         Side::White => board_state.reg_white += 1,
         Side::Black => board_state.reg_black += 1,

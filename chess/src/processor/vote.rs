@@ -40,8 +40,8 @@ use crate::{
         Reg,
         Result,
         Vote,
-        TALLY_OFFSET,
-        REG_OFFSET,
+        REG_START,
+        VOTE_START,
     }
 };
 
@@ -84,6 +84,7 @@ pub fn tally_and_apply(
         };
         board_state.phase = Phase::Inactive;
     } else {
+        msg!("Winner: {:?}", winner);
         apply_move(board_state, game,winner.vote.mv.convert())?;
     }
     Ok(())
@@ -106,14 +107,18 @@ pub fn process(
     }
 
     // Board is initialized
-    let mut board_state: Board = try_from_slice_unchecked(&board_account.data.borrow())?;
     let board_data: &mut &mut [u8] = &mut *board_account.data.borrow_mut();
+    let mut board_state: Board = try_from_slice_unchecked(&board_data[0..Board::LEN])?;
     let mut game = Game::from_game_arr(&board_state.game_arr);
     let active_player = match game.side_to_move() {
         Color::WHITE => board_state.player_white,
         Color::BLACK => board_state.player_black,
     };
+    msg!("Phase: {:?}", board_state.phase);
 
+    // msg!("Board: {:?}", board_state);
+
+    // Activate game if necessary
     let both_pk = board_state.player_white.has_pk && board_state.player_black.has_pk;
     if both_pk && board_state.phase == Phase::Registering {
         msg!("Activating");
@@ -133,10 +138,10 @@ pub fn process(
                 board_state.move_deadline = board_state.register_deadline + board_state.move_interval;
             } else {
                 msg!("Extending registration - players not ready");
-                board_state.move_deadline = now_ts + board_state.move_interval;
-                board_state.serialize(board_data)?;
-                return Ok(());
+                board_state.register_deadline = now_ts + board_state.move_interval;
             }
+            board_state.serialize(board_data)?;
+            return Ok(());
         }
     }
 
@@ -147,6 +152,7 @@ pub fn process(
     }
 
     // If deadline expired: count votes, apply move or resign, update state
+    // Also triggers if PK player failed to vote
     let now_ts = Clock::get().unwrap().unix_timestamp as u64;
     if board_state.move_deadline < now_ts {
         msg!("Move deadline hit, tallying");
@@ -189,10 +195,9 @@ pub fn process(
     let space_index = get_index(args.space.x, args.space.y);
 
     // Space is assigned to the side to move for this game
-    let side_start = Board::LEN;
     let reg_size = size_of::<Reg>();
-    let reg_start: usize = side_start + space_index * reg_size;
-    let side_registered: Reg = try_from_slice_unchecked(&board_account.data.borrow()[reg_start..reg_start+reg_size])?;
+    let reg_index: usize = REG_START + space_index * reg_size;
+    let side_registered: Reg = try_from_slice_unchecked(&board_data[reg_index..reg_index+reg_size])?;
     if side_registered.idx != board_state.idx {
         return Err(CustomError::UnregisteredSpace.into());
     }
@@ -201,22 +206,21 @@ pub fn process(
     }
 
     // Tally vote, decrementing if this space has previously voted
-    let vote_start = Board::LEN + TALLY_OFFSET + REG_OFFSET;
     let vote_size = size_of::<Vote>();
-    let vote_index = vote_start + space_index * vote_size;
-    let prior_vote: Vote = try_from_slice_unchecked(&board_account.data.borrow()[vote_index..vote_index+vote_size])?;
+    let vote_index = VOTE_START + space_index * vote_size;
+    let prior_vote: Vote = try_from_slice_unchecked(&board_data[vote_index..vote_index+vote_size])?;
     let current_vote: Vote = Vote {
         idx: board_state.idx,
         ply: mod_ply(args.ply),
         mv: args.vote,
     };
     if has_voted(&prior_vote, &current_vote) {
-        update_vote(board_data, &current_vote, Dir::Upvote)?;
+        update_vote(board_data, &current_vote, Dir::Downvote)?;
     }
-    update_vote(board_data, &current_vote, Dir::Downvote)?;
+    update_vote(board_data, &current_vote, Dir::Upvote)?;
 
     // Also record this vote for the Space itself
-    let vote_data = &mut (&mut board_account.data.borrow_mut()[vote_index..vote_index+vote_size]);
+    let vote_data = &mut (&mut board_data[vote_index..vote_index+vote_size]);
     current_vote.serialize(vote_data)?;
 
     board_state.serialize(board_data)?;

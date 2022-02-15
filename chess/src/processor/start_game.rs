@@ -18,6 +18,7 @@ use crate::{
     state::{
         Board,
         Phase,
+        Result,
     },
 };
 
@@ -53,14 +54,17 @@ pub fn process(
     board_state.game_arr = game.to_game_arr().to_vec();
     board_state.player_white = args.player_white;
     board_state.player_black = args.player_black;
+    board_state.reg_white = 0;
+    board_state.reg_black = 0;
     board_state.register_deadline = args.register_deadline;
     board_state.move_interval = args.move_interval as u64;
     board_state.phase = Phase::Registering;
+    board_state.result = Result::None;
     display_game(&game);
 
     // Write the board
     let board_data = &mut *board_account.data.borrow_mut();
-    board_state.serialize(board_data)?;
+    board_state.serialize(&mut &mut board_data[0..Board::LEN])?;
 
     // Reset votes
     reset_votes(board_data)?;

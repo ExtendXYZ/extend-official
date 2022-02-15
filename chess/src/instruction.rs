@@ -42,7 +42,7 @@ pub struct RegisterArgs {
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
 pub struct VoteArgs {
     pub space: Space,
-    pub ply: u16,
+    pub ply: u16,  // -1 to update but not actually cast vote
     pub vote: Move,
 }
 
