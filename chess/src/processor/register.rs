@@ -2,12 +2,10 @@ use borsh::BorshSerialize;
 use solana_program::{
     account_info::{AccountInfo, next_account_info},
     borsh::try_from_slice_unchecked,
-    clock::Clock,
     entrypoint::ProgramResult,
     msg,
     program_error::ProgramError,
     pubkey::Pubkey,
-    sysvar::Sysvar,
 };
 use std::mem::size_of;
 
@@ -17,11 +15,13 @@ use crate::{
     utils::{
         get_neighborhood_xy,
         get_index,
+        now_ts,
     },
     state::{
         REG_START,
         Board,
         Phase,
+        PlayerParams,
         Reg,
         Side,
     }
@@ -60,10 +60,19 @@ pub fn process(
     }
 
     // Deadline not yet elapsed
-    let now_ts = Clock::get().unwrap().unix_timestamp as u64;
-    if board_state.register_deadline < now_ts {
+    if board_state.register_deadline < now_ts() {
         msg!("Cannot register - past deadline");
         return Err(CustomError::PastRegistrationDeadline.into());
+    }
+
+    let player: PlayerParams = match args.side {
+        Side::White => board_state.player_white,
+        Side::Black => board_state.player_black,
+        _ => panic!("Unexpected side arg"),
+    };
+    if player.has_pk {
+        msg!("Cannot register for a pubkey-based player");
+        return Err(CustomError::PubkeyPlayer.into());
     }
 
     // Account owns space

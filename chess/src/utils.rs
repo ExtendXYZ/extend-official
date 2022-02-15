@@ -2,11 +2,13 @@ use borsh::BorshSerialize;
 use solana_program::{
     account_info::AccountInfo,
     borsh::try_from_slice_unchecked,
+    clock::Clock,
     entrypoint::ProgramResult,
     msg,
     program_error::ProgramError,
     program_pack::{IsInitialized, Pack},
     pubkey::Pubkey,
+    sysvar::Sysvar,
 };
 use legal_chess::{
     color::Color,
@@ -118,6 +120,8 @@ pub fn display_game(g: &Game) {
     }
     msg!("To move: {:?}", g.side_to_move());
 }
+
+pub fn now_ts() -> u64 { Clock::get().unwrap().unix_timestamp as u64 }
 
 pub fn mod_ply(ply: u16) -> u8 {
     (ply % 256) as u8

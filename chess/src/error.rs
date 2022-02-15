@@ -13,6 +13,8 @@ pub enum CustomError {
     PastRegistrationDeadline,
     #[error("SpaceOutsideNeighborhood")]
     SpaceOutsideNeighborhood,
+    #[error("PubkeyPlayer")]
+    PubkeyPlayer,
     #[error("AlreadyRegistered")]
     AlreadyRegistered,
     #[error("UnregisteredSpace")]
