@@ -274,7 +274,7 @@ export const GIF = function () {
     //     ajax.onload = function (e) {
     //         if (e.target.status === 404) { error("File not found") }
     //         else if(e.target.status >= 200 && e.target.status < 300 ) { 
-    //             // console.log(ajax.response)
+    //             // // console.log(ajax.response)
     //             dataLoaded(ajax.response) }
     //         else { error("Loading error : " + e.target.status) }
     //     };

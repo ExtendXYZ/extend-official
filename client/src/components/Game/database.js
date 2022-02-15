@@ -16,7 +16,7 @@ export class Database {
     }
 
     async connect() {
-        console.log("connecting:");
+        // console.log("connecting:");
         return await axios.post(this.mysql + "/connect/", "connect", {
             headers: { 'Content-Type': 'text/plain' }
           });
@@ -50,7 +50,7 @@ export class Database {
 
     async getOnline() {
         const result = await axios.get(this.mysql + '/connect');
-        console.log(result);
+        // console.log(result);
     }
 
     async getSpacesByOwner(address) {
@@ -208,7 +208,7 @@ export class Database {
     // async getSpaceInfoWithRent(x, y){
     //     const results = await axios.get(this.mysql + '/infoWithRent/' + x + '/' + y);
     //     const data = results.data[0];
-    //     console.log(data);
+    //     // console.log(data);
     //     let [mint, owner, price, forSale, rentPrice, minDuration, maxDuration, maxTimestamp, rentEnd, renter, rentee] = data;
 
     //     let hasRentPrice = true;
@@ -256,7 +256,7 @@ export class Database {
     //     let rentableInfo = [];
     //     for (let arr of data) {
     //         let [x, y, mint, owner, rentPrice, minDuration, maxDuration, maxTimestamp, rentEnd, renter] = arr;
-    //         console.log(arr);
+    //         // console.log(arr);
     //         if (poses.has(JSON.stringify({x, y})) && (!user || user.toBase58() != owner)) { // if in poses, not owned by curr user, and for Sale 
     //             rentableInfo.push(
     //                 {

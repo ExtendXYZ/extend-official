@@ -67,7 +67,7 @@
     "lodash": "^4.17.21",
     "loglevel": "^1.7.1",
     "merge-images": "^2.0.0",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.7",
     "prettier": "^2.4.1",
     "ts-node": "^10.4.0",
     "weighted": "^0.3.0",

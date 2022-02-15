@@ -90,7 +90,7 @@ export function Screen(props) {
             return currId;
         } 
         const id = crypto.randomBytes(20).toString('hex');
-        console.log("New", id)
+        // console.log("New", id)
         localStorage.setItem("id", id);
         return id;
     }
@@ -203,7 +203,7 @@ export function Screen(props) {
                         ))[0];
                         accs.push(spaceAcc);
                     }
-                    console.log("Accounts", accs.length)
+                    // console.log("Accounts", accs.length)
                     const accInfos = await server.batchGetMultipleAccountsInfoLoading(connection, accs, 'Registering');
                     loading(null, 'Registering', "success");
 
@@ -231,7 +231,7 @@ export function Screen(props) {
                 }
 
                 const numRegistering = Object.keys(currMints).length;
-                console.log("Need to register", numRegistering)
+                // console.log("Need to register", numRegistering)
 
                 if (numRegistering === 0) { // if there are no spaces to register
                     notify({ message: "Already registered all Spaces" });
@@ -261,7 +261,7 @@ export function Screen(props) {
                         await sleep(20000); // sleep 20 seconds metadata completion
                         await database.register(wallet.publicKey, doneMints);
                         
-                        console.log("Total accs remaining after register", Object.keys(totalAccs).length)
+                        // console.log("Total accs remaining after register", Object.keys(totalAccs).length)
                         setRegisterAccs(totalAccs); // cache the unregistered accs and mints to avoid heavy get account infos
                         setRegisterMints(totalMints);
 
@@ -273,7 +273,7 @@ export function Screen(props) {
                         }
                     }
                     catch (e) {
-                        console.log(e);
+                        // console.log(e);
                     }
                 }
                 loading(null, 'Registering', 'success'); // TODO use correct status
@@ -325,7 +325,7 @@ export function Screen(props) {
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change color", true, n_frames);
                 }
                 catch (e) {
-                    console.log(e)
+                    // console.log(e)
                     return;
                 }
             }
@@ -392,7 +392,7 @@ export function Screen(props) {
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change colors", true, n_frames);
                 }
                 catch (e) {
-                    console.log(e)
+                    // console.log(e)
                     return;
                 }
             }
@@ -630,7 +630,7 @@ export function Screen(props) {
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change color", true, n_frames);
                 }
                 catch (e) {
-                    console.log(e)
+                    // console.log(e)
                     return;
                 }
             }
@@ -649,7 +649,7 @@ export function Screen(props) {
             const owners = gifUploadTrigger["owners"];
             if (gif != null && wallet.publicKey) {
 
-                console.log("GIF Length", gif.length)
+                // console.log("GIF Length", gif.length)
 
                 const spaceGrid = ownedSpaces;
 
@@ -697,7 +697,7 @@ export function Screen(props) {
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change color", true, n_frames);
                 }
                 catch (e) {
-                    console.log(e)
+                    // console.log(e)
                     return;
                 }
 
@@ -907,7 +907,7 @@ export function Screen(props) {
                     notify({ message: `Expand succeeded` });
 
                 } catch (e) {
-                    console.log("failed to expand: ", e);
+                    // console.log("failed to expand: ", e);
                     notify({ message: `Expand failed` });
                 }
                 loading(null, "Expanding", "success");
@@ -951,7 +951,7 @@ export function Screen(props) {
                         [colorRes.keypair]
                     );
                 } catch (e) {
-                    console.log("failed to add new frame", e)
+                    // console.log("failed to add new frame", e)
                 }
             }
         }

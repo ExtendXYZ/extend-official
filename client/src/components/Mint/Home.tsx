@@ -246,7 +246,7 @@ export const Home = (props: HomeProps) => {
         itemsRedeemed = res.itemsRedeemed;
       } catch (e) {
         setNoMint(true);
-        console.log(e)
+        // console.log(e)
         return;
       }
 
@@ -265,7 +265,7 @@ export const Home = (props: HomeProps) => {
 
       // token balance 
       const tokenBalance = await getTokenBalance(wallet.publicKey, voucherMint);
-      //console.log(tokenBalance)
+      //// console.log(tokenBalance)
       setTotalTokens(tokenBalance);
 
       setDisableMint(false); // reset disable
@@ -303,7 +303,7 @@ export const Home = (props: HomeProps) => {
         MintLayout.span
       );
       const voucherSink = await getVoucherSink(neighborhoodX, neighborhoodY);
-      console.log("Getting mint instructions")
+      // console.log("Getting mint instructions")
       for (let i = 0; i < numRedeeming; i++) {
         let mint = anchor.web3.Keypair.generate();
         let mintInstructions = await mintOneTokenInstructions(
@@ -343,7 +343,7 @@ export const Home = (props: HomeProps) => {
         });
       }
     } catch (e) {
-      console.log(e);
+      // console.log(e);
       notify({
         message: "Mint failed! Please try again!",
         type: "error",
@@ -476,7 +476,7 @@ export const Home = (props: HomeProps) => {
         response: recaptchaResponse,
         transaction: tokenTransaction.serialize({ requireAllSignatures: false })
       }
-      //console.log(data);
+      //// console.log(data);
 
       let res = await axios.post(CAPTCHA_VERIFY_URL, data);
 
@@ -544,7 +544,7 @@ export const Home = (props: HomeProps) => {
       ))[0];
       accs.push(spaceAcc);
     }
-    console.log("Accounts", accs.length)
+    // console.log("Accounts", accs.length)
     const accInfos = await server.batchGetMultipleAccountsInfoLoading(props.connection, accs, 'Getting info');
     loading(null, 'Getting info', "success");
 
@@ -561,7 +561,7 @@ export const Home = (props: HomeProps) => {
     }
 
     const numRegistering = Object.keys(currMints).length;
-    console.log("Need to register", numRegistering)
+    // console.log("Need to register", numRegistering)
 
     if (numRegistering === 0) { // if there are no spaces to register
       notify({
@@ -619,7 +619,7 @@ export const Home = (props: HomeProps) => {
         }
       }
       catch (e) {
-        console.log(e);
+        // console.log(e);
         notify({
           message: `Registered failed, please try again`,
           type: "error",
@@ -703,7 +703,7 @@ export const Home = (props: HomeProps) => {
           x = twoscomplement_u2i(activeNeighborhoods.slice(i * 8 + preBuffer, (i + 1) * 8 + preBuffer));
           y = twoscomplement_u2i(activeNeighborhoods.slice((len + i) * 8 + preBuffer + 4, (len + i + 1) * 8 + preBuffer + 4));
         } catch (e) {
-          console.log(e)
+          // console.log(e)
           return;
         }
         if (x != null && y != null) {
@@ -802,12 +802,19 @@ export const Home = (props: HomeProps) => {
   }, [neighborhoodX, neighborhoodY]);
 
   useEffect(() => {
-    // once done fetching all new neighborhood info, refresh candy machine state
+    // once done fetching all new neighborhood info, refresh voucher system state
     if (doneFetching) {
       refreshVoucherSystemState();
       setDoneFetching(false);
     }
   }, [doneFetching]);
+
+  useEffect(() => {
+    // make sure when wallet connects, refresh voucher system state
+    if (wallet?.publicKey) {
+      refreshVoucherSystemState();
+    }
+  }, [wallet]);
 
   useEffect(() => {
     if (neighborhoods) {
@@ -945,7 +952,7 @@ export const Home = (props: HomeProps) => {
             <div>
               
               
-              {wallet && !MINT_NOT_READY_NBDS.has([neighborhoodX, neighborhoodY]) ? (
+              {wallet && !MINT_NOT_READY_NBDS.has(`(${neighborhoodX},${neighborhoodY})`) ? (
               <div>
               <h3 style={{color: "#B687D8", display: "inline-block"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>
               <Tooltip title="Enter the number of Space vouchers (max 100) you want and solve the captcha to receive them! Receiving more vouchers at a time will cost more SOL." placement="right">
@@ -955,12 +962,12 @@ export const Home = (props: HomeProps) => {
               </div> )
               :
                 <div>
-                  <h3 style={{color: "#B687D8", display: "inline-block"}}><b>1. Mint Coming Soon, Check Back Shortly </b></h3>
+                  <h3 style={{color: "#B687D8", display: "inline-block"}}><b>1. Obtaining vouchers not open, check back shortly </b></h3>
                 </div>
               }
               <MintContainer>
                 <div>
-                  {wallet && !MINT_NOT_READY_NBDS.has([neighborhoodX, neighborhoodY]) ? (
+                  {wallet && !MINT_NOT_READY_NBDS.has(`(${neighborhoodX},${neighborhoodY})`)  ? (
                     <div>
                       <TextField
                         required
