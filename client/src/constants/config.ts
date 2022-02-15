@@ -72,7 +72,7 @@ export const CAPTCHA_VERIFY_URL = "https://captcha.extend.xyz/api/verify";
 
 export const DATABASE_SERVER_URL = 'https://db.solanapixelexchange.com:3000';
 
-export const HELP_URL = "https://www.notion.so/impossiblefinance/EXTEND-FAQ-5e89a5b3082b47b786c927e131264997";
+export const HELP_URL = "https://impossiblefinance.notion.site/EXTEND-CANVAS-FAQ-5e89a5b3082b47b786c927e131264997";
 
 export const LEDGER_KEYPAIR_INDEX = 0;
 
