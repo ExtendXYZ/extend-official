@@ -2,7 +2,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::program_error::ProgramError;
 
 use crate::state::{
-    Move, PlayerParams, Side,
+    Move, PlayerParams, Side, Space,
 };
 
 /*
@@ -62,13 +62,6 @@ pub struct StartGameArgs {
 
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
-pub struct Space {
-    pub x: i64,
-    pub y: i64,
-}
-
-#[repr(C)]
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
 pub struct RegisterArgs {
     pub space: Space,
     pub side: Side,
@@ -85,30 +78,30 @@ pub struct VoteArgs {
 
 pub enum ChessInstruction {
     /*
-     * 0. Base account
-     * 1. Board owner
-     * 2. Board account
-     * 3. System program
+     * 0. Board owner
+     * 1. Board account
+     * 2. System program
      */
     InitBoard,
     /*
-     * 0. Base account
-     * 1. Board owner
-     * 2. Board account
+     * 0. Board owner
+     * 1. Board account
      */
     StartGame,
     /*
      * 0. Base account
      * 1. Space owner
      * 2. Space account
-     * 3. Board account
+     * 3. Space ATA
+     * 4. Board account
      */
     Register,
     /*
      * 0. Base account
      * 1. Space owner
      * 2. Space account
-     * 3. Board account
+     * 3. Space ATA
+     * 4. Board account
      */
     Vote,
 }

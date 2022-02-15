@@ -13,6 +13,7 @@ use crate::{
     error::CustomError,
     instruction::RegisterArgs,
     utils::{
+        assert_valid_owned_space,
         get_neighborhood_xy,
         get_index,
         now_ts,
@@ -24,6 +25,7 @@ use crate::{
         PlayerParams,
         Reg,
         Side,
+
     }
 };
 
@@ -33,9 +35,10 @@ pub fn process(
     args: &RegisterArgs,
 ) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
-    let _base = next_account_info(account_info_iter)?;
+    let base = next_account_info(account_info_iter)?;
     let space_owner = next_account_info(account_info_iter)?;
-    let _space_account = next_account_info(account_info_iter)?;
+    let space_meta = next_account_info(account_info_iter)?;
+    let space_ata = next_account_info(account_info_iter)?;
     let board_account = next_account_info(account_info_iter)?;
 
     // Space account is signer
@@ -75,14 +78,14 @@ pub fn process(
         return Err(CustomError::PubkeyPlayer.into());
     }
 
-    // Account owns space
-    // TODO
-
     // Space inside neighborhood
     let (nx, ny) = get_neighborhood_xy(args.space.x, args.space.y);
     if nx != board_state.nx || ny != board_state.ny {
         return Err(CustomError::SpaceOutsideNeighborhood.into());
     }
+
+    // Account owns space
+    assert_valid_owned_space(base, space_owner, space_meta, space_ata, &args.space)?;
 
     // Space not already registered
     msg!("Checking space registration");

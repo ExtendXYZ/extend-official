@@ -19,6 +19,8 @@ pub enum CustomError {
     AlreadyRegistered,
     #[error("UnregisteredSpace")]
     UnregisteredSpace,
+    #[error("MissingTokenOwner")]
+    MissingTokenOwner,
     #[error("PlayerMismatch")]
     PlayerMismatch,
     #[error("PlyMismatch")]
