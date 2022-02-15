@@ -802,12 +802,19 @@ export const Home = (props: HomeProps) => {
   }, [neighborhoodX, neighborhoodY]);
 
   useEffect(() => {
-    // once done fetching all new neighborhood info, refresh candy machine state
+    // once done fetching all new neighborhood info, refresh voucher system state
     if (doneFetching) {
       refreshVoucherSystemState();
       setDoneFetching(false);
     }
   }, [doneFetching]);
+
+  useEffect(() => {
+    // make sure when wallet connects, refresh voucher system state
+    if (wallet?.publicKey) {
+      refreshVoucherSystemState();
+    }
+  }, [wallet]);
 
   useEffect(() => {
     if (neighborhoods) {
