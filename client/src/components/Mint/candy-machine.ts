@@ -49,7 +49,7 @@ export const awaitTransactionSignatureConfirmation = async (
         return;
       }
       done = true;
-      console.log("Rejecting for timeout...");
+      // console.log("Rejecting for timeout...");
       reject({ timeout: true });
     }, timeout);
     try {
@@ -63,10 +63,10 @@ export const awaitTransactionSignatureConfirmation = async (
             confirmations: 0,
           };
           if (result.err) {
-            console.log("Rejected via websocket", result.err);
+            // console.log("Rejected via websocket", result.err);
             reject(status);
           } else {
-            console.log("Resolved via websocket", result);
+            // console.log("Resolved via websocket", result);
             resolve(status);
           }
         },
@@ -86,22 +86,22 @@ export const awaitTransactionSignatureConfirmation = async (
           status = signatureStatuses && signatureStatuses.value[0];
           if (!done) {
             if (!status) {
-              console.log("REST null result for", txid, status);
+              // console.log("REST null result for", txid, status);
             } else if (status.err) {
-              console.log("REST error for", txid, status);
+              // console.log("REST error for", txid, status);
               done = true;
               reject(status.err);
             } else if (!status.confirmations) {
-              console.log("REST no confirmations for", txid, status);
+              // console.log("REST no confirmations for", txid, status);
             } else {
-              console.log("REST confirmation for", txid, status);
+              // console.log("REST confirmation for", txid, status);
               done = true;
               resolve(status);
             }
           }
         } catch (e) {
           if (!done) {
-            console.log("REST connection error: txid", txid, e);
+            // console.log("REST connection error: txid", txid, e);
           }
         }
       })();
@@ -114,7 +114,7 @@ export const awaitTransactionSignatureConfirmation = async (
     connection.removeSignatureListener(subId);
   }
   done = true;
-  console.log("Returning status", status);
+  // console.log("Returning status", status);
   return status;
 }
 
@@ -190,7 +190,7 @@ export const getCandyMachineState = async (
   }
 
   const state: any = await program.account.candyMachine.fetch(candyMachineId);
-  // console.log(state);
+  // // console.log(state);
 
   const itemsAvailable = state.data.itemsAvailable.toNumber();
   const itemsRedeemed = state.itemsRedeemed.toNumber();
@@ -202,7 +202,7 @@ export const getCandyMachineState = async (
     goLiveDate = new Date(date * 1000);
   }
 
-  // console.log({
+  // // console.log({
   //   itemsAvailable,
   //   itemsRedeemed,
   //   itemsRemaining,
@@ -388,7 +388,7 @@ export const mintOneTokenInstructions = async (
     }),
   );
   
-  // console.log("returning instructions");
+  // // console.log("returning instructions");
 
   return instructions;
 }
@@ -424,7 +424,7 @@ export const mintOneTokenInstructions = async (
 
 
 
-//   console.log(res);
+//   // console.log(res);
 
 
 
