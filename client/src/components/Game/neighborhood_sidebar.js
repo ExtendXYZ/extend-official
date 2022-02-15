@@ -6,9 +6,6 @@ import { Tooltip, Spin } from "antd";
 import {formatPrice} from "../../utils"; 
 
 export class NeighborhoodSidebar extends React.Component {
-  constructor(props) {
-    super(props);
-  }
   componentDidMount() {
     if (!this.props.neighborhood.infoLoaded){
       return;

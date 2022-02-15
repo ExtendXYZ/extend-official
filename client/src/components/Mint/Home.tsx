@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import * as React from 'react';
 import styled from "styled-components";
 import Countdown from "react-countdown";
-import { Alert, Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select, InputAdornment } from "@mui/material";
+import { Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select, InputAdornment } from "@mui/material";
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import InfoIcon from '@mui/icons-material/Info';
 
@@ -208,7 +208,7 @@ export const Home = (props: HomeProps) => {
 
   const getTokenBalance = async (user, mint) => {
     let ATA = await getTokenWallet(user, mint);
-    // if (user != VOUCHER_TOKEN_AUTH) { // avoid getAccountInfo by caching?
+    // if (user !== VOUCHER_TOKEN_AUTH) { // avoid getAccountInfo by caching?
     const data = await props.connection.getAccountInfo(ATA);
     if (!data) {
       return 0;
@@ -376,7 +376,7 @@ export const Home = (props: HomeProps) => {
       }
 
       try {
-        var { txid, slot } = await sendSignedTransaction({
+        var { txid } = await sendSignedTransaction({
           connection,
           signedTransaction: transaction,
         });
@@ -416,7 +416,7 @@ export const Home = (props: HomeProps) => {
       // TODO: blech:
       let message = error.msg || "Failed to receive Space Voucher! Please try again!";
       notify({
-        message: "Failed to receive Space Voucher! Please try again!",
+        message,
         type: "error",
         duration: 0,
       });
@@ -706,7 +706,7 @@ export const Home = (props: HomeProps) => {
           // console.log(e)
           return;
         }
-        if (x != null && y != null) {
+        if (x !== null && y !== null) {
           goodNeighborhoods.push(x.toString() + "," + y.toString());
         }
       }
@@ -788,7 +788,7 @@ export const Home = (props: HomeProps) => {
     const updateNeighborhoodInfo = async () => {
       setNoMint(false);
       setClicked(false);
-      if (neighborhoodX != null && neighborhoodY != null) {
+      if (neighborhoodX !== null && neighborhoodY !== null) {
         const nhoodAcc = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
         const account = await props.connection.getAccountInfo(nhoodAcc);
         if (account) {
@@ -832,7 +832,7 @@ export const Home = (props: HomeProps) => {
         const colorMap = {};
         await Promise.all(
           frameInfos.map(async (value, i) => {
-            const { n_x, n_y, frame } = value;
+            const { n_x, n_y } = value;
             const key = JSON.stringify({ n_x, n_y });
             colorMap[key] = await server.getFrameData(frameDatas[i]);
           })
@@ -948,7 +948,7 @@ export const Home = (props: HomeProps) => {
       {wallet ? (
         <div>
 
-          {neighborhoodX != null && neighborhoodY != null && !noMint ? (
+          {neighborhoodX !== null && neighborhoodY !== null && !noMint ? (
             <div>
               
               

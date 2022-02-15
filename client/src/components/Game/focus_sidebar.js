@@ -70,7 +70,7 @@ export class FocusSidebar extends React.Component {
     }
     
     componentDidUpdate(prevProps) {
-        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.focus.x != prevProps.focus.x || this.props.focus.y != prevProps.focus.y) {  
+        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.focus.x !== prevProps.focus.x || this.props.focus.y !== prevProps.focus.y) {  
             this.setState({
                 owned: (this.props.ownedSpaces &&
                     this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })))
@@ -96,6 +96,7 @@ export class FocusSidebar extends React.Component {
                     style={this.props.focus.infoLoaded && this.props.focus.imgLoaded ? {maxWidth: "30%"} : {display: 'none'}}
                     className="center"
                     onLoad={() => this.props.handleOnImgLoad()}
+                    alt="NFT"
                 ></img>
             </div>
             </ListItem>
@@ -201,6 +202,7 @@ export class FocusSidebar extends React.Component {
                     style={this.props.focus.infoLoaded && this.props.focus.imgLoaded ? {maxWidth: "30%"} : {display: 'none'}}
                     className="center"
                     onLoad={() => this.props.handleOnImgLoad()}
+                    alt="NFT"
                 ></img>
             </div>
             </ListItem>

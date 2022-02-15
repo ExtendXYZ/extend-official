@@ -12,7 +12,7 @@ import {
     TransactionInstruction,
     TransactionSignature,
 } from "@solana/web3.js";
-import {RPC_devnet, RPC_mainnet, BATCH_TX_SIZE, RPC} from "../constants"
+import {RPC_devnet, BATCH_TX_SIZE, RPC} from "../constants"
 import React, {useContext, useEffect, useMemo, useState} from "react";
 import {notify} from "../utils/notifications";
 import {ExplorerLink} from "../components/ExplorerLink";
@@ -21,38 +21,9 @@ import {WalletSigner} from "./WalletContext/WalletContext";
 import {WalletNotConnectedError} from "@solana/wallet-adapter-base";
 import {loading} from '../utils/loading';
 
-import { RateLimiter } from 'limiter'
-import { first } from "lodash";
 let requestNum = 0;
 let sigNum = 0;
-let txNum = 0;
-
-class LimiterLibraryRateLimiter {
-  maxRequests: any; 
-  maxRequestWindowMS: any;
-  limiter: any;
-
-  constructor (args: { maxRequests: any; maxRequestWindowMS: any }) {
-    this.maxRequests = args.maxRequests;
-    this.maxRequestWindowMS = args.maxRequestWindowMS;
-    this.limiter = new RateLimiter({tokensPerInterval: this.maxRequests, interval: this.maxRequestWindowMS, fireImmediately: false});
-  }
-
-  async acquireToken (fn) {
-    const n_remaining = this.limiter.tryRemoveTokens(1);
-    if (n_remaining) {
-      // // console.log(n_remaining);
-      await new Promise(acc => {
-        setImmediate(acc, 1000);
-      });
-      // await nextTick();
-      return fn();
-    } else {
-      await sleep(this.maxRequestWindowMS);
-      return this.acquireToken(fn);
-    }
-  }
-}
+let txNum = 0; 
 
 interface BlockhashAndFeeCalculator {
   blockhash: Blockhash;
@@ -93,10 +64,6 @@ export const ENDPOINTS = [
 ];
 
 const DEFAULT = ENDPOINTS[0].endpoint;
-const rateLimiter = new LimiterLibraryRateLimiter({
-  maxRequests: 40, // TODO: Figure out appropriate rate limits
-  maxRequestWindowMS: 1000
-});
 
 interface ConnectionConfig {
   connection: Connection;
@@ -249,9 +216,6 @@ export async function sendTransactionsWithManualRetry(
   signers: Keypair[][],
   sequenceType: SequenceType = SequenceType.Parallel,
 ) {
-  let stopPoint = 0;
-  let tries = 0;
-  let lastInstructionsLength: any = null;
   let toRemoveSigners: Record<number, boolean> = {};
 
   instructions = instructions.filter((instr, i) => {
@@ -349,9 +313,6 @@ export const sendTransactions = async (
 
   // const signedTxns = await wallet.signAllTransactions(unsignedTxns);
 
-  const pendingTxns: Promise<{ txid: string; slot: number }>[] = [];
-
-  let breakEarlyObject = { breakEarly: false, i: 0 };
   let totalResponses: boolean[] = [];
 
   if (sequenceType !== SequenceType.Parallel) {
@@ -378,15 +339,14 @@ export const sendTransactions = async (
     // }
   } else {
 
-    let startTime = getUnixTs();
+    // let startTime = getUnixTs();
     requestNum = 0;
     sigNum = 0;
     txNum = 0;
-    let currRequests = 0;
-    let currSig = 0;
-    let currTx = 0;
-    let elapsed = 0;
-    let beginTime = startTime;
+    // let currRequests = 0;
+    // let currSig = 0;
+    // let currTx = 0;
+    // let elapsed = 0;
     for (let i = 0; i < unsignedTxns.length; i+=BATCH_TX_SIZE) {
       loading(i / (unsignedTxns.length) * (100), "Sending transactions...", null);
       let currArr = unsignedTxns.slice(i,i+BATCH_TX_SIZE);
@@ -400,7 +360,7 @@ export const sendTransactions = async (
         idxMap.push(j);
       }
 
-      while (currArr.length != 0 && nloops < 2) {
+      while (currArr.length !== 0 && nloops < 2) {
         // get recent blockhash and sign transactions
         let currBlock = await connection.getRecentBlockhash(commitment);
         currArr.forEach((tx) => tx.recentBlockhash = currBlock.blockhash);
@@ -456,15 +416,15 @@ export const sendTransactions = async (
         currArr = nextArr;
         idxMap = newIdxMap;
 
-        elapsed = getUnixTs() - startTime;
+        // elapsed = getUnixTs() - startTime;
         // console.log("Elapsed time", elapsed);
-        startTime = getUnixTs();
+        // startTime = getUnixTs();
         // // console.log("Ratio", (requestNum - currRequests) / elapsed)
         // console.log("Num requests done", requestNum - currRequests);
         // console.log("Cumulative time", getUnixTs() - beginTime);
-        currRequests = requestNum;
-        currTx = txNum;
-        currSig = sigNum;
+        // currRequests = requestNum;
+        // currTx = txNum;
+        // currSig = sigNum;
       }
 
       // push into totalResponses

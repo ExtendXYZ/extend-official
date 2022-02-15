@@ -177,7 +177,7 @@ export function Screen(props) {
             if (wallet.publicKey && registerTrigger) {
                 let totalAccs = {};
                 let totalMints = {};
-                if (registerAccs == null || registerMints == null) { // whether we need to look through all account infos
+                if (!registerAccs || !registerMints) { // whether we need to look through all account infos
                     let accs: any[] = [];
                     // let ownedSpacesArray: any[] = [...ownedSpaces];
                     const data = await server.getSpacesByOwner(connection, wallet.publicKey);
@@ -288,7 +288,7 @@ export function Screen(props) {
     useEffect(() => {
         const asyncChangeColor = async() => {
             const color = changeColorTrigger["color"];
-            if (color != null && wallet.publicKey) {
+            if (color !== null && wallet.publicKey) {
                 const r = parseInt(color.slice(1, 3), 16);
                 const g = parseInt(color.slice(3, 5), 16);
                 const b = parseInt(color.slice(5, 7), 16);
@@ -306,7 +306,7 @@ export function Screen(props) {
                 let n_frames = -1;
                 let neighborhoods = server.getNeighborhoods([position]);
                 const timeClusterMap = await server.getEditableTimeClusterKeys(connection, neighborhoods);
-                if (frame == -1){
+                if (frame === -1){
                     ({numFramesMap, frameKeysMap} = await server.getAllFrameKeys(connection, neighborhoods));
                     let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
                     let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
@@ -343,20 +343,18 @@ export function Screen(props) {
             const frame = changeColorsTrigger["frame"];
             const owners = changeColorsTrigger["owners"];
 
-            if (color != null && wallet.publicKey) {
+            if (color !== null && wallet.publicKey) {
                 const r = parseInt(color.slice(1, 3), 16);
                 const g = parseInt(color.slice(3, 5), 16);
                 const b = parseInt(color.slice(5, 7), 16);
                 
                 const spaceGrid = ownedSpaces;
-                let n_x;
-                let n_y;
 
                 let neighborhoods = server.getNeighborhoods(spaces);
                 let numFramesMap = {};
                 let frameKeysMap = {};
                 let n_frames = -1;
-                if (frame == -1){
+                if (frame === -1){
                     ({numFramesMap, frameKeysMap} = await server.getAllFrameKeys(connection, neighborhoods));
                 }
                 else{
@@ -372,7 +370,7 @@ export function Screen(props) {
                         const mint = ownedMints[s];
                         const owner = owners[s];
 
-                        if (frame == -1){
+                        if (frame === -1){
                             let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
                             let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
                             
@@ -409,7 +407,6 @@ export function Screen(props) {
             if ((price || !create) && wallet.publicKey) {
                 const x = changePriceTrigger["x"];
                 const y = changePriceTrigger["y"];
-                const position = JSON.stringify({x, y});
                 const mint = changePriceTrigger["mint"];
                 try {
                     let change = new ChangeOfferArgs({x, y, mint, price, create});
@@ -490,7 +487,7 @@ export function Screen(props) {
                             game.current?.refreshSidebar();
 
                             // if wallet is unchanged, update state
-                            if (wallet.publicKey == currentUser){
+                            if (wallet.publicKey === currentUser){
                                 setOwnedSpaces(finalOwnedSpaces);
                                 setOwnedMints({...ownedMints, ...newOwnedMints});
                             }
@@ -527,7 +524,7 @@ export function Screen(props) {
                         let newOwnedMints = {};
                         for (let i = 0; i < responses.length; i++) {
                             
-                            if (i != 0) {
+                            if (i !== 0) {
                                 ind += ixPerTx[i-1];
                             }
 
@@ -545,7 +542,7 @@ export function Screen(props) {
                         game.current?.refreshSidebar();
 
                         // if wallet is unchanged, update state
-                        if (wallet.publicKey == currentUser){
+                        if (wallet.publicKey === currentUser){
                             setOwnedSpaces(finalOwnedSpaces);
                             setOwnedMints({...ownedMints, ...newOwnedMints});
                         }
@@ -572,12 +569,8 @@ export function Screen(props) {
             const init_y = imgUploadTrigger["init_y"];
             const frame = imgUploadTrigger["frame"];
             const owners = imgUploadTrigger["owners"];
-            if (image != null && wallet.publicKey) {
-
+            if (image !== null && wallet.publicKey) {
                 const spaceGrid = ownedSpaces;
-
-                let n_x;
-                let n_y;
 
                 let changes: any[] = [];
 
@@ -585,7 +578,7 @@ export function Screen(props) {
                 let numFramesMap = {};
                 let frameKeysMap = {};
                 let n_frames = -1;
-                if (frame == -1){
+                if (frame === -1){
                     ({numFramesMap, frameKeysMap} = await server.getAllFrameKeys(connection, neighborhoods));
                 }
                 else{
@@ -609,7 +602,7 @@ export function Screen(props) {
                             const mint = ownedMints[position];
                             const owner = owners[position];
 
-                            if (frame == -1){
+                            if (frame === -1){
                                 let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
                                 let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
                                 
@@ -647,7 +640,7 @@ export function Screen(props) {
             const init_x = gifUploadTrigger["init_x"];
             const init_y = gifUploadTrigger["init_y"];
             const owners = gifUploadTrigger["owners"];
-            if (gif != null && wallet.publicKey) {
+            if (gif !== null && wallet.publicKey) {
 
                 // console.log("GIF Length", gif.length)
 
@@ -970,7 +963,6 @@ export function Screen(props) {
                 const min_duration = changeRentTrigger["min_duration"];
                 const max_duration = changeRentTrigger["max_duration"];
                 const max_timestamp = changeRentTrigger["max_timestamp"];
-                const position = JSON.stringify({x, y});
                 const mint = changeRentTrigger["mint"];
                 try {
                     let change = new SetRentArgs({x, y, mint, price, min_duration, max_duration, max_timestamp, create});
@@ -1054,11 +1046,11 @@ export function Screen(props) {
                         //     newOwnedMints[position] = mint;
                         //     // refresh focus if not changed
                         //     const focus = game.current?.state.focus;
-                        //     if (focus && focus.focus && focus.x == x && focus.y == y){
+                        //     if (focus && focus.focus && focus.x === x && focus.y === y){
                         //         game.current?.handleFocusRefresh();
                         //     }
                         //     // if wallet is unchanged, update state
-                        //     if (wallet.publicKey == currentUser){
+                        //     if (wallet.publicKey === currentUser){
                         //         setOwnedSpaces(finalOwnedSpaces);
                         //         setOwnedMints({...ownedMints, ...newOwnedMints});
                         //     }
@@ -1082,13 +1074,13 @@ export function Screen(props) {
         const asyncAcceptRents = async() => {
             if (acceptRentsTrigger["rentableInfo"]) {
                 if (wallet.publicKey) {
-                    let currentUser = wallet.publicKey;
+                    // let currentUser = wallet.publicKey;
                     const rent_time = acceptRentsTrigger["rent_time"];
                     let changes = acceptRentsTrigger["rentableInfo"].map(x => new AcceptRentArgs({...x, rent_time}));
 
                     try {
                         let ixs = await acceptRentInstructions(server, connection, wallet, BASE, changes);
-                        const inter = await sendInstructionsGreedyBatch(connection, wallet, ixs, "Rent spaces");
+                        await sendInstructionsGreedyBatch(connection, wallet, ixs, "Rent spaces");
                         // let responses = inter.responses;
                         // let ixPerTx = inter.ixPerTx;
                         // let ind = 0;
@@ -1096,7 +1088,7 @@ export function Screen(props) {
                         // let newOwnedMints = {};
                         // for (let i = 0; i < responses.length; i++) {
                             
-                        //     if (i != 0) {
+                        //     if (i !== 0) {
                         //         ind += ixPerTx[i-1];
                         //     }
 
@@ -1112,7 +1104,7 @@ export function Screen(props) {
                         //     }
                         // }
                         // // if wallet is unchanged, update state
-                        // if (wallet.publicKey == currentUser){
+                        // if (wallet.publicKey === currentUser){
                         //     setOwnedSpaces(finalOwnedSpaces);
                         //     setOwnedMints({...ownedMints, ...newOwnedMints});
                         // }

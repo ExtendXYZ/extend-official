@@ -1,4 +1,4 @@
-import {ButtonGroup, ButtonGroupProps} from "@mui/material";
+import {ButtonGroupProps} from "@mui/material";
 import {Settings} from "./Settings";
 
 export type ConnectButtonProps = ButtonGroupProps & {
