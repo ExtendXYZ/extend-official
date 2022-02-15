@@ -2,13 +2,11 @@ use borsh::BorshSerialize;
 use solana_program::{
     account_info::{AccountInfo, next_account_info},
     borsh::try_from_slice_unchecked,
-    clock::Clock,
     entrypoint::ProgramResult,
     // log::sol_log_compute_units,
     msg,
     program_error::ProgramError,
     pubkey::Pubkey,
-    sysvar::Sysvar,
 };
 use legal_chess::{
     chessmove::ChessMove,
@@ -28,6 +26,7 @@ use crate::{
         // display_game,
         assert_keys_equal,
         has_voted,
+        now_ts,
         reset_votes,
         update_vote,
         mod_ply,
@@ -42,8 +41,19 @@ use crate::{
         Vote,
         REG_START,
         VOTE_START,
+        RESIGN_MOVE,
     }
 };
+
+pub fn apply_resign(board_state: &mut Board, game: &mut Game) -> ProgramResult {
+    msg!("Player resigned");
+    board_state.result = match game.side_to_move() {
+        Color::WHITE => Result::BlackWin,
+        Color::BLACK => Result::WhiteWin,
+    };
+    board_state.phase = Phase::Inactive;
+    Ok(())
+}
 
 pub fn apply_move(
     board_state: &mut Board,
@@ -53,7 +63,7 @@ pub fn apply_move(
     game.make_move(chess_move);
     msg!("Made move");
     board_state.game_arr = game.to_game_arr().to_vec();
-    board_state.move_deadline = Clock::get().unwrap().unix_timestamp as u64 + board_state.move_interval;
+    board_state.move_deadline = now_ts() + board_state.move_interval;
     let (legal_moves, king_attacked) = moves_and_king_attacked(game);
     if legal_moves.is_empty() {
         msg!("Game over");
@@ -85,7 +95,10 @@ pub fn tally_and_apply(
         board_state.phase = Phase::Inactive;
     } else {
         msg!("Winner: {:?}", winner);
-        apply_move(board_state, game,winner.vote.mv.convert())?;
+        match winner.vote.mv {
+            RESIGN_MOVE => apply_resign(board_state, game)?,
+            _ => apply_move(board_state, game,winner.vote.mv.convert())?,
+        }
     }
     Ok(())
 }
@@ -116,9 +129,7 @@ pub fn process(
     };
     msg!("Phase: {:?}", board_state.phase);
 
-    // msg!("Board: {:?}", board_state);
-
-    // Activate game if necessary
+     // Activate game if necessary
     let both_pk = board_state.player_white.has_pk && board_state.player_black.has_pk;
     if both_pk && board_state.phase == Phase::Registering {
         msg!("Activating");
@@ -126,8 +137,8 @@ pub fn process(
         board_state.move_deadline = board_state.register_deadline + board_state.move_interval;
     } else if board_state.phase == Phase::Registering {
         msg!("Still in registration, checking whether to advance");
-        let now_ts = Clock::get().unwrap().unix_timestamp as u64;
-        if board_state.register_deadline < now_ts {
+        let now = now_ts();
+        if board_state.register_deadline < now {
             msg!("Deadline hit, checking players");
             let mut advance = true;
             advance &= board_state.player_white.has_pk || board_state.reg_white > 0;
@@ -135,10 +146,10 @@ pub fn process(
             if advance {
                 msg!("Players registered, starting game");
                 board_state.phase = Phase::Active;
-                board_state.move_deadline = board_state.register_deadline + board_state.move_interval;
+                board_state.move_deadline = now + board_state.move_interval;
             } else {
                 msg!("Extending registration - players not ready");
-                board_state.register_deadline = now_ts + board_state.move_interval;
+                board_state.register_deadline = now + board_state.move_interval;
             }
             board_state.serialize(board_data)?;
             return Ok(());
@@ -153,8 +164,7 @@ pub fn process(
 
     // If deadline expired: count votes, apply move or resign, update state
     // Also triggers if PK player failed to vote
-    let now_ts = Clock::get().unwrap().unix_timestamp as u64;
-    if board_state.move_deadline < now_ts {
+    if board_state.move_deadline < now_ts() {
         msg!("Move deadline hit, tallying");
         tally_and_apply(board_data, &mut board_state, &mut game)?;
         reset_votes(board_data)?;
@@ -171,7 +181,7 @@ pub fn process(
     // Move is valid
     let chess_move = args.vote.convert();
     msg!("Move: {:?}", chess_move);
-    if !game.legal_moves().contains(&chess_move) {
+    if args.vote != RESIGN_MOVE && !game.legal_moves().contains(&chess_move) {
         msg!("Not a legal move");
         return Err(CustomError::IllegalMove.into());
     }
@@ -179,10 +189,13 @@ pub fn process(
     // Account owns space
     // TODO
 
-    // If player is PK, play move
+    // If player is PK, play move or resign
     if active_player.has_pk {
         assert_keys_equal(active_player.player_pk, *space_owner.key)?;
-        apply_move(&mut board_state, &mut game, chess_move)?;
+        match args.vote {
+            RESIGN_MOVE => apply_resign(&mut board_state, &mut game)?,
+            _ => apply_move(&mut board_state, &mut game, chess_move)?,
+        };
         board_state.serialize(board_data)?;
         return Ok(());
     }

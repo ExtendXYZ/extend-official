@@ -63,7 +63,7 @@ pub enum Result {
 }
 
 #[repr(C)]
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone, Copy)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone, Copy)]
 pub enum Promotion {
     None = 0,
     Queen = 1,
@@ -74,7 +74,7 @@ pub enum Promotion {
 
 // a1 = 0, a5 = 5
 #[repr(C)]
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone, Copy)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone, Copy)]
 pub struct Move {
     pub from: u8,
     pub to: u8,
@@ -82,11 +82,9 @@ pub struct Move {
 }
 
 pub const RESIGN: u8 = 255;
+pub const RESIGN_MOVE: Move = Move { from: RESIGN, to: RESIGN, promotion: Promotion::None };
 
 impl Move {
-    pub fn resign() -> Move {
-        Move { from: RESIGN, to: RESIGN, promotion: Promotion::None}
-    }
     pub fn from_pair(file_rank: (u8, u8)) -> u8 {
         (file_rank.1-1)*8 + file_rank.0
     }
