@@ -22,7 +22,7 @@ import { times, transform } from "lodash";
 import * as anchor from "@project-serum/anchor";
 import {BASE_TRANSACTION_SIZE, MAX_TRANSACTION_SIZE} from "../../../client/src/constants"
 
-const BATCH_SIZE = 200;
+const BATCH_SIZE = 50;
 
 export interface WalletAdapter {
   publicKey: PublicKey;
