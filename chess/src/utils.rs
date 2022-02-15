@@ -18,7 +18,11 @@ use legal_chess::{
 use std::{
     convert::TryInto,
     mem::size_of,
+    str::FromStr,
 };
+use spl_associated_token_account::get_associated_token_address;
+use spl_token;
+use spl_token::state::Account;
 
 use super::error::CustomError;
 use crate::state::{
@@ -28,7 +32,20 @@ use crate::state::{
     NEIGHBORHOOD_SIDE,
     TALLY_START,
     TALLY_VOTE_START,
+    // Space check
+    SPACE_PID,
+    SPACE_METADATA_SEED,
+    SpaceMetadata,
+    Space,
 };
+
+pub fn assert_is_ata(ata: &AccountInfo, wallet: &Pubkey, mint: &Pubkey) -> ProgramResult {
+    assert_owned_by(ata, &spl_token::id())?;
+    let ata_account: Account = assert_initialized(ata)?;
+    assert_keys_equal(ata_account.owner, *wallet)?;
+    assert_keys_equal(get_associated_token_address(wallet, mint), *ata.key)?;
+    Ok(())
+}
 
 pub fn assert_keys_equal(key1: Pubkey, key2: Pubkey) -> ProgramResult {
     if key1 != key2 {
@@ -58,6 +75,38 @@ pub fn assert_owned_by(account: &AccountInfo, owner: &Pubkey) -> ProgramResult {
     } else {
         Ok(())
     }
+}
+
+pub fn assert_valid_owned_space(
+    base: &AccountInfo,
+    space_owner: &AccountInfo,
+    space_metadata: &AccountInfo,
+    space_ata: &AccountInfo,
+    space: &Space,
+) -> ProgramResult {
+    // Verify space metadata
+    let space_metadata_data: SpaceMetadata = try_from_slice_unchecked(&space_metadata.data.borrow())?;
+    let seeds_space_metadata = &[
+        &base.key.to_bytes(),
+        SPACE_METADATA_SEED,
+        &space.x.to_le_bytes(),
+        &space.y.to_le_bytes(),
+        &[space_metadata_data.bump],
+    ];
+    let key = Pubkey::create_program_address(seeds_space_metadata, &Pubkey::from_str(SPACE_PID).unwrap())?;
+    assert_keys_equal(key, *space_metadata.key)?;
+
+    // Check ATAs
+    assert_is_ata(space_ata, space_owner.key, &space_metadata_data.mint)?;
+
+    // Verify token is owned
+    let space_ata_data = spl_token::state::Account::unpack_from_slice(&space_ata.data.borrow())?;
+    if space_ata_data.amount != 1 {
+        msg!("Error: token account does not own token");
+        return Err(CustomError::MissingTokenOwner.into());
+    }
+
+    Ok(())
 }
 
 pub fn floor_divide(x: i64, y: usize) -> i64 {

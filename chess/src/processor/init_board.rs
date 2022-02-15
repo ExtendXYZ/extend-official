@@ -21,7 +21,6 @@ pub fn process(
     args: &InitBoardArgs,
 ) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
-    let _base = next_account_info(account_info_iter)?;
     let board_owner = next_account_info(account_info_iter)?;
     let board_account = next_account_info(account_info_iter)?;
     let system_program = next_account_info(account_info_iter)?;

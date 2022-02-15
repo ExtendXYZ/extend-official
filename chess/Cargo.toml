@@ -10,6 +10,8 @@ no-entrypoint = []
 
 [dependencies]
 solana-program = "1.7.14"
+spl-token = {version = "3.1.1", features = ["no-entrypoint"]}
+spl-associated-token-account = {version = "1.0.3", features = ["no-entrypoint"]}
 borsh = "0.9.1"
 borsh-derive = "0.9.1"
 legal_chess = "0.4.8"

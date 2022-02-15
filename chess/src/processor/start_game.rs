@@ -28,7 +28,6 @@ pub fn process(
     args: &StartGameArgs,
 ) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
-    let _base = next_account_info(account_info_iter)?;
     let board_owner = next_account_info(account_info_iter)?;
     let board_account = next_account_info(account_info_iter)?;
 

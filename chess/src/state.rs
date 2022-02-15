@@ -39,6 +39,13 @@ impl From<Color> for Side {
 }
 
 #[repr(C)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+pub struct Space {
+    pub x: i64,
+    pub y: i64,
+}
+
+#[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone, Copy)]
 pub struct Reg {
     pub idx: u8,
@@ -227,4 +234,23 @@ impl Board {
             result: Result::None,
         }
     }
+}
+
+pub const SPACE_METADATA_SEED: &[u8] = b"space_metadata";
+pub const SPACE_PID: &str = "XSPCxeYZuYJWEuHNz3ycs4fme9UJREytiEcnsKCTMUK";
+
+pub const SPACE_METADATA_RESERVE: usize = 128;
+#[repr(C)]
+#[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
+pub struct SpaceMetadata {
+    pub bump: u8,
+    pub mint: Pubkey,
+    pub price: u64,
+    pub space_x: i64,
+    pub space_y: i64,
+}
+
+impl SpaceMetadata {
+    pub const LEN: usize =
+        size_of::<u8>() + size_of::<Pubkey>() + size_of::<u64>() + size_of::<i64>() + size_of::<i64>();
 }
