@@ -2089,7 +2089,7 @@ export class Game extends React.Component {
     }
 
     render() {
-        if (this.state.initialFetchStatus == 1000){
+        if (this.state.initialFetchStatus == 0){
             return (
                 <LoadingScreen/>
             );
