@@ -297,7 +297,7 @@ export class Server {
                 let responses = await Promise.all(promises);
                 tokenaccts.push(...responses);
                 // TODO: await sleep??
-                sleep(200);
+                sleep(400);
             }
 
             loading(80, 'Loading Info', null);
