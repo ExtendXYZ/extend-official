@@ -86,7 +86,7 @@ export function Screen(props) {
 
     const getId = () => {
         const currId = localStorage.getItem("id");
-        if (currId !== null) {
+        if (currId) {
             return currId;
         } 
         const id = crypto.randomBytes(20).toString('hex');
@@ -288,7 +288,7 @@ export function Screen(props) {
     useEffect(() => {
         const asyncChangeColor = async() => {
             const color = changeColorTrigger["color"];
-            if (color !== null && wallet.publicKey) {
+            if (color && wallet.publicKey) {
                 const r = parseInt(color.slice(1, 3), 16);
                 const g = parseInt(color.slice(3, 5), 16);
                 const b = parseInt(color.slice(5, 7), 16);
@@ -343,7 +343,7 @@ export function Screen(props) {
             const frame = changeColorsTrigger["frame"];
             const owners = changeColorsTrigger["owners"];
 
-            if (color !== null && wallet.publicKey) {
+            if (color && wallet.publicKey) {
                 const r = parseInt(color.slice(1, 3), 16);
                 const g = parseInt(color.slice(3, 5), 16);
                 const b = parseInt(color.slice(5, 7), 16);
@@ -574,7 +574,7 @@ export function Screen(props) {
             const init_y = imgUploadTrigger["init_y"];
             const frame = imgUploadTrigger["frame"];
             const owners = imgUploadTrigger["owners"];
-            if (image !== null && wallet.publicKey) {
+            if (image && wallet.publicKey) {
                 const spaceGrid = ownedSpaces;
 
                 let changes: any[] = [];
@@ -650,7 +650,7 @@ export function Screen(props) {
             const init_x = gifUploadTrigger["init_x"];
             const init_y = gifUploadTrigger["init_y"];
             const owners = gifUploadTrigger["owners"];
-            if (gif !== null && wallet.publicKey) {
+            if (gif && wallet.publicKey) {
 
                 // console.log("GIF Length", gif.length)
 
