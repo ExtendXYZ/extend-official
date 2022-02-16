@@ -393,11 +393,8 @@ export class FocusSidebar extends React.Component {
                         {sidebarHeader}
 
                         {/* purchase info */}
-                        {<Divider className="sidebarDivider">
-                            Marketplace Coming Soon!
-                        </Divider>}
                         
-                        {/* {(!this.props.focus.infoLoaded || !this.props.focus.imgLoaded) ?
+                        {(!this.props.focus.infoLoaded || !this.props.focus.imgLoaded) ?
                             null
                             :
                             <>
@@ -516,7 +513,7 @@ export class FocusSidebar extends React.Component {
                                 </>
                             ) : null}
                             </>
-                        } */}
+                        }
                     </TabPanel>
 
                     <TabPanel value={this.state.value} index={2}>
