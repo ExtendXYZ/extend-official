@@ -19,7 +19,7 @@ import {
 import {TOKEN_PROGRAM_ID} from '@solana/spl-token';
 import {decodeMetadata} from "../../actions/metadata";
 import {twoscomplement_i2u} from "../../utils/borsh";
-import { bytesToUInt } from "../../utils/utils";
+import { bytesToUInt, sleep } from "../../utils/utils";
 import {loading} from '../../utils/loading';
 
 window.frameKeyCache = {};
@@ -297,6 +297,7 @@ export class Server {
                 let responses = await Promise.all(promises);
                 tokenaccts.push(...responses);
                 // TODO: await sleep??
+                sleep(500);
             }
 
             loading(80, 'Loading Info', null);
