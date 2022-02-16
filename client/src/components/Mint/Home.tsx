@@ -89,14 +89,14 @@ export const Home = (props: HomeProps) => {
 
   const [balance, setBalance] = useState<number>();
   const [isActive, setIsActive] = useState(false); // true when countdown completes
-  const [isSoldOut, setIsSoldOut] = useState(false); // true when items remaining is zero
+  const [isSoldOut, setIsSoldOut] = useState(true); // true when items remaining is zero
   const [isMinting, setIsMinting] = useState(false); // true when user got to press MINT
 
   const [itemsAvailable, setItemsAvailable] = useState(0);
   const [itemsRedeemed, setItemsRedeemed] = useState(0);
 
   const [tokensRedeemed, setTokensRedeemed] = useState(0);
-  const [tokensSoldOut, setTokensSoldOut] = useState(false);
+  const [tokensSoldOut, setTokensSoldOut] = useState(true); // set true so buttons start disabled
 
   const [alertState, setAlertState] = useState<AlertState>({
     open: false,
@@ -375,6 +375,7 @@ export const Home = (props: HomeProps) => {
         return false;
       }
 
+      loading(null, "sending transaction", null);
       try {
         var { txid } = await sendSignedTransaction({
           connection,
@@ -401,20 +402,20 @@ export const Home = (props: HomeProps) => {
 
       if (status && !status?.err) {
         notify({
-          message: "Received Space Voucher!",
+          message: "Received Space Vouchers!",
           type: "success",
           duration: 0,
         });
       } else {
         notify({
-          message: "Failed to receive Space Voucher! Please try again!",
+          message: "Failed to receive Space Vouchers! Please try again!",
           type: "error",
           duration: 0,
         });
       }
     } catch (error: any) {
       // TODO: blech:
-      let message = error.msg || "Failed to receive Space Voucher! Please try again!";
+      let message = error.msg || "Failed to receive Space Vouchers! Please try again!";
       notify({
         message,
         type: "error",
@@ -431,6 +432,7 @@ export const Home = (props: HomeProps) => {
       await sleep(2000);
       refreshVoucherSystemState();
     }
+    loading(null, "sending transaction", "success");
   };
 
   const getPrice = (n) => {
@@ -596,7 +598,7 @@ export const Home = (props: HomeProps) => {
         let curr_time = start_time;
         while (curr_time < start_time + 20000) {
           loading((curr_time-start_time) / (20000) * (100), 'Preparing to register', null);
-          await sleep(2000);
+          await sleep(100);
           curr_time = Date.now();
         }
         loading(null, 'Preparing to register', 'success');
