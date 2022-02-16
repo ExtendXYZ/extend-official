@@ -673,11 +673,11 @@ export class Game extends React.Component {
     }
 
     changePrices = () => {
-        let price = this.state.selecting.price;
+        let price = Number(this.state.selecting.price);
         if (price !== 0 && !price) {
             notify({
                 message: "Warning:",
-                description: "Price is undefined",
+                description: `Could not parse price ${this.state.selecting.price}`,
             });
         } else if (price <= 0) {
             notify({

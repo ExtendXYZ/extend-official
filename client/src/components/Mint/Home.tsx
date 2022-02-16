@@ -118,9 +118,9 @@ export const Home = (props: HomeProps) => {
   const [clicked, setClicked] = useState(false); // if getTokens button is clicked
   const [verified, setVerified] = useState(false);
 
-  const [neighborhoodX, setNeighborhoodX] = useState<Number>(); // for switching neighborhoods
-  const [neighborhoodY, setNeighborhoodY] = useState<Number>();
-  const [currNeighborhood, setCurrNeighborhood] = useState<string>();
+  const [neighborhoodX, setNeighborhoodX] = useState<Number>(0); // for switching neighborhoods
+  const [neighborhoodY, setNeighborhoodY] = useState<Number>(0);
+  const [currNeighborhood, setCurrNeighborhood] = useState<string>("0,0");
   const [neighborhoods, setNeighborhoods] = useState<string[]>();
   const [neighborhoodsToColor, setNeighborhoodsToColor] = useState({});
   const [nhoodNames, setNhoodNames] = useState<string[]>();
@@ -637,13 +637,14 @@ export const Home = (props: HomeProps) => {
 
   const changeNum = (e) => {
     const tokens = parseInt(e.target.value);
-    setNumTokens(tokens > 100 ? 100 : (tokens < 0 ? NaN : tokens) );
+    setNumTokens(tokens > 100 ? 100 : (tokens < 0 ? 0 : tokens) );
     setClicked(false);
     setVerified(false);
   };
 
   const changeNumMint = (e) => {
-    setNumRedeeming(parseInt(e.target.value));
+    const num = parseInt(e.target.value);
+    setNumRedeeming(num < 0 ? 0 : num );
   };
 
   const changeNeighborhood = (e) => {
@@ -972,7 +973,7 @@ export const Home = (props: HomeProps) => {
                       <TextField
                         required
                         id="outlined-required"
-                        label="Space vouchers to buy"
+                        label="Space vouchers to buy (max 100)"
                         type="number"
                         defaultValue={1}
                         onChange={changeNum}
@@ -985,7 +986,7 @@ export const Home = (props: HomeProps) => {
                         id="outlined-disabled"
                         value={getPrice(numTokens).toFixed(4)} />
                       <Button
-                        disabled={tokensSoldOut || disableToken}
+                        disabled={tokensSoldOut || disableToken || !numTokens}
                         variant="contained"
                         onClick={(e) => { setClicked(true) }}
                         sx={{ marginLeft: "10px", marginTop: "10px" }}>
@@ -1047,7 +1048,7 @@ export const Home = (props: HomeProps) => {
                     style={{width: "200px"}}
                   />
                   <MintButton
-                    disabled={isSoldOut || isMinting || !isActive || disableMint}
+                    disabled={isSoldOut || isMinting || !isActive || disableMint || !numRedeeming}
                     onClick={onMint}
                     variant="contained"
                     sx={{ marginLeft: "10px", marginTop: "10px" }}
