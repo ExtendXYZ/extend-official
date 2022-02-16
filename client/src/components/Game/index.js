@@ -1127,7 +1127,13 @@ export class Game extends React.Component {
             },
         });
         let {spaces, info, floor} = this.getFloor(this.state.selecting.purchasableInfoAll, this.state.selecting.floorN, this.state.selecting.floorM);
-        if (spaces.size === 0) {
+        if (!this.state.selecting.floorN || !this.state.selecting.floorM){
+            floor = null;
+            notify({
+                message: "Invalid dimensions",
+            });
+        }
+        else if (spaces.size === 0) {
             floor = null;
             notify({
                 message: "No Spaces available to buy",
@@ -1817,6 +1823,7 @@ export class Game extends React.Component {
 
     handleChangeFloorN = (e) => {
         let floorN = parseInt(e.target.value);
+        console.log(e.target.value);
         floorN = Math.max(floorN, 1);
         this.setState({
             selecting: {
