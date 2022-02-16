@@ -368,7 +368,12 @@ export function Screen(props) {
                         const x = p.x;
                         const y = p.y;
                         const mint = ownedMints[s];
-                        const owner = owners[s];
+                        let owner;
+                        if (Object.keys(owners).length > 0) {
+                            owner = owners[s];
+                        } else { // if owners is null, db is down
+                            owner = user;
+                        }
 
                         if (frame === -1){
                             let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
@@ -600,7 +605,12 @@ export function Screen(props) {
                             const g = image[i][j][1];
                             const b = image[i][j][2];
                             const mint = ownedMints[position];
-                            const owner = owners[position];
+                            let owner;
+                            if (Object.keys(owners).length > 0) {
+                                owner = owners[position];
+                            } else { // if owners is null, db is down
+                                owner = user;
+                            }
 
                             if (frame === -1){
                                 let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
@@ -665,7 +675,12 @@ export function Screen(props) {
                         const position = JSON.stringify({x, y});
                         if (spaces.has(position) && spaceGrid.has(position)) {
                             const mint = ownedMints[position];
-                            const owner = owners[position];
+                            let owner;
+                            if (Object.keys(owners).length > 0) {
+                                owner = owners[position];
+                            } else { // if owners is null, db is down
+                                owner = user;
+                            }
 
                             // To get num frames
                             n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
