@@ -214,7 +214,7 @@ export function Activity() {
         {
           value: "is",
           getApplyFilterFn: (filterItem: GridFilterItem) => {
-            if (filterItem.value == null || filterItem.value === "") {
+            if (filterItem.value === null || filterItem.value === "") {
               return null;
             }
 

@@ -11,10 +11,6 @@ const TOKEN_METADATA_PROGRAM_ID = new anchor.web3.PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 );
 
-const SYS_PROGRAM_ID = new anchor.web3.PublicKey(
-  "11111111111111111111111111111111"
-);
-
 export interface CandyMachine {
   id: anchor.web3.PublicKey,
   connection: anchor.web3.Connection;
@@ -197,7 +193,7 @@ export const getCandyMachineState = async (
   const itemsRemaining = itemsAvailable - itemsRedeemed;
 
   let goLiveDate = new Date(1000000000);
-  if (state.data.goLiveDate != null){
+  if (state.data.goLiveDate !== null){
     let date = state.data.goLiveDate.toNumber();
     goLiveDate = new Date(date * 1000);
   }
@@ -318,7 +314,7 @@ export const mintOneTokenInstructions = async (
   voucherSink: anchor.web3.PublicKey,
 ): Promise<TransactionInstruction[]> => {
   const token = await getTokenWallet(payer, mint.publicKey);
-  const { connection, program } = candyMachine;
+  const { program } = candyMachine;
   const metadata = await getMetadata(mint.publicKey);
   const masterEdition = await getMasterEdition(mint.publicKey);
   const payerATA = await getTokenWallet(payer, tokenMint);

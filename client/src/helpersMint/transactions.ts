@@ -298,12 +298,16 @@ export const sendInstructionsGreedyBatchMint = async (
   let idx = 0;
   for (let i = 0; i < Ixs.length; i++){
     let newTransaction = [...transaction];
-    Ixs[i].forEach((instruction) => newTransaction.push(instruction));
-    Ixs[i].forEach((instruction) => newTx.add(instruction));
+    for(let instruction of Ixs[i]){
+      newTransaction.push(instruction);
+      newTx.add(instruction);
+    }
+    // Ixs[i].forEach((instruction) => newTransaction.push(instruction));
+    // Ixs[i].forEach((instruction) => newTx.add(instruction));
     newTx.recentBlockhash = staleBlockhash;
     newTx.feePayer = wallet.publicKey;
     try {
-      let _ = newTx.serialize({requireAllSignatures: false});
+      newTx.serialize({requireAllSignatures: false});
       transaction = newTransaction;
     }
     catch (e) {

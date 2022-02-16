@@ -1,8 +1,8 @@
 import {PublicKey, SystemProgram, TransactionInstruction,} from "@solana/web3.js";
 import BN from "bn.js";
 import {Schema, serialize} from "borsh";
-import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID, u64,} from "@solana/spl-token";
-import {SPACE_METADATA_SEED, SELL_DELEGATE_SEED, RENT_ACCOUNT_SEED, SPACE_PROGRAM_ID, RENT_PROGRAM_ID} from "../constants";
+import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID} from "@solana/spl-token";
+import {SPACE_METADATA_SEED, RENT_ACCOUNT_SEED, SPACE_PROGRAM_ID, RENT_PROGRAM_ID} from "../constants";
 import {correct_negative_serialization, twoscomplement_i2u} from "../utils/borsh";
 
 export class SetRentInstructionData {
