@@ -518,9 +518,11 @@ export class Board extends React.Component {
         currentNeighborhood.style.bottom = neighborhood_scale + "px";
         if (neighborhood_names && (key in neighborhood_names)) {
             this.neighborhood_name = neighborhood_names[key];
+            currentNeighborhood.style.display = "block";
             currentNeighborhood.innerHTML = "<h1>" + this.neighborhood_name + "</h1>";
         } else {
             this.neighborhood_name = null;
+            currentNeighborhood.style.display = "none";
             currentNeighborhood.innerHTML = "<h1> Expand </h1>";
         }
     }
@@ -977,7 +979,10 @@ export class Board extends React.Component {
             <div className="myboard">
                 <canvas className="canvas" id="canvas" ref={this.canvas}></canvas>
                 <div className="nTracker" id="nTracker">
-                    <div id="neighborhood" className="name" href="#" style={{marginBottom: "-20px"}} onClick={() => {
+                    <div id="neighborhood" className="name" href="#" style={{
+                        marginBottom: "-20px", 
+                        display: this.neighborhood_name? "block": "none"
+                    }} onClick={() => {
                             if (this.neighborhood_name) {
                                 this.examine();
                             } else {
