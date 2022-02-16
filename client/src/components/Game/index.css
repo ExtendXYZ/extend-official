@@ -31,11 +31,13 @@
 }
 
 .mouseTracker {
+    display: none;
     position: absolute;
     border: 2px solid white;
 }
 
 .nTracker {
+    display: none;
     position: absolute;
     border: 2px dashed white;
 }
@@ -58,19 +60,19 @@
     border: 2px solid red;
 }
 
-.examine {
+.name {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    -ms-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
     z-index: 1;
     user-select: none;
 }
 
-.examine .name h1{
+.name h1{
     color: grey;
     font-family: "Attila Sans Sharp" !important;
+}
+
+.name h1:hover {
+    color: white;
 }
 
 .neighborhoodDashboard h1 {
@@ -89,9 +91,7 @@
     color: whitesmoke;
 }
 
-.examine .name h1:hover {
-    color: white;
-}
+
 
 .sensor {
     position: absolute;
