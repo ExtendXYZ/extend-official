@@ -24,7 +24,7 @@ export const VOUCHER_SINK_SEED = "voucher_sink";
 export const RENT_ACCOUNT_SEED = "rent_account";
 
 export const BATCH_TX_SIZE = 40;
-export const BATCH_LOAD_PRICE_SIZE = 40;
+export const BATCH_LOAD_PRICE_SIZE = 30;
 export const MAX_TRANSACTION_SIZE = 1232;
 export const BASE_TRANSACTION_SIZE = 3 + 32 + 65;
 export const VOUCHER_PRICE_CONSTANT = 0.01059;
