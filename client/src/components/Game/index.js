@@ -1805,7 +1805,8 @@ export class Game extends React.Component {
     }
 
     handleChangeFloorM = (e) => {
-        const floorM = parseInt(e.target.value);
+        let floorM = parseInt(e.target.value);
+        floorM = Math.max(floorM, 1);
         this.setState({
             selecting: {
                 ...this.state.selecting,
@@ -1815,7 +1816,8 @@ export class Game extends React.Component {
     }
 
     handleChangeFloorN = (e) => {
-        const floorN = parseInt(e.target.value);
+        let floorN = parseInt(e.target.value);
+        floorN = Math.max(floorN, 1);
         this.setState({
             selecting: {
                 ...this.state.selecting,
