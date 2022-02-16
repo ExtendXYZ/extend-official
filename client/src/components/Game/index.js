@@ -1823,7 +1823,6 @@ export class Game extends React.Component {
 
     handleChangeFloorN = (e) => {
         let floorN = parseInt(e.target.value);
-        console.log(e.target.value);
         floorN = Math.max(floorN, 1);
         this.setState({
             selecting: {
