@@ -973,7 +973,7 @@ export const Home = (props: HomeProps) => {
                       <TextField
                         required
                         id="outlined-required"
-                        label="Space vouchers to buy (max 100)"
+                        label="Amount to buy (max 100)"
                         type="number"
                         defaultValue={1}
                         onChange={changeNum}

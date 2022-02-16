@@ -1055,7 +1055,7 @@ export class Game extends React.Component {
         if (m > r || n > c || m <= 0 || n <= 0) {
             let purchasable = new Set();
             let floor = null;
-            return {purchasable, purchasableInfo, floor};
+            return {spaces: purchasable, info: purchasableInfo, floor};
         }
 
         for (let info of purchasableInfo) {
@@ -1127,10 +1127,16 @@ export class Game extends React.Component {
             },
         });
         let {spaces, info, floor} = this.getFloor(this.state.selecting.purchasableInfoAll, this.state.selecting.floorN, this.state.selecting.floorM);
-        if (spaces.size === 0) {
+        if (!this.state.selecting.floorN || !this.state.selecting.floorM){
             floor = null;
             notify({
-                message: "No Spaces available to buy",
+                message: "Invalid dimensions",
+            });
+        }
+        else if (!spaces || spaces.size === 0) {
+            floor = null;
+            notify({
+                message: "No rectangle of the given dimensions available to buy",
             });
         }
         this.setState({
@@ -1805,7 +1811,8 @@ export class Game extends React.Component {
     }
 
     handleChangeFloorM = (e) => {
-        const floorM = parseInt(e.target.value);
+        let floorM = parseInt(e.target.value);
+        floorM = Math.max(floorM, 1);
         this.setState({
             selecting: {
                 ...this.state.selecting,
@@ -1815,7 +1822,8 @@ export class Game extends React.Component {
     }
 
     handleChangeFloorN = (e) => {
-        const floorN = parseInt(e.target.value);
+        let floorN = parseInt(e.target.value);
+        floorN = Math.max(floorN, 1);
         this.setState({
             selecting: {
                 ...this.state.selecting,
