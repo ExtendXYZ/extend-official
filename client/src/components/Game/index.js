@@ -309,7 +309,13 @@ export class Game extends React.Component {
                 }
             }
         }
-        let purchasableInfo = await this.props.database.getPurchasableInfo(null, poses);
+        let purchasableInfo;
+        try {
+            purchasableInfo = await this.props.database.getPurchasableInfo(null, poses);
+        } catch (e) { // when db is down, try catch and return no purchasable
+            // console.error(e)
+            purchasableInfo = [];
+        }
         let colorMap = {};
         for(let {x, y, price} of purchasableInfo){
             let color = `#${priceToColor(price)}`;
@@ -1214,7 +1220,10 @@ export class Game extends React.Component {
         }
         catch (e){
             console.error(e);
-            data = this.props.server.getSpacesByOwner(this.props.connection, this.props.user);
+            this.moveToSpaces(this.props.ownedSpaces);
+            loading(null, "Getting your Spaces", "success");
+            return;
+            // data = this.props.server.getSpacesByOwner(this.props.connection, this.props.user);
         }
         const spaces = data.spaces;
         const mints = data.mints;
