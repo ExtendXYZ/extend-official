@@ -32,7 +32,6 @@ export const VOUCHER_MAX_PRICE = 1000000;
 export const MINT_PRICE = 0.014;
 
 export const MINT_NOT_READY_NBDS = new Set();
-MINT_NOT_READY_NBDS.add("(1,0)");
 
 export const BASE = new PublicKey(
   "XBSEZzB7ojaKgXqfCSpNbPLnuMGk3JVtSKYjXYqg7Pn"
