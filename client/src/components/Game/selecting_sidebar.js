@@ -320,16 +320,20 @@ export class SelectingSidebar extends React.Component {
                       {sidebarHeader}
                           
                       {/* Purchase info */}
-                      {this.state.ownedSelection.size > 0 ? 
+                      {<Divider className="sidebarDivider">
+                            Marketplace Coming Soon!
+                        </Divider>}
+                      
+                      {/* {this.state.ownedSelection.size > 0 ? 
                         <div>
                         <Divider className="sidebarDivider">
                             Modify Listing
                         </Divider>
                         <ListItem className="info" style={{ display: "block" }}>
-                          {/* <Box className="infoText2">
-                            Estimated Cost:{" "}
-                            {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
-                          </Box> */}
+                          // <Box className="infoText2">
+                          //   Estimated Cost:{" "}
+                          //   {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
+                          // </Box> 
                           <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
                             <Box className="infoHeader">PRICE</Box>
                           </Tooltip>
@@ -456,21 +460,21 @@ export class SelectingSidebar extends React.Component {
                         </Box>
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
-                        {/* <Button
-                          size="small"
-                          variant="contained"
-                          onClick={() => {
-                            this.props.loadPurchasableInfo();
-                          }}
-                          style={{
-                            width: "100%",
-                            marginLeft: "5px",
-                            color: "#FFFFFF",
-                            background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                          }}
-                        >
-                          Load Price Info
-                        </Button> */}
+                        // <Button
+                        //   size="small"
+                        //   variant="contained"
+                        //   onClick={() => {
+                        //     this.props.loadPurchasableInfo();
+                        //   }}
+                        //   style={{
+                        //     width: "100%",
+                        //     marginLeft: "5px",
+                        //     color: "#FFFFFF",
+                        //     background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                        //   }}
+                        // >
+                        //   Load Price Info
+                        // </Button>
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
                         <Tooltip placement={'right'} title="Select all purchasable Spaces in your selection to prepare to purchase them.">
@@ -540,18 +544,18 @@ export class SelectingSidebar extends React.Component {
                             </Button>
                           </Tooltip>
                         </div>
-                        {/* <FormControl style={{alignItems: "center"}}>
-                                        <FormControlLabel
-                                            control={
-                                                <Switch 
-                                                onChange={(e) => this.handleTargetFloor(e)} 
-                                                checked={this.props.floor}
-                                                disabled={this.props.selecting.loadingPricesStatus != 2}
-                                                />
-                                            } 
-                                            label="SHOW FLOOR"
-                                        />
-                                    </FormControl> */}
+                        // <FormControl style={{alignItems: "center"}}>
+                        //                 <FormControlLabel
+                        //                     control={
+                        //                         <Switch 
+                        //                         onChange={(e) => this.handleTargetFloor(e)} 
+                        //                         checked={this.props.floor}
+                        //                         disabled={this.props.selecting.loadingPricesStatus != 2}
+                        //                         />
+                        //                     } 
+                        //                     label="SHOW FLOOR"
+                        //                 />
+                        //             </FormControl>
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
                         <Tooltip placement={'right'} title={tooltipBuyTitle}>
@@ -576,7 +580,7 @@ export class SelectingSidebar extends React.Component {
                           </Button>
                         </Tooltip>
                         &nbsp;
-                      </ListItem>
+                      </ListItem> */}
                   </TabPanel>
 
                   <TabPanel value={this.state.value} index={2}>
