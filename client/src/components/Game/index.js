@@ -1055,7 +1055,7 @@ export class Game extends React.Component {
         if (m > r || n > c || m <= 0 || n <= 0) {
             let purchasable = new Set();
             let floor = null;
-            return {purchasable, purchasableInfo, floor};
+            return {spaces: purchasable, info: purchasableInfo, floor};
         }
 
         for (let info of purchasableInfo) {
@@ -1133,10 +1133,10 @@ export class Game extends React.Component {
                 message: "Invalid dimensions",
             });
         }
-        else if (spaces.size === 0) {
+        else if (!spaces || spaces.size === 0) {
             floor = null;
             notify({
-                message: "No Spaces available to buy",
+                message: "No rectangle of the given dimensions available to buy",
             });
         }
         this.setState({
