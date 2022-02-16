@@ -14,8 +14,6 @@ import reportWebVitals from "./reportWebVitals";
 
 import "./index.css";
 
-const reload = () => window.location.reload();
-
 ReactDOM.render(
   <React.StrictMode>
     <ConnectionProvider>

@@ -1,4 +1,5 @@
 import {PublicKey} from "@solana/web3.js";
+// import {ObjectSet} from "../utils/objectSet";
 // import dotenv from "dotenv";
 // dotenv.config();
 
@@ -23,12 +24,15 @@ export const VOUCHER_SINK_SEED = "voucher_sink";
 export const RENT_ACCOUNT_SEED = "rent_account";
 
 export const BATCH_TX_SIZE = 40;
-export const BATCH_LOAD_PRICE_SIZE = 600;
+export const BATCH_LOAD_PRICE_SIZE = 100;
 export const MAX_TRANSACTION_SIZE = 1232;
 export const BASE_TRANSACTION_SIZE = 3 + 32 + 65;
 export const VOUCHER_PRICE_CONSTANT = 0.01059;
 export const VOUCHER_MAX_PRICE = 1000000;
 export const MINT_PRICE = 0.014;
+
+export const MINT_NOT_READY_NBDS = new Set();
+MINT_NOT_READY_NBDS.add("(1,0)");
 
 export const BASE = new PublicKey(
   "XBSEZzB7ojaKgXqfCSpNbPLnuMGk3JVtSKYjXYqg7Pn"
@@ -57,6 +61,9 @@ export const METADATA_PROGRAM_ID = new PublicKey(
 export const CANDY_MACHINE_PROGRAM_ID = new PublicKey(
   "XCNDrq9XYHPWi6BBWJg8huhtf6ZciNAQunkrtQgFHEz"
 );
+export const CANDY_MACHINE_PROGRAM_OLD = new PublicKey(
+  "cndyAnrLdpjq1Ssp1z8xxDsB8dxe7u4HL5Nxi2K5WXZ"
+);
 
 export const CANDY_START_DATE = "1634841157";
 
@@ -65,7 +72,7 @@ export const CAPTCHA_VERIFY_URL = "https://captcha.extend.xyz/api/verify";
 
 export const DATABASE_SERVER_URL = 'https://db.solanapixelexchange.com:3000';
 
-export const HELP_URL = "https://www.notion.so/impossiblefinance/EXTEND-FAQ-5e89a5b3082b47b786c927e131264997";
+export const HELP_URL = "https://extendxyz.notion.site/extendxyz/EXTEND-CANVAS-FAQ-5a0a1dc5e6d64ad1ab83fed82c2ea5e8";
 
 export const LEDGER_KEYPAIR_INDEX = 0;
 

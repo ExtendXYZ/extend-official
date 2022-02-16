@@ -1,4 +1,4 @@
-import { Commitment, Keypair, Transaction, TransactionInstruction, } from "@solana/web3.js";
+import { Keypair, TransactionInstruction, } from "@solana/web3.js";
 import { Connection as Conn } from "../contexts";
 import { notify, compact_u16_len } from "../utils";
 import { MAX_TRANSACTION_SIZE, BASE_TRANSACTION_SIZE } from "../constants";
@@ -78,7 +78,7 @@ export const sendInstructionsGreedyBatch = async (
             numInstructions = numInstructions + 1;
             //code to allow us to check correctness
             // tx.add(instruction);
-            // console.log(tx.serialize({requireAllSignatures: false}).length, newTransactionSize);
+            // // console.log(tx.serialize({requireAllSignatures: false}).length, newTransactionSize);
         }
         else {
             // register batched ransaction
@@ -103,7 +103,7 @@ export const sendInstructionsGreedyBatch = async (
     signers.push([]);
     ixPerTx.push(transaction.length);
 
-    console.log("Num Transactions", transactions.length)
+    // console.log("Num Transactions", transactions.length)
 
     const responses = await Conn.sendTransactionsWithManualRetry(
         connection,

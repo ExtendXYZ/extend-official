@@ -63,6 +63,7 @@ programCommand("mint-tokens")
   .option("-nx, --neighborhood-row <number>", `Neighborhood x`, undefined)
   .option("-ny, --neighborhood-col <number>", `Neighborhood y`, undefined)
   .option("-t, --number-of-tokens <number>", `Number of tokens`, "1")
+  .option("-r, --rpc-token <string>", "RPC token")
   .action(async (directory, cmd) => {
     const {
       keypair,
@@ -70,11 +71,12 @@ programCommand("mint-tokens")
       neighborhoodRow,
       neighborhoodCol,
       numberOfTokens,
+      rpcToken,
     } = cmd.opts();
 
     const n = parseInt(numberOfTokens); // parse args
     // const solConnection = new anchor.web3.Connection(clusterApiUrl(env));
-    const solConnection = new anchor.web3.Connection(`https://extend.${env}.rpcpool.com/30af34cbb7f1e44cf8776c7ecae8`);
+    const solConnection = new anchor.web3.Connection(`https://extend.${env}.rpcpool.com/${rpcToken}`);
     const walletKeyPair = await loadWalletKey(keypair);
     const neighborhoodX = Number(neighborhoodRow);
     const neighborhoodY = Number(neighborhoodCol);
@@ -122,13 +124,15 @@ programCommand("mint-tokens")
   });
 
   programCommand("register")
+  .option("-r, --rpc-token <string>", "RPC token")
   .action(async (directory, cmd) => {
     const {
       keypair,
       env,
+      rpcToken,
     } = cmd.opts();
 
-    const solConnection = new anchor.web3.Connection(`https://extend.${env}.rpcpool.com/30af34cbb7f1e44cf8776c7ecae8`);
+    const solConnection = new anchor.web3.Connection(`https://extend.${env}.rpcpool.com/${rpcToken}`);
     const walletKeyPair = await loadWalletKey(keypair);
     const wallet = new anchor.Wallet(walletKeyPair);
 

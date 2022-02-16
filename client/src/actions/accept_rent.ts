@@ -1,10 +1,9 @@
-import {PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction,} from "@solana/web3.js";
+import {PublicKey, SystemProgram, TransactionInstruction} from "@solana/web3.js";
 import BN from "bn.js";
 import {Schema, serialize} from "borsh";
-import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID, u64,} from "@solana/spl-token";
-import {NEIGHBORHOOD_SIZE, NEIGHBORHOOD_METADATA_SEED, SPACE_METADATA_SEED, SPACE_PROGRAM_ID, SELL_DELEGATE_SEED, RENT_ACCOUNT_SEED, RENT_PROGRAM_ID} from "../constants";
+import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID} from "@solana/spl-token";
+import {SPACE_METADATA_SEED, SPACE_PROGRAM_ID, RENT_ACCOUNT_SEED, RENT_PROGRAM_ID} from "../constants";
 import {correct_negative_serialization, twoscomplement_i2u} from "../utils/borsh";
-import { Server } from "ws";
 
 export class AcceptRentInstructionData {
   instruction: number = 1;

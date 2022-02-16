@@ -15,7 +15,7 @@ export class Database {
     }
 
     async connect() {
-        console.log("connecting:");
+        // console.log("connecting:");
         return await axios.post(this.mysql + "/connect/", "connect", {
             headers: { 'Content-Type': 'text/plain' }
           });
@@ -33,7 +33,6 @@ export class Database {
     }
 
     async connectNew(id) {
-        const currTime = Date.now();
         const result = await axios.post(this.mysql + "/connectId/", {type: "connect", id: id, time: Date.now()});
         return result.data[0][0];
     }
@@ -48,8 +47,7 @@ export class Database {
     }
 
     async getOnline() {
-        const result = await axios.get(this.mysql + '/connect');
-        console.log(result);
+        await axios.get(this.mysql + '/connect');
     }
 
     async getSpacesByOwner(address) {
@@ -97,8 +95,6 @@ export class Database {
 
     async getSelectedInfo(user, poses) {
         const newPoses = [...poses];
-        let posesX = [];
-        let posesY = [];
         let minX = Infinity;
         let minY = Infinity;
         let maxX = -Infinity;
@@ -119,22 +115,20 @@ export class Database {
         for (let arr of data) {
             const [x, y, mint, owner, price, forSale] = arr;
             const pos = JSON.stringify({x, y});
-            if (poses.has(pos) && (!user || user.toBase58() != owner) && (forSale === 1)) { // if in poses, not owned by curr user, and for Sale 
+            if (poses.has(pos) && (!user || user.toBase58() !== owner) && (forSale === 1)) { // if in poses, not owned by curr user, and for Sale 
                 purchasableInfo.push({x, y, mint: new PublicKey(mint), price: Number(price), seller: new PublicKey(owner)});
             }
             if (poses.has(pos)) { // if it is in the poses
                 owners[pos] = new PublicKey(owner);
             }   
         }
-        purchasableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
+        purchasableInfo.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
 
         return {purchasableInfo, owners};
     }
 
     async getPurchasableInfo(user, poses) {
         const newPoses = [...poses];
-        let posesX = [];
-        let posesY = [];
         let minX = Infinity;
         let minY = Infinity;
         let maxX = -Infinity;
@@ -153,11 +147,11 @@ export class Database {
         let purchasableInfo = [];
         for (let arr of data) {
             const [x, y, mint, owner, price] = arr;
-            if (poses.has(JSON.stringify({x, y})) && (!user || user.toBase58() != owner)) { // if in poses, not owned by curr user, and for Sale 
+            if (poses.has(JSON.stringify({x, y})) && (!user || user.toBase58() !== owner)) { // if in poses, not owned by curr user, and for Sale 
                 purchasableInfo.push({x, y, mint: new PublicKey(mint), price: Number(price), seller: new PublicKey(owner)});
             } 
         }
-        purchasableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
+        purchasableInfo.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
 
         return purchasableInfo;
     }
@@ -205,12 +199,12 @@ export class Database {
     // async getSpaceInfoWithRent(x, y){
     //     const results = await axios.get(this.mysql + '/infoWithRent/' + x + '/' + y);
     //     const data = results.data[0];
-    //     console.log(data);
+    //     // console.log(data);
     //     let [mint, owner, price, forSale, rentPrice, minDuration, maxDuration, maxTimestamp, rentEnd, renter, rentee] = data;
 
     //     let hasRentPrice = true;
     //         let now = Date.now() / 1000;
-    //         if (rentPrice == 0 || (owner !== renter) || (maxTimestamp > 0 && now > maxTimestamp) || now < rentEnd) {
+    //         if (rentPrice === 0 || (owner !== renter) || (maxTimestamp > 0 && now > maxTimestamp) || now < rentEnd) {
     //             hasRentPrice = false;
     //             rentPrice = 0;
     //         }
@@ -253,8 +247,8 @@ export class Database {
     //     let rentableInfo = [];
     //     for (let arr of data) {
     //         let [x, y, mint, owner, rentPrice, minDuration, maxDuration, maxTimestamp, rentEnd, renter] = arr;
-    //         console.log(arr);
-    //         if (poses.has(JSON.stringify({x, y})) && (!user || user.toBase58() != owner)) { // if in poses, not owned by curr user, and for Sale 
+    //         // console.log(arr);
+    //         if (poses.has(JSON.stringify({x, y})) && (!user || user.toBase58() !== owner)) { // if in poses, not owned by curr user, and for Sale 
     //             rentableInfo.push(
     //                 {
     //                     x,
@@ -269,7 +263,7 @@ export class Database {
     //             );
     //         }
     //     }
-    //     rentableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
+    //     rentableInfo.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
 
     //     return rentableInfo;
     // }

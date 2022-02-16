@@ -328,7 +328,9 @@ const Home: NextPage = () => {
               <Accordion.Item eventKey="0" className={styles.accordionItem}>
                 <Accordion.Header>Wen mint?</Accordion.Header>
                 <Accordion.Body style={{ backgroundColor: "black" }}>
-                  Check our Discord and Twitter for public mint times
+                  Check our Discord and Twitter for public mint times. The
+                  Genesis Neighborhood will be publicly minting on February 17
+                  at 14:00 UTC.
                 </Accordion.Body>
               </Accordion.Item>
               <Accordion.Item eventKey="1" className={styles.accordionItem}>
@@ -336,15 +338,14 @@ const Home: NextPage = () => {
                 <Accordion.Body style={{ backgroundColor: "black" }}>
                   1. Connect your wallet.
                   <br />
-                  2. Select the amount of Spaces you would like to{" "}
-                  <a href="https://canvas.extend.xyz/mint">mint</a> and click
-                  “Get Vouchers” to receive your Space voucher tokens.
+                  2. Select the amount of Space vouchers you would like to{" "}
+                  <a href="https://canvas.extend.xyz/mint">claim</a> and click
+                  “Get Vouchers.”
                   <br />
                   3. Solve the captcha correctly.
                   <br />
-                  4. Select the number of tokens you’d like to redeem and turn
-                  in your Space voucher tokens to mint your Space. Each Space
-                  requires one voucher token and about 0.014 SOL, so be sure to
+                  4. Select the number of vouchers you’d like to redeem. Each Space
+                  mint requires one voucher and about 0.014 SOL, so be sure to
                   budget for that fixed cost!
                 </Accordion.Body>
               </Accordion.Item>
@@ -363,11 +364,11 @@ const Home: NextPage = () => {
                   I hate captchas and want to mint a lot, what can I do?
                 </Accordion.Header>
                 <Accordion.Body style={{ backgroundColor: "black" }}>
-                  For minters who want the convenience of minting a larger batch
-                  of voucher tokens, we have come up with pricing to allow that.
-                  The price for a single voucher token is 0 SOL and for 10
-                  voucher tokens is 0.1 SOL. Note that there is a cap on the
-                  number of tokens in a single transaction to 100 (~1.85 SOL).
+                  For minters who want the convenience of acquiring a larger batch
+                  of vouchers, we have come up with pricing to allow that.
+                  The price for a single voucher is 0 SOL and for 10
+                  vouchers is 0.1 SOL. Note that there is a cap on the
+                  number of vouchers in a single transaction of 100 (~1.85 SOL).
                 </Accordion.Body>
               </Accordion.Item>
             </Accordion>
@@ -380,25 +381,25 @@ const Home: NextPage = () => {
                 </Accordion.Header>
                 <Accordion.Body style={{ backgroundColor: "black" }}>
                   Make sure that your wallet is connected and that the Spaces
-                  have been registered (click the “Register” button after
-                  connecting your wallet).
+                  have been registered (click the “Register” button after{" "}
+                  <a href="https://canvas.extend.xyz/mint">minting</a>).
                 </Accordion.Body>
               </Accordion.Item>
               <Accordion.Item eventKey="1" className={styles.accordionItem}>
                 <Accordion.Header>How do I upload an image?</Accordion.Header>
                 <Accordion.Body style={{ backgroundColor: "black" }}>
                   Simply press shift, click and drag. The interface will then
-                  allow you to upload an image (or a gif for animations!), only
-                  the pixels corresponding to owned Spaces will change.
+                  allow you to upload an image (or a gif for animations!).
+                  You can only upload an image over Spaces that you own.
                 </Accordion.Body>
               </Accordion.Item>
               <Accordion.Item eventKey="2" className={styles.accordionItem}>
                 <Accordion.Header>
-                  Why can’t I buy my Neighbor’s Space?
+                  Why can’t I buy a particular Space?
                 </Accordion.Header>
                 <Accordion.Body style={{ backgroundColor: "black" }}>
-                  By default a Space is not listed. Your Neighbor needs to
-                  register the Space in question and list it for sale.
+                  By default a Space is not listed. That particular Space needs
+                  to be registered and listed for sale.
                 </Accordion.Body>
               </Accordion.Item>
             </Accordion>

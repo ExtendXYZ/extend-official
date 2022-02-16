@@ -11,10 +11,6 @@ const TOKEN_METADATA_PROGRAM_ID = new anchor.web3.PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 );
 
-const SYS_PROGRAM_ID = new anchor.web3.PublicKey(
-  "11111111111111111111111111111111"
-);
-
 export interface CandyMachine {
   id: anchor.web3.PublicKey,
   connection: anchor.web3.Connection;
@@ -49,7 +45,7 @@ export const awaitTransactionSignatureConfirmation = async (
         return;
       }
       done = true;
-      console.log("Rejecting for timeout...");
+      // console.log("Rejecting for timeout...");
       reject({ timeout: true });
     }, timeout);
     try {
@@ -63,10 +59,10 @@ export const awaitTransactionSignatureConfirmation = async (
             confirmations: 0,
           };
           if (result.err) {
-            console.log("Rejected via websocket", result.err);
+            // console.log("Rejected via websocket", result.err);
             reject(status);
           } else {
-            console.log("Resolved via websocket", result);
+            // console.log("Resolved via websocket", result);
             resolve(status);
           }
         },
@@ -86,22 +82,22 @@ export const awaitTransactionSignatureConfirmation = async (
           status = signatureStatuses && signatureStatuses.value[0];
           if (!done) {
             if (!status) {
-              console.log("REST null result for", txid, status);
+              // console.log("REST null result for", txid, status);
             } else if (status.err) {
-              console.log("REST error for", txid, status);
+              // console.log("REST error for", txid, status);
               done = true;
               reject(status.err);
             } else if (!status.confirmations) {
-              console.log("REST no confirmations for", txid, status);
+              // console.log("REST no confirmations for", txid, status);
             } else {
-              console.log("REST confirmation for", txid, status);
+              // console.log("REST confirmation for", txid, status);
               done = true;
               resolve(status);
             }
           }
         } catch (e) {
           if (!done) {
-            console.log("REST connection error: txid", txid, e);
+            // console.log("REST connection error: txid", txid, e);
           }
         }
       })();
@@ -114,7 +110,7 @@ export const awaitTransactionSignatureConfirmation = async (
     connection.removeSignatureListener(subId);
   }
   done = true;
-  console.log("Returning status", status);
+  // console.log("Returning status", status);
   return status;
 }
 
@@ -171,17 +167,18 @@ export const getCandyMachineState = async (
   anchorWallet: anchor.Wallet,
   candyMachineId: anchor.web3.PublicKey,
   connection: anchor.web3.Connection,
+  candyProgram: anchor.web3.PublicKey,
 ): Promise<CandyMachineState> => {
   const provider = new anchor.Provider(connection, anchorWallet, {
     preflightCommitment: "recent",
   });
 
   const idl = await anchor.Program.fetchIdl(
-    CANDY_MACHINE_PROGRAM_ID,
+    candyProgram,
     provider
   );
 
-  const program = new anchor.Program(idl, CANDY_MACHINE_PROGRAM_ID, provider);
+  const program = new anchor.Program(idl, candyProgram, provider);
   const candyMachine = {
     id: candyMachineId,
     connection,
@@ -189,19 +186,19 @@ export const getCandyMachineState = async (
   }
 
   const state: any = await program.account.candyMachine.fetch(candyMachineId);
-  // console.log(state);
+  // // console.log(state);
 
   const itemsAvailable = state.data.itemsAvailable.toNumber();
   const itemsRedeemed = state.itemsRedeemed.toNumber();
   const itemsRemaining = itemsAvailable - itemsRedeemed;
 
   let goLiveDate = new Date(1000000000);
-  if (state.data.goLiveDate != null){
+  if (state.data.goLiveDate !== null){
     let date = state.data.goLiveDate.toNumber();
     goLiveDate = new Date(date * 1000);
   }
 
-  // console.log({
+  // // console.log({
   //   itemsAvailable,
   //   itemsRedeemed,
   //   itemsRemaining,
@@ -317,7 +314,7 @@ export const mintOneTokenInstructions = async (
   voucherSink: anchor.web3.PublicKey,
 ): Promise<TransactionInstruction[]> => {
   const token = await getTokenWallet(payer, mint.publicKey);
-  const { connection, program } = candyMachine;
+  const { program } = candyMachine;
   const metadata = await getMetadata(mint.publicKey);
   const masterEdition = await getMasterEdition(mint.publicKey);
   const payerATA = await getTokenWallet(payer, tokenMint);
@@ -387,7 +384,7 @@ export const mintOneTokenInstructions = async (
     }),
   );
   
-  // console.log("returning instructions");
+  // // console.log("returning instructions");
 
   return instructions;
 }
@@ -423,7 +420,7 @@ export const mintOneTokenInstructions = async (
 
 
 
-//   console.log(res);
+//   // console.log(res);
 
 
 

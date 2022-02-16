@@ -12,47 +12,18 @@ import {
     TransactionInstruction,
     TransactionSignature,
 } from "@solana/web3.js";
-import {RPC_devnet, RPC_mainnet, BATCH_TX_SIZE, RPC} from "../constants"
+import {RPC_devnet, BATCH_TX_SIZE, RPC} from "../constants"
 import React, {useContext, useEffect, useMemo, useState} from "react";
 import {notify} from "../utils/notifications";
 import {ExplorerLink} from "../components/ExplorerLink";
 import {ENV as ChainId, TokenInfo, TokenListProvider,} from "@solana/spl-token-registry";
 import {WalletSigner} from "./WalletContext/WalletContext";
 import {WalletNotConnectedError} from "@solana/wallet-adapter-base";
-import {loading} from '../utils';
+import {loading} from '../utils/loading';
 
-import { RateLimiter } from 'limiter'
-import { first } from "lodash";
 let requestNum = 0;
 let sigNum = 0;
-let txNum = 0;
-
-class LimiterLibraryRateLimiter {
-  maxRequests: any; 
-  maxRequestWindowMS: any;
-  limiter: any;
-
-  constructor (args: { maxRequests: any; maxRequestWindowMS: any }) {
-    this.maxRequests = args.maxRequests;
-    this.maxRequestWindowMS = args.maxRequestWindowMS;
-    this.limiter = new RateLimiter({tokensPerInterval: this.maxRequests, interval: this.maxRequestWindowMS, fireImmediately: false});
-  }
-
-  async acquireToken (fn) {
-    const n_remaining = this.limiter.tryRemoveTokens(1);
-    if (n_remaining) {
-      // console.log(n_remaining);
-      await new Promise(acc => {
-        setImmediate(acc, 1000);
-      });
-      // await nextTick();
-      return fn();
-    } else {
-      await sleep(this.maxRequestWindowMS);
-      return this.acquireToken(fn);
-    }
-  }
-}
+let txNum = 0; 
 
 interface BlockhashAndFeeCalculator {
   blockhash: Blockhash;
@@ -61,7 +32,7 @@ interface BlockhashAndFeeCalculator {
 
 export type ENV = "mainnet-beta" | "testnet" | "devnet" | "localnet";
 // figure out devnet/mainnet endpoint
-console.log("RPC", RPC)
+// console.log("RPC", RPC)
 let name = "devnet";
 let chainId = ChainId.Devnet;
 if (RPC?.includes("mainnet")) {
@@ -72,7 +43,7 @@ if (RPC?.includes("mainnet")) {
   chainId = ChainId.Testnet;
 }
 const endpoint = RPC ? RPC : RPC_devnet;
-console.log("using ", name);
+// console.log("using ", name);
 
 export const ENDPOINTS = [
   // {
@@ -93,10 +64,6 @@ export const ENDPOINTS = [
 ];
 
 const DEFAULT = ENDPOINTS[0].endpoint;
-const rateLimiter = new LimiterLibraryRateLimiter({
-  maxRequests: 40, // TODO: Figure out appropriate rate limits
-  maxRequestWindowMS: 1000
-});
 
 interface ConnectionConfig {
   connection: Connection;
@@ -249,10 +216,6 @@ export async function sendTransactionsWithManualRetry(
   signers: Keypair[][],
   sequenceType: SequenceType = SequenceType.Parallel,
 ) {
-  loading(null, 'Sending Transactions', null);
-  let stopPoint = 0;
-  let tries = 0;
-  let lastInstructionsLength: any = null;
   let toRemoveSigners: Record<number, boolean> = {};
 
   instructions = instructions.filter((instr, i) => {
@@ -277,10 +240,8 @@ export async function sendTransactionsWithManualRetry(
         "single"
       );
       if (!response) {
-        loading(null, 'Sending Transactions', 'exception');
         return [false];
       }
-      loading(null, 'Sending Transactions', 'success');
       return [true];
     } else {
       responses = await sendTransactions(
@@ -291,19 +252,17 @@ export async function sendTransactionsWithManualRetry(
         sequenceType,
         "single",
       );
-      // loading(100, 'Sending Transactions', null);
     }
   } catch (e) {
-    loading(null, 'Sending Transactions', 'exception');
     console.error(e);
+    loading(null, "Sending transactions...", "Exception");
   }
-  console.log(
-    "Finished instructions length is",
-    instructions.length
-  );
+  // console.log(
+  //   "Finished instructions length is",
+  //   instructions.length
+  // );
 
   // make response know whether the transactions failed or succeeded
-  loading(null, 'Sending Transactions', 'success');
   return responses;
 }
 
@@ -350,18 +309,15 @@ export const sendTransactions = async (
 
     unsignedTxns.push(transaction);
   }
-  //console.log(unsignedTxns.length,"SHOULD BE # of txs hard divide by batch_size")
+  //// console.log(unsignedTxns.length,"SHOULD BE # of txs hard divide by batch_size")
 
   // const signedTxns = await wallet.signAllTransactions(unsignedTxns);
 
-  const pendingTxns: Promise<{ txid: string; slot: number }>[] = [];
-
-  let breakEarlyObject = { breakEarly: false, i: 0 };
   let totalResponses: boolean[] = [];
 
   if (sequenceType !== SequenceType.Parallel) {
     // for (let i = 0; i < signedTxns.length; i++) {
-    //   console.log(i)
+    //   // console.log(i)
     //   try {
     //     await sendSignedTransaction({
     //     connection,
@@ -374,25 +330,25 @@ export const sendTransactions = async (
     //     //     });
 
     //   } catch (e) {
-    //     console.log("Caught failure", e);
+    //     // console.log("Caught failure", e);
     //     if (breakEarlyObject.breakEarly) {
-    //       // console.log("Died on ", breakEarlyObject.i);
+    //       // // console.log("Died on ", breakEarlyObject.i);
     //       return breakEarlyObject.i; // Return the txn we failed on by index
     //     }
     //   }
     // }
   } else {
 
-    let startTime = getUnixTs();
+    // let startTime = getUnixTs();
     requestNum = 0;
     sigNum = 0;
     txNum = 0;
-    let currRequests = 0;
-    let currSig = 0;
-    let currTx = 0;
-    let elapsed = 0;
-    let beginTime = startTime;
+    // let currRequests = 0;
+    // let currSig = 0;
+    // let currTx = 0;
+    // let elapsed = 0;
     for (let i = 0; i < unsignedTxns.length; i+=BATCH_TX_SIZE) {
+      loading(i / (unsignedTxns.length) * (100), "Sending transactions...", null);
       let currArr = unsignedTxns.slice(i,i+BATCH_TX_SIZE);
       
       let nloops = 0;
@@ -404,7 +360,7 @@ export const sendTransactions = async (
         idxMap.push(j);
       }
 
-      while (currArr.length != 0 && nloops < 2) {
+      while (currArr.length !== 0 && nloops < 2) {
         // get recent blockhash and sign transactions
         let currBlock = await connection.getRecentBlockhash(commitment);
         currArr.forEach((tx) => tx.recentBlockhash = currBlock.blockhash);
@@ -436,8 +392,6 @@ export const sendTransactions = async (
               })
         ))
 
-        console.log("Sending transactions", i, "try", nloops+1)
-
         let responses = await Promise.all(promises);
         for (let j = 0; j < responses.length; j++) { // populate finalResponses with whether each tx succeed
           finalResponses[idxMap[j]] = (responses[j] === 2);
@@ -452,7 +406,7 @@ export const sendTransactions = async (
             newIdxMap.push(idxMap[k]);
           }
         }
-        console.log("Need to retry", nextArr.length);
+        // console.log("Need to retry", nextArr.length);
 
         // shuffling nextArr
         let outp = shuffle(nextArr, newIdxMap);
@@ -462,20 +416,21 @@ export const sendTransactions = async (
         currArr = nextArr;
         idxMap = newIdxMap;
 
-        elapsed = getUnixTs() - startTime;
-        console.log("Elapsed time", elapsed);
-        startTime = getUnixTs();
-        // console.log("Ratio", (requestNum - currRequests) / elapsed)
-        console.log("Num requests done", requestNum - currRequests);
-        console.log("Cumulative time", getUnixTs() - beginTime);
-        currRequests = requestNum;
-        currTx = txNum;
-        currSig = sigNum;
+        // elapsed = getUnixTs() - startTime;
+        // console.log("Elapsed time", elapsed);
+        // startTime = getUnixTs();
+        // // console.log("Ratio", (requestNum - currRequests) / elapsed)
+        // console.log("Num requests done", requestNum - currRequests);
+        // console.log("Cumulative time", getUnixTs() - beginTime);
+        // currRequests = requestNum;
+        // currTx = txNum;
+        // currSig = sigNum;
       }
 
       // push into totalResponses
       totalResponses.push(...finalResponses);
     }
+    loading(null, "Sending transactions...", 'success');
 
     // const promises = signedTxns.map((item) => (
     //   rateLimiter.acquireToken(async () => await sendSignedTransaction({
@@ -616,7 +571,7 @@ export const sendTransactionWithRetry = async (
   if (beforeSend) {
     beforeSend();
   }
-  //console.log("About to send");
+  //// console.log("About to send");
   try {
     const { txid, slot } = await sendSignedTransaction({
       connection,
@@ -651,7 +606,7 @@ export async function sendSignedTransaction({
   try {
     rawTransaction = signedTransaction.serialize();
   } catch(e){
-    console.log(e)
+    // console.log(e)
   }
   const startTime = getUnixTs();
   let slot = 0;
@@ -664,7 +619,7 @@ export async function sendSignedTransaction({
   requestNum += 1;
   txNum += 1;
 
-  // console.log("Started awaiting confirmation for", txid);
+  // // console.log("Started awaiting confirmation for", txid);
 
   let done = false;
   await sleep(2000);
@@ -672,13 +627,13 @@ export async function sendSignedTransaction({
     let maxTime = 6000;
     await sleep(maxTime);
     while (!done && getUnixTs() - startTime < timeout) {
-      // console.log("Run 2nd time")
+      // // console.log("Run 2nd time")
       const newTxid = await connection.sendRawTransaction(rawTransaction, {
         skipPreflight: true,
       });
       requestNum += 1;
       txNum += 1;
-      // console.log("Same txid", newTxid === txid)
+      // // console.log("Same txid", newTxid === txid)
       await sleep(maxTime);
     }
   })();
@@ -692,7 +647,7 @@ export async function sendSignedTransaction({
         true
       );
       if (!confirmation) {
-        // console.log("Not confirmed, max retry hit")
+        // // console.log("Not confirmed, max retry hit")
         throw new Error("Max signature retries hit")
       }
       if (confirmation.err) {
@@ -734,7 +689,7 @@ export async function sendSignedTransaction({
     }
   }
 
-  // console.log("Latency", txid, getUnixTs() - startTime);
+  // // console.log("Latency", txid, getUnixTs() - startTime);
   return { txid, slot };
 }
 
@@ -793,7 +748,7 @@ async function awaitTransactionSignatureConfirmation(
         return;
       }
       done = true;
-      // console.log("Rejecting for timeout...");
+      // // console.log("Rejecting for timeout...");
       reject({ timeout: true });
     }, timeout);
 
@@ -809,28 +764,28 @@ async function awaitTransactionSignatureConfirmation(
           requestNum += 1;
           sigNum += 1;
           numTries += 1;
-          // console.log("After try", numTries)
+          // // console.log("After try", numTries)
           status = signatureStatuses && signatureStatuses.value[0];
-          // console.log(`https://explorer.solana.com/tx/${txid}?cluster=${env}`); // TODO
+          // // console.log(`https://explorer.solana.com/tx/${txid}?cluster=${env}`); // TODO
           if (!done) {
             if (!status) {
-              // console.log("Not status", signatureStatuses.value[0])
-              // console.log("REST null result for", txid, status);
+              // // console.log("Not status", signatureStatuses.value[0])
+              // // console.log("REST null result for", txid, status);
             } else if (status.err) {
-              // console.log("REST error for", txid, status);
+              // // console.log("REST error for", txid, status);
               done = true;
               reject(status.err);
             } else if (!status.confirmations) {
-              // console.log("REST no confirmations for", txid, status);
+              // // console.log("REST no confirmations for", txid, status);
             } else {
-              // console.log("REST confirmation for", txid, status);
+              // // console.log("REST confirmation for", txid, status);
               done = true;
               resolve(status);
             }
           }
         } catch (e) {
           if (!done) {
-            // console.log("REST connection error: txid", txid, e);
+            // // console.log("REST connection error: txid", txid, e);
             reject();
           }
         }

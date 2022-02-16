@@ -4,7 +4,6 @@ import {Schema, serialize} from "borsh";
 import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID,} from "@solana/spl-token";
 import {NEIGHBORHOOD_SIZE, NEIGHBORHOOD_METADATA_SEED, SPACE_METADATA_SEED, SPACE_PROGRAM_ID, SELL_DELEGATE_SEED,} from "../constants";
 import {correct_negative_serialization, twoscomplement_i2u} from "../utils/borsh";
-import { Server } from "ws";
 
 export const ACCEPT_OFFER_INSTRUCTION_ID = 4;
 export class AcceptOfferInstructionData {
