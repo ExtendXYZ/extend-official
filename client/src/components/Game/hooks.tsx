@@ -124,7 +124,7 @@ export function Screen(props) {
     }, []);
 
     useEffect(() => {
-        const interval = setInterval(pullNumViewers, 30 * 1000); // update numviewers live
+        const interval = setInterval(pullNumViewers, 60 * 1000); // update numviewers live
         return () => {
             clearInterval(interval);
         };
