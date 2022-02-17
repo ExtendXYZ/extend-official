@@ -26,7 +26,7 @@ import { Board } from './canvas.js';
 import { FocusSidebar } from './focus_sidebar.js';
 import { SelectingSidebar } from './selecting_sidebar.js';
 import { NeighborhoodSidebar } from './neighborhood_sidebar.js';
-import { solToLamports, lamportsToSol, xor, priceToColor} from "../../utils";
+import { solToLamports, lamportsToSol, xor, priceToColor, sleep} from "../../utils";
 import {loading} from '../../utils/loading';
 import Search from "antd/es/input/Search";
 
@@ -376,7 +376,7 @@ export class Game extends React.Component {
         await Promise.all([
             this.fetch_colors(this.state.frame),
             this.fetch_neighborhood_names(this.state.frame),
-            this.fetch_neighborhood_prices(),
+            // this.fetch_neighborhood_prices(),
             this.fetch_censors_all_frames()
         ]);
         this.setState({
@@ -464,6 +464,10 @@ export class Game extends React.Component {
                 })
             }
         }
+
+        // sleep 10 seconds, then fetch price view
+        sleep(10 * 1000);
+        this.fetch_neighborhood_prices();
     }
 
     componentWillUnmount() {
