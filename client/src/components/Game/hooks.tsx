@@ -131,7 +131,7 @@ export function Screen(props) {
     }, []);
 
     useEffect(() => {
-        const interval = setInterval(refreshUser, 5 * 60 * 1000); // refresh timestamp for user
+        const interval = setInterval(refreshUser, 4 * 60 * 1000); // refresh timestamp for user
         return () => {
             clearInterval(interval);
         };
