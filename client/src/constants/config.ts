@@ -67,7 +67,7 @@ export const CANDY_MACHINE_PROGRAM_OLD = new PublicKey(
 
 export const CANDY_START_DATE = "1634841157";
 
-export const CAPTCHA_SITE_KEY = "6LcsJZ4dAAAAADt6g3s1WR47si9byFbhEfge1vD9"; 
+export const CAPTCHA_SITE_KEY = "6LceUJMdAAAAAERaN00PbhRO7L5HGN_gXZljneTX"; 
 export const CAPTCHA_VERIFY_URL = "https://captcha.extend.xyz/api/verify";
 
 export const DATABASE_SERVER_URL = 'https://db.solanapixelexchange.com:3000';
