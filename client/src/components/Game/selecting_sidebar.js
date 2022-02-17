@@ -320,17 +320,20 @@ export class SelectingSidebar extends React.Component {
                       {sidebarHeader}
                           
                       {/* Purchase info */}
-                      
-                      {this.state.ownedSelection.size > 0 ? 
+                      <Divider className="sidebarDivider">
+                            Marketplace Coming Soon!
+                      </Divider>
+
+                      {/* {this.state.ownedSelection.size > 0 ? 
                         <div>
                         <Divider className="sidebarDivider">
                             Modify Listing
                         </Divider>
                         <ListItem className="info" style={{ display: "block" }}>
-                          {/* // <Box className="infoText2">
+                           // <Box className="infoText2">
                           //   Estimated Cost:{" "}
                           //   {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
-                          // </Box>  */}
+                          // </Box>  
                           <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
                             <Box className="infoHeader">PRICE</Box>
                           </Tooltip>
@@ -456,7 +459,7 @@ export class SelectingSidebar extends React.Component {
                           </b>
                         </Box>
                       </ListItem>
-                      {/* <ListItem className="info" style={{ display: "block" }}>
+                       <ListItem className="info" style={{ display: "block" }}>
                         // <Button
                         //   size="small"
                         //   variant="contained"
@@ -472,7 +475,7 @@ export class SelectingSidebar extends React.Component {
                         // >
                         //   Load Price Info
                         // </Button>
-                      </ListItem> */}
+                      </ListItem> 
                       <ListItem className="info" style={{ display: "block" }}>
                         <Tooltip placement={'right'} title="Select all purchasable Spaces in your selection to prepare to purchase them.">
                           <Button
@@ -541,7 +544,7 @@ export class SelectingSidebar extends React.Component {
                             </Button>
                           </Tooltip>
                         </div>
-                        {/* // <FormControl style={{alignItems: "center"}}>
+                         // <FormControl style={{alignItems: "center"}}>
                         //                 <FormControlLabel
                         //                     control={
                         //                         <Switch 
@@ -552,7 +555,7 @@ export class SelectingSidebar extends React.Component {
                         //                     } 
                         //                     label="SHOW FLOOR"
                         //                 />
-                        //             </FormControl> */}
+                        //             </FormControl> 
                       </ListItem>
                       <ListItem className="info" style={{ display: "block" }}>
                         <Tooltip placement={'right'} title={tooltipBuyTitle}>
@@ -577,7 +580,7 @@ export class SelectingSidebar extends React.Component {
                           </Button>
                         </Tooltip>
                         &nbsp;
-                      </ListItem>
+                      </ListItem> */}
                   </TabPanel>
 
                   <TabPanel value={this.state.value} index={2}>
