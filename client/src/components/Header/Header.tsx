@@ -59,7 +59,7 @@ export const Header = (props: { setNotificationsBar?: (type: string) => void }) 
             }}
         >
           <div style={{ marginLeft: 36, display: "flex" }}>
-            <img className={"headerLogoLeft"} src={"header/logo.svg"} />
+            <img className={"headerLogoLeft"} src={"header/logo.svg"} alt="Extend logo"/>
             <Tabs value={tabState}
                   onChange={handleTab}
                   indicatorColor="secondary"

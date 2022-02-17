@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import * as React from 'react';
 import styled from "styled-components";
 import Countdown from "react-countdown";
-import { Alert, Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select, InputAdornment } from "@mui/material";
+import { Button, CircularProgress, Snackbar, TextField, InputLabel, MenuItem, FormControl, Select, InputAdornment } from "@mui/material";
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import InfoIcon from '@mui/icons-material/Info';
 
@@ -89,14 +89,14 @@ export const Home = (props: HomeProps) => {
 
   const [balance, setBalance] = useState<number>();
   const [isActive, setIsActive] = useState(false); // true when countdown completes
-  const [isSoldOut, setIsSoldOut] = useState(false); // true when items remaining is zero
+  const [isSoldOut, setIsSoldOut] = useState(true); // true when items remaining is zero
   const [isMinting, setIsMinting] = useState(false); // true when user got to press MINT
 
   const [itemsAvailable, setItemsAvailable] = useState(0);
   const [itemsRedeemed, setItemsRedeemed] = useState(0);
 
   const [tokensRedeemed, setTokensRedeemed] = useState(0);
-  const [tokensSoldOut, setTokensSoldOut] = useState(false);
+  const [tokensSoldOut, setTokensSoldOut] = useState(true); // set true so buttons start disabled
 
   const [alertState, setAlertState] = useState<AlertState>({
     open: false,
@@ -118,9 +118,9 @@ export const Home = (props: HomeProps) => {
   const [clicked, setClicked] = useState(false); // if getTokens button is clicked
   const [verified, setVerified] = useState(false);
 
-  const [neighborhoodX, setNeighborhoodX] = useState<Number>(); // for switching neighborhoods
-  const [neighborhoodY, setNeighborhoodY] = useState<Number>();
-  const [currNeighborhood, setCurrNeighborhood] = useState<string>();
+  const [neighborhoodX, setNeighborhoodX] = useState<Number>(0); // for switching neighborhoods
+  const [neighborhoodY, setNeighborhoodY] = useState<Number>(0);
+  const [currNeighborhood, setCurrNeighborhood] = useState<string>("0,0");
   const [neighborhoods, setNeighborhoods] = useState<string[]>();
   const [neighborhoodsToColor, setNeighborhoodsToColor] = useState({});
   const [nhoodNames, setNhoodNames] = useState<string[]>();
@@ -208,7 +208,7 @@ export const Home = (props: HomeProps) => {
 
   const getTokenBalance = async (user, mint) => {
     let ATA = await getTokenWallet(user, mint);
-    // if (user != VOUCHER_TOKEN_AUTH) { // avoid getAccountInfo by caching?
+    // if (user !== VOUCHER_TOKEN_AUTH) { // avoid getAccountInfo by caching?
     const data = await props.connection.getAccountInfo(ATA);
     if (!data) {
       return 0;
@@ -375,8 +375,9 @@ export const Home = (props: HomeProps) => {
         return false;
       }
 
+      loading(null, "sending transaction", null);
       try {
-        var { txid, slot } = await sendSignedTransaction({
+        var { txid } = await sendSignedTransaction({
           connection,
           signedTransaction: transaction,
         });
@@ -401,22 +402,22 @@ export const Home = (props: HomeProps) => {
 
       if (status && !status?.err) {
         notify({
-          message: "Received Space Voucher!",
+          message: "Received Space Vouchers!",
           type: "success",
           duration: 0,
         });
       } else {
         notify({
-          message: "Failed to receive Space Voucher! Please try again!",
+          message: "Failed to receive Space Vouchers! Please try again!",
           type: "error",
           duration: 0,
         });
       }
     } catch (error: any) {
       // TODO: blech:
-      let message = error.msg || "Failed to receive Space Voucher! Please try again!";
+      let message = error.msg || "Failed to receive Space Vouchers! Please try again!";
       notify({
-        message: "Failed to receive Space Voucher! Please try again!",
+        message,
         type: "error",
         duration: 0,
       });
@@ -431,6 +432,7 @@ export const Home = (props: HomeProps) => {
       await sleep(2000);
       refreshVoucherSystemState();
     }
+    loading(null, "sending transaction", "success");
   };
 
   const getPrice = (n) => {
@@ -596,7 +598,7 @@ export const Home = (props: HomeProps) => {
         let curr_time = start_time;
         while (curr_time < start_time + 20000) {
           loading((curr_time-start_time) / (20000) * (100), 'Preparing to register', null);
-          await sleep(2000);
+          await sleep(100);
           curr_time = Date.now();
         }
         loading(null, 'Preparing to register', 'success');
@@ -637,13 +639,14 @@ export const Home = (props: HomeProps) => {
 
   const changeNum = (e) => {
     const tokens = parseInt(e.target.value);
-    setNumTokens(tokens > 100 ? 100 : (tokens < 0 ? NaN : tokens) );
+    setNumTokens(tokens > 100 ? 100 : (tokens < 0 ? 0 : tokens) );
     setClicked(false);
     setVerified(false);
   };
 
   const changeNumMint = (e) => {
-    setNumRedeeming(parseInt(e.target.value));
+    const num = parseInt(e.target.value);
+    setNumRedeeming(num < 0 ? 0 : num );
   };
 
   const changeNeighborhood = (e) => {
@@ -706,7 +709,7 @@ export const Home = (props: HomeProps) => {
           // console.log(e)
           return;
         }
-        if (x != null && y != null) {
+        if (x !== null && y !== null) {
           goodNeighborhoods.push(x.toString() + "," + y.toString());
         }
       }
@@ -788,7 +791,7 @@ export const Home = (props: HomeProps) => {
     const updateNeighborhoodInfo = async () => {
       setNoMint(false);
       setClicked(false);
-      if (neighborhoodX != null && neighborhoodY != null) {
+      if (neighborhoodX !== null && neighborhoodY !== null) {
         const nhoodAcc = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
         const account = await props.connection.getAccountInfo(nhoodAcc);
         if (account) {
@@ -832,7 +835,7 @@ export const Home = (props: HomeProps) => {
         const colorMap = {};
         await Promise.all(
           frameInfos.map(async (value, i) => {
-            const { n_x, n_y, frame } = value;
+            const { n_x, n_y } = value;
             const key = JSON.stringify({ n_x, n_y });
             colorMap[key] = await server.getFrameData(frameDatas[i]);
           })
@@ -948,7 +951,7 @@ export const Home = (props: HomeProps) => {
       {wallet ? (
         <div>
 
-          {neighborhoodX != null && neighborhoodY != null && !noMint ? (
+          {neighborhoodX !== null && neighborhoodY !== null && !noMint ? (
             <div>
               
               
@@ -972,7 +975,7 @@ export const Home = (props: HomeProps) => {
                       <TextField
                         required
                         id="outlined-required"
-                        label="Space vouchers to buy"
+                        label="Amount to buy (max 100)"
                         type="number"
                         defaultValue={1}
                         onChange={changeNum}
@@ -985,7 +988,7 @@ export const Home = (props: HomeProps) => {
                         id="outlined-disabled"
                         value={getPrice(numTokens).toFixed(4)} />
                       <Button
-                        disabled={tokensSoldOut || disableToken}
+                        disabled={tokensSoldOut || disableToken || !numTokens}
                         variant="contained"
                         onClick={(e) => { setClicked(true) }}
                         sx={{ marginLeft: "10px", marginTop: "10px" }}>
@@ -1047,7 +1050,7 @@ export const Home = (props: HomeProps) => {
                     style={{width: "200px"}}
                   />
                   <MintButton
-                    disabled={isSoldOut || isMinting || !isActive || disableMint}
+                    disabled={isSoldOut || isMinting || !isActive || disableMint || !numRedeeming}
                     onClick={onMint}
                     variant="contained"
                     sx={{ marginLeft: "10px", marginTop: "10px" }}

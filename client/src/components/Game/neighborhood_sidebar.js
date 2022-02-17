@@ -6,9 +6,6 @@ import { Tooltip, Spin } from "antd";
 import {formatPrice} from "../../utils"; 
 
 export class NeighborhoodSidebar extends React.Component {
-  constructor(props) {
-    super(props);
-  }
   componentDidMount() {
     if (!this.props.neighborhood.infoLoaded){
       return;
@@ -146,7 +143,7 @@ export class NeighborhoodSidebar extends React.Component {
                   Select
                 </Button>
               </div>
-            </ListItem>
+                </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
               <Box className="infoHeader">NUMBER OF DISTINCT OWNERS</Box>
               <Box>

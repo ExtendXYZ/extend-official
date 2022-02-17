@@ -13,13 +13,13 @@ import {
     NEIGHBORHOOD_SIZE,
     SELL_DELEGATE_SEED,
     BATCH_LOAD_PRICE_SIZE,
-    RENT_ACCOUNT_SEED,
-    RENT_PROGRAM_ID,
+    // RENT_ACCOUNT_SEED,
+    // RENT_PROGRAM_ID,
 } from "../../constants";
 import {TOKEN_PROGRAM_ID} from '@solana/spl-token';
 import {decodeMetadata} from "../../actions/metadata";
 import {twoscomplement_i2u} from "../../utils/borsh";
-import { bytesToUInt } from "../../utils/utils";
+import { bytesToUInt, sleep } from "../../utils/utils";
 import {loading} from '../../utils/loading';
 
 window.frameKeyCache = {};
@@ -142,7 +142,6 @@ export class Server {
     }
 
     async getNeighborhoodMetadata(connection, n_x, n_y) {
-        const hash = JSON.stringify({n_x, n_y});
         const n_meta = await PublicKey.findProgramAddress([
             BASE.toBuffer(),
             Buffer.from(NEIGHBORHOOD_METADATA_SEED),
@@ -298,6 +297,7 @@ export class Server {
                 let responses = await Promise.all(promises);
                 tokenaccts.push(...responses);
                 // TODO: await sleep??
+                sleep(400);
             }
 
             loading(80, 'Loading Info', null);
@@ -318,7 +318,7 @@ export class Server {
                     }
                     delegate = new PublicKey(delegate);
 
-                    info.push({...priceDatas[j], owner, forSale: delegate.toBase58() == sell_del[0].toBase58()})
+                    info.push({...priceDatas[j], owner, forSale: delegate.toBase58() === sell_del[0].toBase58()})
                 }
             }
             loading(null, 'Loading Info', 'success');
@@ -339,7 +339,7 @@ export class Server {
         let infos = await this.getSpaceInfos(connection, poses);
         let purchasableInfo = []
         for (let info of infos){
-            if (info.owner.toBase58() == user || !info.forSale){
+            if (info.owner.toBase58() === user || !info.forSale){
                 continue;
             }
             purchasableInfo.push({
@@ -350,7 +350,7 @@ export class Server {
                 seller: info.owner,
             })
         }
-        purchasableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
+        purchasableInfo.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
 
         return purchasableInfo;
     }
@@ -737,7 +737,7 @@ export class Server {
 
     //         let now = Date.now() / 1000;
     //         let hasRentPrice = true;
-    //         if (rentPrice == 0 || (owner.toBase58() !== renter.toBase58()) || (maxTimestamp > 0 && now > maxTimestamp) || now < rentEnd) {
+    //         if (rentPrice === 0 || (owner.toBase58() !== renter.toBase58()) || (maxTimestamp > 0 && now > maxTimestamp) || now < rentEnd) {
     //             hasRentPrice = false;
     //             rentPrice = 0
     //         }
@@ -819,12 +819,12 @@ export class Server {
     
     //             let now = Date.now() / 1000;
     //             let hasRentPrice = true;
-    //             if (rentPrice == 0 || owner.toBase58() !== renter.toBase58() || (maxTimestamp > 0 && now > maxTimestamp) || now < rentEnd) {
+    //             if (rentPrice === 0 || owner.toBase58() !== renter.toBase58() || (maxTimestamp > 0 && now > maxTimestamp) || now < rentEnd) {
     //                 hasRentPrice = false;
     //                 rentPrice = 0;
     //             }
 
-    //             if (info.owner.toBase58() == user || !hasRentPrice){
+    //             if (info.owner.toBase58() === user || !hasRentPrice){
     //                 continue;
     //             }
     //             rentableInfo.push({
@@ -839,7 +839,7 @@ export class Server {
     //             })
     //         }
     //     }
-    //     rentableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
+    //     rentableInfo.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
     //     // console.log(rentableInfo);
 
     //     return rentableInfo;

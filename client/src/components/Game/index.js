@@ -1,47 +1,39 @@
 import React from "react";
 import "./index.css";
 
-import { GIF, notify, shortenAddress } from "../../utils";
+import { GIF, notify } from "../../utils";
 import { PublicKey } from "@solana/web3.js";
-import { NEIGHBORHOOD_SIZE, UPPER, BASE, NEIGHBORHOOD_METADATA_SEED, SPACE_PROGRAM_ID, RPC } from "../../constants";
+import { NEIGHBORHOOD_SIZE, BASE, NEIGHBORHOOD_METADATA_SEED, SPACE_PROGRAM_ID, RPC } from "../../constants";
 import {
     Box,
     Button,
     FormControl,
     FormControlLabel,
-    InputAdornment,
     MenuItem,
     Switch,
-    TextField,
     Select,
     Menu,
-    fabClasses,
 } from "@mui/material";
 import { Tooltip } from 'antd';
 import { CopyOutlined } from "@ant-design/icons";
-import SearchIcon from "@mui/icons-material/Search";
 import CancelIcon from "@mui/icons-material/Cancel";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import VisibilityIcon from "@mui/icons-material/Visibility"
 import { twoscomplement_i2u } from "../../utils/borsh";
 
-import { Server } from "./server.js";
-import { Database } from "./database.js";
 import { LoadingScreen } from './loading_screen.js';
 import { Board } from './canvas.js';
 import { FocusSidebar } from './focus_sidebar.js';
 import { SelectingSidebar } from './selecting_sidebar.js';
 import { NeighborhoodSidebar } from './neighborhood_sidebar.js';
-import { solToLamports, lamportsToSol, xor, bytesToUInt, priceToColor, colorHighlight} from "../../utils";
+import { solToLamports, lamportsToSol, xor, priceToColor, sleep} from "../../utils";
 import {loading} from '../../utils/loading';
-import { letterSpacing } from "@mui/system";
-import { InfoOutlined } from "@mui/icons-material";
 import Search from "antd/es/input/Search";
 
 const SIDE_NAV_WIDTH = 400;
 const FETCH_COLORS_INTERVAL = 10 * 1000;
 const FETCH_NAMES_INTERVAL = 60 * 1000;
-const FETCH_PRICES_INTERVAL = 20 * 1000;
+const FETCH_PRICES_INTERVAL = 3 * 60 * 1000;
 const ANIMATION_INTERVAL = 300;
 
 export const getBounds = (spaces) => {
@@ -110,8 +102,8 @@ export class Game extends React.Component {
                 hasImage: false,
                 price: null,
                 targetStatus: 0,
-                purchasableInfoAll: new Array(),
-                purchasableInfo: new Array(),
+                purchasableInfoAll: [],
+                purchasableInfo: [],
                 purchasable: new Set(),
                 owners: {},
                 totalPrice: null,
@@ -208,9 +200,9 @@ export class Game extends React.Component {
         );
         const tmp_neighborhood_colors = {};
         let newMax = this.state.maxFrame;
-        const neighborhood_accounts = await Promise.all(
+        await Promise.all(
             frameInfos.map(async (value, i) => {
-                let { n_x, n_y, frame } = value;
+                let { n_x, n_y } = value;
                 let key = JSON.stringify({ n_x, n_y });
                 tmp_neighborhood_colors[key] = await this.props.server.getFrameData(
                     frameDatas[i]
@@ -221,15 +213,6 @@ export class Game extends React.Component {
                     n_y
                 );
                 newMax = newNumFrames > newMax ? newNumFrames : newMax;
-
-                const n_meta = await PublicKey.findProgramAddress([
-                    BASE.toBuffer(),
-                    Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-                    Buffer.from(twoscomplement_i2u(n_x)),
-                    Buffer.from(twoscomplement_i2u(n_y)),
-                ], SPACE_PROGRAM_ID
-                );
-                return n_meta[0];
             })
         );
         this.viewport.neighborhood_colors = tmp_neighborhood_colors;
@@ -289,14 +272,11 @@ export class Game extends React.Component {
     }
 
     fetch_neighborhood_names = async() => {
-        const connection = this.props.connection;
-
         const neighborhoods = await this.getViewportNeighborhoods();
         
         const neighborhood_accounts = await Promise.all(
             neighborhoods.map(async (value, i) => {
                 let { n_x, n_y } = value;
-                let key = JSON.stringify({ n_x, n_y });
                 const n_meta = await PublicKey.findProgramAddress([
                     BASE.toBuffer(),
                     Buffer.from(NEIGHBORHOOD_METADATA_SEED),
@@ -329,9 +309,15 @@ export class Game extends React.Component {
                 }
             }
         }
-        let purchasableInfo = await this.props.database.getPurchasableInfo(null, poses);
+        let purchasableInfo;
+        try {
+            purchasableInfo = await this.props.database.getPurchasableInfo(null, poses);
+        } catch (e) { // when db is down, try catch and return no purchasable
+            // console.error(e)
+            purchasableInfo = [];
+        }
         let colorMap = {};
-        for(let {x, y, mint, price, seller} of purchasableInfo){
+        for(let {x, y, price} of purchasableInfo){
             let color = `#${priceToColor(price)}`;
             colorMap[JSON.stringify({x, y})] = color;
         }
@@ -668,7 +654,7 @@ export class Game extends React.Component {
 
     changePrice = () => {
         let price = Number(this.state.focus.price);
-        if (price != 0 && !price) {
+        if (price !== 0 && !price) {
             notify({
                 message: "Warning:",
                 description: `Could not parse price ${this.state.focus.price}`,
@@ -693,11 +679,11 @@ export class Game extends React.Component {
     }
 
     changePrices = () => {
-        let price = this.state.selecting.price;
-        if (price != 0 && !price) {
+        let price = Number(this.state.selecting.price);
+        if (price !== 0 && !price) {
             notify({
                 message: "Warning:",
-                description: "Price is undefined",
+                description: `Could not parse price ${this.state.selecting.price}`,
             });
         } else if (price <= 0) {
             notify({
@@ -739,7 +725,7 @@ export class Game extends React.Component {
 
     changeRent = () => {
         let rentPrice = Number(this.state.focus.rentPrice);
-        if (rentPrice != 0 && !rentPrice) {
+        if (rentPrice !== 0 && !rentPrice) {
             notify({
                 message: "Warning:",
                 description: `Could not parse rent price ${this.state.focus.rentPrice}`,
@@ -768,7 +754,7 @@ export class Game extends React.Component {
 
     changeRents = () => {
         let rentPrice = this.state.selecting.rentPrice;
-        if (rentPrice != 0 && !rentPrice) {
+        if (rentPrice !== 0 && !rentPrice) {
             notify({
                 message: "Warning:",
                 description: "Price is undefined",
@@ -847,8 +833,6 @@ export class Game extends React.Component {
                 description: "Not for sale",
             });
         } else {
-            let x = this.state.focus.x;
-            let y = this.state.focus.y;
             notify({
                 message: "Buying...",
             });
@@ -870,8 +854,6 @@ export class Game extends React.Component {
                 description: "Not for rent",
             });
         } else {
-            let x = this.state.focus.x;
-            let y = this.state.focus.y;
             notify({
                 message: "Renting...",
             });
@@ -1005,7 +987,7 @@ export class Game extends React.Component {
         let purchasable = new Set();
         let purchasableInfo = [];
         for (const info of this.state.selecting.purchasableInfoAll) {
-            const { x, y, mint, price } = info;
+            const { x, y, price } = info;
             totalPrice += price;
             purchasable.add(JSON.stringify({ x, y }));
             purchasableInfo.push(info);
@@ -1038,7 +1020,7 @@ export class Game extends React.Component {
         let rentable = new Set();
         let rentableInfo = [];
         for (const info of this.state.selecting.rentableInfoAll) {
-            const { x, y, mint, price } = info;
+            const { x, y, price } = info;
             totalPrice += price;
             rentable.add(JSON.stringify({ x, y }));
             rentableInfo.push(info);
@@ -1079,12 +1061,12 @@ export class Game extends React.Component {
         if (m > r || n > c || m <= 0 || n <= 0) {
             let purchasable = new Set();
             let floor = null;
-            return {purchasable, purchasableInfo, floor};
+            return {spaces: purchasable, info: purchasableInfo, floor};
         }
 
         for (let info of purchasableInfo) {
             // fill arrays
-            const { x, y, mint, price } = info;
+            const { x, y, price } = info;
             listed[x - offsetX + 1][y - offsetY + 1] = 1;
             prices[x - offsetX + 1][y - offsetY + 1] = price;
             infos[x - offsetX + 1][y - offsetY + 1] = info;
@@ -1151,10 +1133,16 @@ export class Game extends React.Component {
             },
         });
         let {spaces, info, floor} = this.getFloor(this.state.selecting.purchasableInfoAll, this.state.selecting.floorN, this.state.selecting.floorM);
-        if (spaces.size === 0) {
+        if (!this.state.selecting.floorN || !this.state.selecting.floorM){
             floor = null;
             notify({
-                message: "No Spaces available to buy",
+                message: "Invalid dimensions",
+            });
+        }
+        else if (!spaces || spaces.size === 0) {
+            floor = null;
+            notify({
+                message: "No rectangle of the given dimensions available to buy",
             });
         }
         this.setState({
@@ -1232,7 +1220,10 @@ export class Game extends React.Component {
         }
         catch (e){
             console.error(e);
-            data = this.props.server.getSpacesByOwner(this.props.connection, this.props.user);
+            this.moveToSpaces(this.props.ownedSpaces);
+            loading(null, "Getting your Spaces", "success");
+            return;
+            // data = this.props.server.getSpacesByOwner(this.props.connection, this.props.user);
         }
         const spaces = data.spaces;
         const mints = data.mints;
@@ -1607,8 +1598,8 @@ export class Game extends React.Component {
                 imgUpload: null,
                 hasImage: false,
                 price: null,
-                purchasableInfoAll: new Array(),
-                purchasableInfo: new Array(),
+                purchasableInfoAll: [],
+                purchasableInfo: [],
                 purchasable: new Set(),
                 owners: {},
                 totalPrice: null,
@@ -1636,7 +1627,7 @@ export class Game extends React.Component {
                 x,
                 y,
                 infoLoaded: false,
-                imgLoaded: this.state.focus.imgLoaded && (x == this.state.focus.x, y == this.state.focus.y) // true if img already loaded and focus unchanged
+                imgLoaded: this.state.focus.imgLoaded && (x === this.state.focus.x, y === this.state.focus.y) // true if img already loaded and focus unchanged
             },
         });
         const connection = this.props.connection;
@@ -1648,7 +1639,8 @@ export class Game extends React.Component {
         let info;
         try { // run props.database query
             // info = await this.props.database.getSpaceInfoWithRent(x, y);
-            info = await this.props.database.getSpaceMetadata(x, y);
+            // info = await this.props.database.getSpaceMetadata(x, y);
+            info = await this.props.server.getSpaceMetadata(connection, x, y);
         } catch(e) { // if fails, run RPC call
             console.error(e);
             // console.log("RPC call for Space metadata");
@@ -1761,8 +1753,8 @@ export class Game extends React.Component {
                     imgUpload: null,
                     hasImage: false,
                     infoLoaded: false,
-                    purchasableInfoAll: new Array(),
-                    purchasableInfo: new Array(),
+                    purchasableInfoAll: [],
+                    purchasableInfo: [],
                     purchasable: new Set(),
                     owners: {},
                     totalPrice: null,
@@ -1784,7 +1776,7 @@ export class Game extends React.Component {
             }
 
             // TODO: use better check to tell if selection changed
-            if (this.state.selecting.poses.size != poses.size){
+            if (this.state.selecting.poses.size !== poses.size){
                 return; // selection changed
             }
 
@@ -1829,7 +1821,8 @@ export class Game extends React.Component {
     }
 
     handleChangeFloorM = (e) => {
-        const floorM = parseInt(e.target.value);
+        let floorM = parseInt(e.target.value);
+        floorM = Math.max(floorM, 1);
         this.setState({
             selecting: {
                 ...this.state.selecting,
@@ -1839,7 +1832,8 @@ export class Game extends React.Component {
     }
 
     handleChangeFloorN = (e) => {
-        const floorN = parseInt(e.target.value);
+        let floorN = parseInt(e.target.value);
+        floorN = Math.max(floorN, 1);
         this.setState({
             selecting: {
                 ...this.state.selecting,
@@ -1860,7 +1854,7 @@ export class Game extends React.Component {
         const mints = data.mints;
 
         // let changed = false;
-        // if (spaces.size != this.props.ownedSpaces.size){
+        // if (spaces.size !== this.props.ownedSpaces.size){
         //     changed = true;
         // }
         // for (let space of spaces){
@@ -2089,7 +2083,7 @@ export class Game extends React.Component {
     }
 
     render() {
-        if (this.state.initialFetchStatus == 0){
+        if (this.state.initialFetchStatus === 0){
             return (
                 <LoadingScreen/>
             );
@@ -2163,14 +2157,13 @@ export class Game extends React.Component {
                 setSelecting={this.setSelecting}
             />;
         }
-        let nspaces = this.props.ownedSpaces.size;
         return (
             <div className="game">
                 <Board
                     ownedSpaces={this.props.ownedSpaces}
                     ref={this.board}
-                    getMap={() => this.viewport.view == 0 ? this.viewport.neighborhood_colors : this.viewport.neighborhood_prices}
-                    getCensors={() => this.viewport.view == 0 ? this.viewport.neighborhood_censors : {}}
+                    getMap={() => this.viewport.view === 0 ? this.viewport.neighborhood_colors : this.viewport.neighborhood_prices}
+                    getCensors={() => this.viewport.view === 0 ? this.viewport.neighborhood_censors : {}}
                     getNeighborhoodNames={() => this.viewport.neighborhood_names}
                     user={this.props.user}
                     onViewportChange={(startx, starty, endx, endy) => {
@@ -2238,7 +2231,7 @@ export class Game extends React.Component {
                                 endIcon={<KeyboardArrowDownIcon />}
                                 sx={{marginRight: "5px"}}
                             >
-                                {this.viewport.view == 0 ? "Colors" : "Prices"}
+                                {this.viewport.view === 0 ? "Colors" : "Prices"}
                             </Button>
                         </Tooltip>
                         <Menu
@@ -2254,7 +2247,7 @@ export class Game extends React.Component {
                         <Tooltip title="Toggle animations">
                             <FormControl>
                                 <FormControlLabel
-                                    disabled={!this.state.animsInfoLoaded || this.viewport.view != 0}
+                                    disabled={!this.state.animsInfoLoaded || this.viewport.view !== 0}
                                     control={
                                         <Switch
                                             onChange={(e) => this.handleChangeAnims(e)}
@@ -2271,7 +2264,7 @@ export class Game extends React.Component {
                             <Select
                                 variant="standard"
                                 value={this.state.frame}
-                                disabled={this.state.anims || this.viewport.view != 0}
+                                disabled={this.state.anims || this.viewport.view !== 0}
                                 onChange={(e) => {
                                     this.handleChangeFrame(e);
                                 }}
