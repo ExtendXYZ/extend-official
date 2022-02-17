@@ -376,7 +376,7 @@ export class Game extends React.Component {
         await Promise.all([
             this.fetch_colors(this.state.frame),
             this.fetch_neighborhood_names(this.state.frame),
-            // this.fetch_neighborhood_prices(),
+            this.fetch_neighborhood_prices(),
             this.fetch_censors_all_frames()
         ]);
         this.setState({
@@ -464,10 +464,6 @@ export class Game extends React.Component {
                 })
             }
         }
-
-        // sleep 10 seconds, then fetch price view
-        sleep(10 * 1000);
-        this.fetch_neighborhood_prices();
     }
 
     componentWillUnmount() {
