@@ -438,6 +438,12 @@ export class Game extends React.Component {
                 });
             }
         }
+        else if ("nX" in this.props.locator && "nY" in this.props.locator) {
+            const n_x = parseInt(this.props.locator.nX);
+            const n_y = parseInt(this.props.locator.nY);
+            this.board.current.drawCanvas();
+            this.setNeighborhood(n_x, n_y);
+        }
         else if ("col" in this.props.locator && "row" in this.props.locator) {
             try {
                 this.setFocus(parseInt(this.props.locator.col), parseInt(this.props.locator.row));
@@ -2040,6 +2046,23 @@ export class Game extends React.Component {
         });
     }
 
+    copyNeighborhood = (e) => {
+        const nX = this.state.neighborhood.n_x;
+        const nY = this.state.neighborhood.n_y;
+        let prefix = window.location.hostname;
+        if (window.location.port) { // for localhost
+            prefix += ":" + window.location.port;
+        }
+        navigator.clipboard.writeText(`https://${prefix}/neighborhood/${nX}/${nY}`);
+        notify({
+            description: "URL copied to clipboard",
+        });
+        this.setState({
+            shareMenuOpen: false,
+            shareMenuAnchorEl: null,
+        });
+    }
+
     handleViewMenuOpen = (e) => {
         this.setState({
             viewMenuOpen: true,
@@ -2354,6 +2377,8 @@ export class Game extends React.Component {
                         >
                             <MenuItem onClick={(e) => this.copyCurrentView()}>Current View</MenuItem>
                             <MenuItem onClick={(e) => this.copyMyView()}>My Spaces</MenuItem>
+                            {this.state.neighborhood.focused && <MenuItem onClick={(e) => this.copyNeighborhood()}>Neighborhood</MenuItem>}
+
                         </Menu>
                         <Tooltip
 

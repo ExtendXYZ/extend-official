@@ -46,8 +46,19 @@ export class Board extends React.Component {
         this.width = width;
         this.height = height;
 
-        this.scale = ("scale" in locator) ? parseInt(locator.scale) * this.height / 100 / NEIGHBORHOOD_SIZE : height / 2 / NEIGHBORHOOD_SIZE;
-        this.scale = Math.max(1, Math.round(this.scale));
+        if ("scale" in locator) {
+            this.scale = parseInt(locator.scale) * this.height / 100 / NEIGHBORHOOD_SIZE;
+            this.scale = Math.max(1, Math.round(this.scale));
+        } else if ("nX" in locator && "nY" in locator) {
+            this.scale = Math.max(
+                Math.min(100, height / NEIGHBORHOOD_SIZE, (width - LEFT) / NEIGHBORHOOD_SIZE),
+                1
+            );
+            this.scale = Math.floor(this.scale);
+        } else {
+            this.scale = height / 2 / NEIGHBORHOOD_SIZE;
+            this.scale = Math.max(1, Math.round(this.scale));
+        }
 
         if ("x" in locator) {
             this.x = width * 0.5 - parseInt(locator.x) * this.scale;
@@ -57,6 +68,10 @@ export class Board extends React.Component {
         }
         else if ("colStart" in locator && "colEnd" in locator) {
             this.x = width * 0.5 - 0.5 * (parseInt(locator.colStart) + parseInt(locator.colEnd)) * this.scale;
+        }
+        else if ("nX" in locator) {
+            const n_x = parseInt(locator.nX);
+            this.x = -(n_x + 0.5) * NEIGHBORHOOD_SIZE * this.scale + 0.5 * width + 0.5 * LEFT;
         }
         else {
             this.x = 0.5 * width - (NEIGHBORHOOD_SIZE / 2) * this.scale;
@@ -70,6 +85,10 @@ export class Board extends React.Component {
         }
         else if ("rowStart" in locator && "rowEnd" in locator) {
             this.y = height * 0.5 - 0.5 * (parseInt(locator.rowStart) + parseInt(locator.rowEnd)) * this.scale;
+        }
+        else if ("nY" in locator) {
+            const n_y = parseInt(locator.nY);
+            this.y = -(n_y + 0.5) * NEIGHBORHOOD_SIZE * this.scale + 0.5 * height;
         }
         else {
             this.y = 0.5 * height - (NEIGHBORHOOD_SIZE / 2) * this.scale;

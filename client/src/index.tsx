@@ -26,6 +26,7 @@ ReactDOM.render(
               <Route exact path="/pubkey/:address"><App /></Route>
               <Route exact path="/space/:col/:row/:scale"><App /></Route>
               <Route exact path="/rect/:colStart/:colEnd/:rowStart/:rowEnd/:scale"><App /></Route>
+              <Route exact path="/neighborhood/:nX/:nY"><App /></Route>
               <Route exact path="/"><App /></Route>
             </Switch>
           </Router>
