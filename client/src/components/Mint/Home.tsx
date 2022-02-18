@@ -345,7 +345,7 @@ export const Home = (props: HomeProps) => {
     } catch (e) {
       // console.log(e);
       notify({
-        message: "Mint failed! Please try again!",
+        message: "An unknown amount of mints succceeded! If you still have vouchers, please try again!",
         type: "error",
         duration: 0,
       });
