@@ -33,7 +33,7 @@ import Search from "antd/es/input/Search";
 const SIDE_NAV_WIDTH = 400;
 const FETCH_COLORS_INTERVAL = 10 * 1000;
 const FETCH_NAMES_INTERVAL = 60 * 1000;
-const FETCH_PRICES_INTERVAL = 3 * 60 * 1000;
+const FETCH_PRICES_INTERVAL = 20 * 1000;
 const ANIMATION_INTERVAL = 300;
 
 export const getBounds = (spaces) => {
@@ -1639,8 +1639,7 @@ export class Game extends React.Component {
         let info;
         try { // run props.database query
             // info = await this.props.database.getSpaceInfoWithRent(x, y);
-            // info = await this.props.database.getSpaceMetadata(x, y);
-            info = await this.props.server.getSpaceMetadata(connection, x, y);
+            info = await this.props.database.getSpaceMetadata(x, y);
         } catch(e) { // if fails, run RPC call
             console.error(e);
             // console.log("RPC call for Space metadata");
