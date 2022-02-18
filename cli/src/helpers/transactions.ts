@@ -139,16 +139,16 @@ export async function sendSignedTransaction({
         "recent",
         true
       );
-      if (!confirmation) {
-        // console.log("Not confirmed, max retry hit")
-        throw new Error("Max signature retries hit")
-      }
-      if (confirmation.err) {
+      // if (!confirmation) {
+      //   // console.log("Not confirmed, max retry hit")
+      //   throw new Error("Max signature retries hit")
+      // }
+      if (confirmation && confirmation.err) {
         console.error(confirmation.err);
         throw new Error("Transaction failed: Custom instruction error");
       }
 
-      slot = confirmation?.slot || 0;
+      slot = confirmation ? confirmation.slot : 0;
     } catch (err) {
       console.error("Error caught", err);
       if ((err as any).timeout) {
@@ -238,7 +238,7 @@ async function awaitTransactionSignatureConfirmation(
     }, timeout);
 
     let numTries = 0;
-    let maxTries = 3;
+    let maxTries = 2;
     while (!done && numTries < maxTries && queryStatus) {
       // eslint-disable-next-line no-loop-func
       await (async () => {
@@ -392,8 +392,8 @@ export const sendTransactions = async (
 
       // sign each transaction in current slice
       for (let j = 0; j < currArr.length; j++) { 
-        if (signersSet[j + i].length > 0) {
-          currArr[j].partialSign(...signersSet[j + i]);
+        if (signersSet[idxMap[j] + i].length > 0) {
+          currArr[j].partialSign(...signersSet[idxMap[j] + i]);
         }
       }
 
