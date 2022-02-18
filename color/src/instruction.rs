@@ -85,8 +85,8 @@ pub enum ColorInstruction {
     3. space_ata
     4. [Writable] time cluster account
     */
-    // MakeEditable,
-    // MakeEditableBrief,
+    MakeEditable,
+    MakeEditableBrief,
 }
 
 impl ColorInstruction {
