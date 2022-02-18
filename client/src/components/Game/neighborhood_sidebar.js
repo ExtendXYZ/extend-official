@@ -179,7 +179,7 @@ export class NeighborhoodSidebar extends React.Component {
                     background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                 }}
                 >
-                Add New Frame
+                Add New Frame (price: 0.84 SOL)
                 </Button>
               </Tooltip>
             </ListItem>

@@ -277,9 +277,11 @@ export class SelectingSidebar extends React.Component {
                             </Box> 
                           }
                         </div>
-                        {/* {this.props.selecting.hasImage &&  */}
-                        <canvas id="img-render" style={{marginTop: "20px"}} width={0.6*this.props.canvasSize + "px"} height={0.6*this.props.canvasSize + "px"}/> 
-                          {/* } */}
+                        <canvas 
+                          id="img-render"
+                          style={{marginTop: "20px"}}
+                          width={this.props.selecting.hasImage ? 0.6*this.props.canvasSize + "px" : 0}
+                          height={this.props.selecting.hasImage ? 0.6*this.props.canvasSize + "px" : 0}/> 
                         <Tooltip placement={'right'} title={tooltipModifyColorTitle}>
                           <Button
                             size="small"
