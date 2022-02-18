@@ -12,13 +12,15 @@ import {
   RadioGroup,
   Typography,
   Radio,
+  FormControl,
+  Checkbox
 } from "@mui/material";
 import { Tooltip } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
 import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
-import { formatPrice, intersection} from "../../utils";
+import { formatPrice, intersection, complement} from "../../utils";
 import {Tab, Tabs, AppBar} from "@mui/material";
 
 import PropTypes from "prop-types";
@@ -698,7 +700,7 @@ export class SelectingSidebar extends React.Component {
                                 size="small"
                                 variant="contained"
                                 onClick={() => {
-                                    this.props.selectingRefresh();
+                                    this.props.refreshSelecting();
                                 }}
                                 style={{
                                     width: "100%",

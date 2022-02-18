@@ -26,7 +26,7 @@ import { Board } from './canvas.js';
 import { FocusSidebar } from './focus_sidebar.js';
 import { SelectingSidebar } from './selecting_sidebar.js';
 import { NeighborhoodSidebar } from './neighborhood_sidebar.js';
-import { solToLamports, lamportsToSol, xor, priceToColor, sleep} from "../../utils";
+import { solToLamports, lamportsToSol, intersection, xor, priceToColor, sleep} from "../../utils";
 import {loading} from '../../utils/loading';
 import { ReloadOutlined } from "@ant-design/icons";
 
@@ -391,6 +391,7 @@ export class Game extends React.Component {
                 // tmpNeighborhoodEditableView[nhash] = editableColors;
             })
         );
+        console.log(this.viewport.neighborhoodEditableTimes);
         // this.viewport.neighborhoodEditableView = tmpNeighborhoodEditableView;
     }
 
@@ -1381,7 +1382,7 @@ export class Game extends React.Component {
         loading(null, "Getting your listings", "success");
     }
 
-    addNewFrame = async () => {
+    handleAddNewFrame = async () => {
         const n_x = this.state.neighborhood.n_x;
         const n_y = this.state.neighborhood.n_y;
         this.props.setNewFrameTrigger({ n_x: n_x, n_y: n_y });
@@ -2060,7 +2061,7 @@ export class Game extends React.Component {
         loading(null, 'Refreshing', error ? "error" : "success");
     }
 
-    focusRefresh = async () => {
+    refreshFocus = async () => {
         this.setState({ // trigger loading icon
             showNav: true,
             focus: { 
@@ -2098,7 +2099,7 @@ export class Game extends React.Component {
         this.refreshSidebar();
     }
 
-    selectingRefresh = async () => {
+    refreshSelecting = async () => {
         let infos = await this.props.server.getSpaceInfos(this.props.connection, this.state.selecting.poses);
 
         loading(null, "refreshing", null);
@@ -2305,7 +2306,7 @@ export class Game extends React.Component {
                 }
                 view[nhash] = editableColors;
             }
-            console.log(view);
+            // console.log(view);
             return view;
         }
         else if (this.state.view == 2){
@@ -2334,7 +2335,7 @@ export class Game extends React.Component {
             handleChangeFocusPrice={this.handleChangeFocusPrice}
             changePrice={this.changePrice}
             delistSpace={this.delistSpace}
-            focusRefresh={this.focusRefresh}
+            refreshFocus={this.refreshFocus}
             handleChangeFocusRentPrice={this.handleChangeFocusRentPrice}
             changeRent={this.changeRent}
             delistRent={this.delistRent}
@@ -2364,7 +2365,7 @@ export class Game extends React.Component {
                 purchaseSpaces={this.purchaseSpaces}
                 makeEditableColors={this.makeEditableColors}
                 selectOwnedSpaces={this.selectOwnedSpaces}
-                selectingRefresh={this.selectingRefresh}
+                refreshSelecting={this.refreshSelecting}
                 handleChangeSelectingRentPrice={this.handleChangeSelectingRentPrice}
                 changeRents={this.changeRents}
                 delistRents={this.delistRents}
@@ -2387,7 +2388,7 @@ export class Game extends React.Component {
                 name = { this.viewport.neighborhoodNames[JSON.stringify({ n_x:  this.state.neighborhood.n_x, n_y : this.state.neighborhood.n_y })]} 
                 canvas = {this.board.current.canvasCache[JSON.stringify({ n_x, n_y })]}
                 canvasSize = {Math.min(SIDE_NAV_WIDTH, window.innerWidth - 48)}
-                addNewFrame={this.addNewFrame}
+                handleAddNewFrame={this.handleAddNewFrame}
                 setSelecting={this.setSelecting}
             />;
         }
@@ -2480,19 +2481,8 @@ export class Game extends React.Component {
                                 aria-expanded={this.state.viewMenuOpen ? 'true' : undefined}
                                 onClick={(e) => this.handleViewMenuOpen(e)}
                                 endIcon={<KeyboardArrowDownIcon />}
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-                                sx={{marginRight: "5px"}}
-=======
                                 disabled={!this.state.animationsInfoLoaded}
-=======
->>>>>>> 6f68a50 (Revert "better view selection")
-=======
-                                disabled={!this.state.animationsInfoLoaded}
->>>>>>> 5561b3e (better view selection (#109))
                                 sx={{marginRight: "10px"}}
->>>>>>> 99a6075 (better view selection)
                             >
                                 {["Colors", "Editable", "Prices"][this.state.view]}
                             </Button>
@@ -2514,71 +2504,7 @@ export class Game extends React.Component {
                                 <MenuItem onClick={(e) => this.setPriceView()}>Prices</MenuItem>
                             </Tooltip>
                         </Menu>
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-                        <Tooltip title="Toggle animations">
-                            <FormControl>
-                                <FormControlLabel
-                                    disabled={!this.state.animsInfoLoaded || this.viewport.view !== 0}
-                                    control={
-                                        <Switch
-                                            onChange={(e) => this.handleChangeAnims(e)}
-                                            checked={this.state.anims}
-                                            sx={{marginRight: "10px"}}
-                                        />
-                                    }
-                                    label="Animations"
-                                    labelPlacement="start"
-                                />
-                            </FormControl>
-                        </Tooltip>
-=======
-                        <FormControl>
-                            <FormControlLabel
-                                disabled={!this.state.animsInfoLoaded || this.viewport.view != 0}
-                                control={
-                                    <Switch
-                                        onChange={(e) => this.handleChangeAnims(e)}
-                                        checked={this.state.anims}
-                                    />
-                                }
-                                label="Animations"
-                            />
-                        </FormControl>
->>>>>>> 6f68a50 (Revert "better view selection")
-                        <Tooltip title="Select frame to view" placement="top">
-                            <Select
-                                variant="standard"
-                                value={this.state.frame}
-<<<<<<< HEAD
-                                disabled={this.state.anims || this.viewport.view !== 0}
-=======
-                                disabled={this.state.anims || this.viewport.view != 0}
->>>>>>> 6f68a50 (Revert "better view selection")
-                                onChange={(e) => {
-                                    this.handleChangeFrame(e);
-                                }}
-                                label="Frame"
-                                sx={{ marginRight: "10px", borderRadius: "40px" }}
-                            >
-                                {Array.from({ length: this.state.maxFrame }, (x, i) => (
-                                    <MenuItem value={i} key={"frame" + i}>
-                                        {" "}
-                                        {`${i}`}{" "}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </Tooltip>
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 5561b3e (better view selection (#109))
-                        {this.state.view == 0 ? 
-=======
-                        {this.state.view == 0 || this.state.view == 1 ? 
->>>>>>> 6ef9c80 (fixes)
+                        {this.state.view == 0 || this.state.view == 1 ?
                             <>
                             <FormControl>
                                 <FormControlLabel
@@ -2615,13 +2541,6 @@ export class Game extends React.Component {
                             : 
                             null
                         }
-                        
-<<<<<<< HEAD
->>>>>>> 99a6075 (better view selection)
-=======
->>>>>>> 6f68a50 (Revert "better view selection")
-=======
->>>>>>> 5561b3e (better view selection (#109))
                         {!this.mobile &&
                         <>
                             <div className={"animationsSeparator"}></div>
