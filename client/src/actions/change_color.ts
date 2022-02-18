@@ -91,6 +91,7 @@ export class ChangeColorArgs {
 
 export const changeColorInstruction = async (
   connection,
+  server,
   wallet: any,
   base: PublicKey,
   change: ChangeColorArgs,
@@ -120,8 +121,11 @@ export const changeColorInstruction = async (
       ],
       ASSOCIATED_TOKEN_PROGRAM_ID
     );
-  const n_x_bytes = twoscomplement_i2u(Math.floor(x / NEIGHBORHOOD_SIZE));
-  const n_y_bytes = twoscomplement_i2u(Math.floor(y / NEIGHBORHOOD_SIZE));
+  const n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
+  const n_y = Math.floor(y / NEIGHBORHOOD_SIZE)
+  const n_x_bytes = twoscomplement_i2u(n_x);
+  const n_y_bytes = twoscomplement_i2u(n_y);
+  
   const [neighborhoodFrameBase,] =
     await PublicKey.findProgramAddress(
       [
@@ -155,6 +159,8 @@ export const changeColorInstruction = async (
       ],
       SPACE_PROGRAM_ID
     );
+
+  const neighborhoodCreator = await server.getNeighborhoodCreator(connection, n_x, n_y);
 
   var colorCluster;
   if (!colorCluster_input) {
@@ -197,6 +203,11 @@ export const changeColorInstruction = async (
     },
     {
       pubkey: neighborhoodMetadata,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: neighborhoodCreator,
       isSigner: false,
       isWritable: false,
     },
@@ -259,6 +270,7 @@ export const changeColorInstruction = async (
 
 export const changeColorInstructions = async (
   connection,
+  server,
   wallet: any,
   base: PublicKey,
   changes: ChangeColorArgs[],
@@ -275,6 +287,7 @@ export const changeColorInstructions = async (
     
     let Ix = await changeColorInstruction(
       connection,
+      server,
       wallet,
       base,
       change,

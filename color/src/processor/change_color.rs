@@ -33,7 +33,8 @@ use crate::{
         NeighborhoodFramePointer,
         INACTIVITY_THRESHOLD_OWNER,
         INACTIVITY_THRESHOLD_ARBITRARY,
-        ARBITRARY_CHANGER_FEE,
+        EDIT_FEE,
+        CREATOR_CUT
     },
     processor::processor_utils::{get_neighborhood_xy},
     validation_utils::{assert_is_ata, assert_keys_equal},
@@ -50,6 +51,7 @@ pub fn process(
     let neighborhood_frame_base = next_account_info(account_info_iter)?;
     let neighborhood_frame_pointer = next_account_info(account_info_iter)?;
     let neighborhood_metadata = next_account_info(account_info_iter)?;
+    let neighborhood_creator = next_account_info(account_info_iter)?;
     let space_metadata = next_account_info(account_info_iter)?;
     let owner = next_account_info(account_info_iter)?;
     let space_ata = next_account_info(account_info_iter)?;
@@ -121,6 +123,9 @@ pub fn process(
 
     // check ATAs
     assert_is_ata(space_ata, owner.key, &space_metadata_data.mint)?;
+    
+    // check neighborhood creator is passed in correctly
+    assert_keys_equal(neighborhood_metadata_data.creator, *neighborhood_creator.key)?;
 
     // verify token is owned
     let space_ata_data = spl_token::state::Account::unpack_from_slice(&space_ata.data.borrow())?;
@@ -160,17 +165,30 @@ pub fn process(
     }
     else {
         thresh_add = INACTIVITY_THRESHOLD_ARBITRARY as u64;
-        // transfer fee
-        let fee = ARBITRARY_CHANGER_FEE;
+        // transfer fees
+        let fee = EDIT_FEE;
+        let creator_cut: u64 = (fee as f64 * CREATOR_CUT) as u64;
         invoke(
             &system_instruction::transfer(
                 fee_payer.key,
                 owner.key,
-                fee,
+                fee - creator_cut,
             ),
             &[
                 fee_payer.clone(),
                 owner.clone(),
+                system_program.clone(),
+            ],
+        )?;
+        invoke(
+            &system_instruction::transfer(
+                fee_payer.key,
+                neighborhood_creator.key,
+                creator_cut,
+            ),
+            &[
+                fee_payer.clone(),
+                neighborhood_creator.clone(),
                 system_program.clone(),
             ],
         )?;

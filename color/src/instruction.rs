@@ -64,13 +64,16 @@ pub enum ColorInstruction {
     Accounts expected:
     0. Base account
     1. [Writable] Color cluster account
-    2. space metadata
-    2. neighborhood metadata
-    3. [Writable] Owner
-    4. Ata of owner
-    time cluster account
-    [Writable, signer] fee payer
-    system program
+    2. frame base
+    3. frame pointer
+    4. neighborhood metadata
+    5. neighborhood creator
+    6. space metadata
+    7. [Writable] Owner
+    8. Ata of owner
+    9. time cluster account
+    10. [Writable, signer] fee payer
+    11. system program
 
     */
     ChangeColor,

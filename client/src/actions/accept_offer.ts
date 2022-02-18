@@ -61,8 +61,8 @@ export class AcceptOfferArgs{
 }
 
 export const acceptOfferInstruction = async (
-  server,
   connection,
+  server,
   wallet: any,
   base: PublicKey,
   change: AcceptOfferArgs,

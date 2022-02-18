@@ -2,18 +2,14 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::pubkey::Pubkey;
 use std::mem::size_of;
 
-pub const INACTIVITY_THRESHOLD_OWNER: usize = 3600*24*14;
-pub const INACTIVITY_THRESHOLD_ARBITRARY: usize = 0;
-pub const ARBITRARY_CHANGER_FEE: u64 = 1000;
 pub const NEIGHBORHOOD_SIZE: usize = 200;
-pub const MARKETPLACE_FEE: f64 = 0.01;
 pub const EXTEND_TOKEN_MINT: &str = "PLACEHOLDER";
 pub const NEIGHBORHOOD_METADATA_SEED: &[u8] = b"neighborhood_metadata";
-pub const NEIGHBORHOOD_LIST_SEED: &[u8] = b"neighborhood_list";
-pub const VOUCHER_MINT_SEED: &[u8] = b"voucher_mint";
-pub const VOUCHER_SINK_SEED: &[u8] = b"voucher_sink";
 pub const SPACE_METADATA_SEED: &[u8] = b"space_metadata";
-pub const SELL_DELEGATE_SEED: &[u8] = b"sell_delegate";
+pub const INACTIVITY_THRESHOLD_OWNER: usize = 3600*24*14;
+pub const INACTIVITY_THRESHOLD_ARBITRARY: usize = 0;
+pub const EDIT_FEE: u64 = 1000; // edit fee in lamports
+pub const CREATOR_CUT: f64 = 0.00; // percentage of edit fee going to neighborhood creator
 
 pub const BASE_RESERVE: usize = 2048;
 #[repr(C)]
@@ -27,9 +23,7 @@ impl Base {
     pub const LEN: usize = size_of::<u64>() + size_of::<Pubkey>() + size_of::<bool>();
 }
 
-pub const MAX_NEIGHBORHOODS: usize = 8;
 pub const NEIGHBORHOOD_LIST_RESERVE: usize = 10240;
-// pub const MAX_NEIGHBORHOODS: usize = 0;
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
 pub struct NeighborhoodList {
