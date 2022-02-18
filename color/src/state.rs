@@ -3,7 +3,7 @@ use solana_program::pubkey::Pubkey;
 use std::mem::size_of;
 
 pub const INACTIVITY_THRESHOLD_OWNER: usize = 3600*24*14;
-pub const INACTIVITY_THRESHOLD_ARBITRARY: usize = 30;
+pub const INACTIVITY_THRESHOLD_ARBITRARY: usize = 0;
 pub const ARBITRARY_CHANGER_FEE: u64 = 1000;
 pub const NEIGHBORHOOD_SIZE: usize = 200;
 pub const MARKETPLACE_FEE: f64 = 0.01;
