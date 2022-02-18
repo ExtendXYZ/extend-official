@@ -68,6 +68,10 @@ export const CANDY_MACHINE_PROGRAM_OLD = new PublicKey(
   "cndyAnrLdpjq1Ssp1z8xxDsB8dxe7u4HL5Nxi2K5WXZ"
 );
 
+export const DEFAULT_MINT = new PublicKey(
+  "EUgcSb7s1zjbyjtMsrWh4KyWo91EWSRh4LgsfcaGFLTx"
+);
+
 export const CANDY_START_DATE = "1634841157";
 
 export const CAPTCHA_SITE_KEY = "6LceUJMdAAAAAERaN00PbhRO7L5HGN_gXZljneTX"; 

@@ -391,7 +391,7 @@ export class Game extends React.Component {
                 // tmpNeighborhoodEditableView[nhash] = editableColors;
             })
         );
-        console.log(this.viewport.neighborhoodEditableTimes);
+        // console.log(this.viewport.neighborhoodEditableTimes);
         // this.viewport.neighborhoodEditableView = tmpNeighborhoodEditableView;
     }
 
@@ -1930,18 +1930,18 @@ export class Game extends React.Component {
             }
 
             // take out the spaces without owners (unregistered)
-            const newEditable = new Set();
-            for (let pose of editable) {
-                if(pose in owners) {
-                    newEditable.add(pose);
-                }
-            }
-            const newTotalEditable = new Set();
-            for (let pose of totalEditable) {
-                if(pose in owners) {
-                    newTotalEditable.add(pose);
-                }
-            }
+            // const newEditable = new Set();
+            // for (let pose of editable) {
+            //     if(pose in owners) {
+            //         newEditable.add(pose);
+            //     }
+            // }
+            // const newTotalEditable = new Set();
+            // for (let pose of totalEditable) {
+            //     if(pose in owners) {
+            //         newTotalEditable.add(pose);
+            //     }
+            // }
 
             // TODO: use better check to tell if selection changed
             if (this.state.selecting.poses.size !== poses.size){
@@ -1958,8 +1958,8 @@ export class Game extends React.Component {
                     targetStatus: 0,
                     purchasableInfoAll,
                     owners,
-                    editable: newEditable,
-                    totalEditable: newTotalEditable,
+                    editable: editable,
+                    totalEditable: totalEditable,
                     mints,
                 },
             });

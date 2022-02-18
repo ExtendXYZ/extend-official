@@ -42,6 +42,7 @@ import {
     VOUCHER_SINK_SEED,
     CAPTCHA_VERIFY_URL,
     VOUCHER_MINT_AUTH,
+    DEFAULT_MINT,
 } from "../../constants";
 import {Server} from "./server.js";
 import {Database} from "./database.js";
@@ -302,8 +303,13 @@ export function Screen(props) {
                 const frame = changeColorTrigger["frame"];
                 const position = JSON.stringify({x, y});
 
-                const mint = changeColorTrigger["mint"];
-                const owner = changeColorTrigger["owner"];
+                let mint = changeColorTrigger["mint"];
+                let owner = changeColorTrigger["owner"];
+                if (!owner) { // if there is no owner
+                    owner = user;
+                    mint = DEFAULT_MINT;
+                }
+
                 let changes: ChangeColorArgs[] = [];
 
                 let numFramesMap = {};
@@ -443,10 +449,15 @@ export function Screen(props) {
                         let p = JSON.parse(s);
                         const x = p.x;
                         const y = p.y;
-                        const mint = mints[s];
+                        let mint = mints[s];
                         let owner;
                         if (Object.keys(owners).length > 0) {
-                            owner = owners[s];
+                            if (owners[s]) {
+                                owner = owners[s];
+                            } else { // unregistered or unminted
+                                owner = user;
+                                mint = DEFAULT_MINT;
+                            }
                         } else { // if owners is null, db is down
                             owner = user;
                         }
@@ -745,10 +756,15 @@ export function Screen(props) {
                             const r = image[i][j][0];
                             const g = image[i][j][1];
                             const b = image[i][j][2];
-                            const mint = mints[position];
+                            let mint = mints[position];
                             let owner;
                             if (Object.keys(owners).length > 0) {
-                                owner = owners[position];
+                                if (owners[position]) {
+                                    owner = owners[position];
+                                } else { // unregistered or unminted
+                                    owner = user;
+                                    mint = DEFAULT_MINT;
+                                }
                             } else { // if owners is null, db is down
                                 owner = user;
                             }
@@ -817,10 +833,15 @@ export function Screen(props) {
 
                         const position = JSON.stringify({x, y});
                         if (spaces.has(position) && editable.has(position)) {
-                            const mint = mints[position];
+                            let mint = mints[position];
                             let owner;
                             if (Object.keys(owners).length > 0) {
-                                owner = owners[position];
+                                if (owners[position]) {
+                                    owner = owners[position];
+                                } else { // unregistered or unminted
+                                    owner = user;
+                                    mint = DEFAULT_MINT;
+                                }
                             } else { // if owners is null, db is down
                                 owner = user;
                             }

@@ -320,7 +320,7 @@ export class FocusSidebar extends React.Component {
                                         <div style={{width: "65%", float: "left"}}>
                                             COLOR
                                         </div>
-                                        {this.state.editable && !this.state.owned && this.props.focus.owner ?
+                                        {this.state.editable && !this.state.owned ?
                                         <Tooltip placement={'right'} title="Pay a fixed price to edit the color of this space. After changing color, the color will be able to be edited again in 30 seconds.">
                                         <div style={{width: "35%", float: "right"}}>
                                             EDIT PRICE
@@ -335,7 +335,7 @@ export class FocusSidebar extends React.Component {
                                         type="color"
                                         value={this.props.focus.color}
                                         onChange={(e) => this.props.handleChangeColor(e)}
-                                        disabled={(!this.state.owned && !this.state.editable) || !this.props.focus.owner}
+                                        disabled={(!this.state.owned && !this.state.editable)}
                                     ></input>
                                     <Button
                                         size="small"
@@ -348,12 +348,12 @@ export class FocusSidebar extends React.Component {
                                         color: "#FFFFFF",
                                         background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                                         }}
-                                        disabled={(!this.state.owned && !this.state.editable) || !this.props.focus.owner}
+                                        disabled={(!this.state.owned && !this.state.editable)}
                                     >
                                         Change Color
                                     </Button>
                                     </div>
-                                    {(!this.state.owned && this.state.editable && this.props.focus.owner) ? 
+                                    {(!this.state.owned && this.state.editable) ? 
                                         <div style={{ display: "flex", alignItems: "center", width: "35%", float: "right"}}>
                                             0.000001 SOL
                                         </div>
