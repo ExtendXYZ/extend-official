@@ -9,6 +9,7 @@ use solana_program::{
 };
 
 use crate::{
+    error::CustomError,
     instruction::StartGameArgs,
     utils::{
         assert_keys_equal,
