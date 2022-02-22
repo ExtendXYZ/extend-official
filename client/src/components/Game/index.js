@@ -1816,7 +1816,7 @@ export class Game extends React.Component {
                 time:
                     key in this.viewport.neighborhoodEditableTimes
                         ? this.viewport.neighborhoodEditableTimes[key][p_y][p_x]
-                        : 0,
+                        : Infinity,
                 owned: owned,
                 infoLoaded: true,
                 neighborhood_name: neighborhood_name,
@@ -1883,7 +1883,7 @@ export class Game extends React.Component {
                 let key = JSON.stringify({n_x, n_y});
                 let p_x = ((pos.x % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
                 let p_y = ((pos.y % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
-                if (!(key in this.viewport.neighborhoodEditableTimes) || this.viewport.neighborhoodEditableTimes[key][p_y][p_x] < (Date.now() / 1000)) {
+                if (key in this.viewport.neighborhoodEditableTimes && this.viewport.neighborhoodEditableTimes[key][p_y][p_x] < (Date.now() / 1000)) {
                     totalEditable.add(pose);
                     editable.add(pose);
                 }

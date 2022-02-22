@@ -279,7 +279,7 @@ export function Screen(props) {
                         }
                     }
                     catch (e) {
-                        // console.log(e);
+                        console.error(e);
                     }
                 }
                 loading(null, 'Registering', 'success'); // TODO use correct status
@@ -336,7 +336,7 @@ export function Screen(props) {
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change color", true, n_frames);
                 }
                 catch (e) {
-                    // console.log(e)
+                    console.error(e);
                     return;
                 }
             }
@@ -380,17 +380,13 @@ export function Screen(props) {
                         let p = JSON.parse(s);
                         const x = p.x;
                         const y = p.y;
-                        let mint = mints[s];
-                        let owner;
-                        if (Object.keys(owners).length > 0) {
-                            if (owners[s]) {
-                                owner = owners[s];
-                            } else { // unregistered or unminted
-                                owner = user;
-                                mint = DEFAULT_MINT;
-                            }
+                        let owner, mint;
+                        if (Object.keys(owners).length > 0 && owners[s] && mints[s]) {
+                            owner = owners[s];
+                            mint = mints[s];
                         } else { // if owners is null, db is down
                             owner = user;
+                            mint = DEFAULT_MINT;
                         }
 
                         if (frame === -1){
@@ -413,7 +409,8 @@ export function Screen(props) {
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change colors", true, n_frames);
                 }
                 catch (e) {
-                    // console.log(e)
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
             }
@@ -441,6 +438,8 @@ export function Screen(props) {
                     sendTransaction(connection, wallet, ix, "Make color editable");
                 }
                 catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
             }
@@ -476,6 +475,8 @@ export function Screen(props) {
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "Make colors editable");
                 }
                 catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
             }
@@ -503,6 +504,8 @@ export function Screen(props) {
                     sendTransaction(connection, wallet, ix, name);
                 }
                 catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
             }
@@ -540,6 +543,8 @@ export function Screen(props) {
                     sendInstructionsGreedyBatch(connection, wallet, ixs, name);
                 }
                 catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
             }
@@ -580,6 +585,8 @@ export function Screen(props) {
                         }
                     }
                     catch (e) {
+                        notify({ message: `Unexpected error, please try again later` });
+                        console.error(e);
                         return;
                     }
                 } else { // user isn't logged in
@@ -634,6 +641,8 @@ export function Screen(props) {
                         database.register(wallet.publicKey, newOwnedMints);
                     }
                     catch (e) {
+                        notify({ message: `Unexpected error, please try again later` });
+                        console.error(e);
                         return;
                     }
                 } else { // user isn't logged in
@@ -682,22 +691,18 @@ export function Screen(props) {
                     for (let j = 0; j < image[0].length; ++j){
                         const x = init_x+j;
                         const y = init_y+i;
-                        const position = JSON.stringify({x, y});
-                        if ( spaces.has(position) && ((frame !== -1 && editable.has(position)) || (frame === -1 && spaceGrid.has(position))) ) {
+                        const s = JSON.stringify({x, y});
+                        if ( spaces.has(s) && ((frame !== -1 && editable.has(s)) || (frame === -1 && spaceGrid.has(s))) ) {
                             const r = image[i][j][0];
                             const g = image[i][j][1];
                             const b = image[i][j][2];
-                            let mint = mints[position];
-                            let owner;
-                            if (Object.keys(owners).length > 0) {
-                                if (owners[position]) {
-                                    owner = owners[position];
-                                } else { // unregistered or unminted
-                                    owner = user;
-                                    mint = DEFAULT_MINT;
-                                }
+                            let owner, mint;
+                            if (Object.keys(owners).length > 0 && owners[s] && mints[s]) {
+                                owner = owners[s];
+                                mint = mints[s];
                             } else { // if owners is null, db is down
                                 owner = user;
+                                mint = DEFAULT_MINT;
                             }
 
                             if (frame === -1){
@@ -721,7 +726,8 @@ export function Screen(props) {
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change color", true, n_frames);
                 }
                 catch (e) {
-                    // console.log(e)
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
             }
@@ -762,19 +768,15 @@ export function Screen(props) {
                         const x = init_x+j;
                         const y = init_y+i;
 
-                        const position = JSON.stringify({x, y});
-                        if (spaces.has(position) && editable.has(position)) {
-                            let mint = mints[position];
-                            let owner;
-                            if (Object.keys(owners).length > 0) {
-                                if (owners[position]) {
-                                    owner = owners[position];
-                                } else { // unregistered or unminted
-                                    owner = user;
-                                    mint = DEFAULT_MINT;
-                                }
+                        const s = JSON.stringify({x, y});
+                        if (spaces.has(s) && editable.has(s)) {
+                            let owner, mint;
+                            if (Object.keys(owners).length > 0 && owners[s] && mints[s]) {
+                                owner = owners[s];
+                                mint = mints[s];
                             } else { // if owners is null, db is down
                                 owner = user;
+                                mint = DEFAULT_MINT;
                             }
 
                             // To get num frames
@@ -800,7 +802,8 @@ export function Screen(props) {
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change color", true, n_frames);
                 }
                 catch (e) {
-                    // console.log(e)
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
 
@@ -1010,8 +1013,8 @@ export function Screen(props) {
                     notify({ message: `Expand succeeded` });
 
                 } catch (e) {
-                    // console.log("failed to expand: ", e);
-                    notify({ message: `Expand failed` });
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                 }
                 loading(null, "Expanding", "success");
                     
@@ -1054,7 +1057,8 @@ export function Screen(props) {
                         [colorRes.keypair]
                     );
                 } catch (e) {
-                    // console.log("failed to add new frame", e)
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                 }
             }
         }
@@ -1084,6 +1088,8 @@ export function Screen(props) {
                     sendTransaction(connection, wallet, ix, name);
                 }
                 catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
             }
@@ -1124,6 +1130,8 @@ export function Screen(props) {
                     sendInstructionsGreedyBatch(connection, wallet, ixs, name);
                 }
                 catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
             }
@@ -1168,6 +1176,8 @@ export function Screen(props) {
                         // }
                     }
                     catch (e) {
+                        notify({ message: `Unexpected error, please try again later` });
+                        console.error(e);
                         return;
                     }
                 } else { // user isn't logged in
@@ -1221,6 +1231,8 @@ export function Screen(props) {
                         // database.register(wallet.publicKey, newOwnedMints);
                     }
                     catch (e) {
+                        notify({ message: `Unexpected error, please try again later` });
+                        console.error(e);
                         return;
                     }
                 } else { // user isn't logged in
