@@ -41,9 +41,9 @@ pub fn process(
     assert_keys_equal(board_state.owner, *board_owner.key)?;
 
     // Board state is inactive
-    // if board_state.phase != Phase::Inactive {
-    //     return Err(CustomError::IncorrectPhase.into());
-    // }
+    if board_state.phase != Phase::Inactive {
+        return Err(CustomError::IncorrectPhase.into());
+    }
 
     // Advance idx, wrap if necessary
     board_state.idx = match board_state.idx { 255 => 0, _ => board_state.idx + 1};
