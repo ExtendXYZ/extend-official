@@ -79,7 +79,7 @@ export class FocusSidebar extends React.Component {
                     this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })))
             });
         }
-        if (this.props.focus.time != prevProps.focus.time) {
+        if (this.props.focus.time !== prevProps.focus.time) {
             this.setState({
                 editable: (this.props.focus.time < (Date.now() / 1000))
             });

@@ -75,8 +75,8 @@ export class SelectingSidebar extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.ownedSpaces != prevProps.ownedSpaces || this.props.selecting.poses != prevProps.selecting.poses
-            || this.props.selecting.poses.size != this.selectionSize) {
+        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.selecting.poses !== prevProps.selecting.poses
+            || this.props.selecting.poses.size !== this.selectionSize) {
                 this.setState({
                   ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses),
                   editable: this.props.selecting.editable,
@@ -85,7 +85,7 @@ export class SelectingSidebar extends React.Component {
                 });
                 this.selectionSize = this.props.selecting.poses.size;
         }
-        if (this.props.selecting.editable != this.state.editable || this.props.selecting.totalEditable != this.state.totalEditable ) {
+        if (this.props.selecting.editable !== this.state.editable || this.props.selecting.totalEditable !== this.state.totalEditable ) {
           this.setState({
             editable: this.props.selecting.editable,
             totalEditable: this.props.selecting.totalEditable,

@@ -361,7 +361,7 @@ export function Activity() {
   }, [transactionHistory, type]);
 
   useEffect(()=>{
-    setLoading(detailsList.length == 0);
+    setLoading(detailsList.length === 0);
   }, [detailsList]);
 
 
