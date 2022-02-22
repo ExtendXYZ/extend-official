@@ -180,6 +180,8 @@ export const changeColorInstruction = async (
     timeCluster = timeCluster_input;
   }
 
+  console.log("CHANGING COLOR");
+
   const keys = [
     {
       pubkey: base,
@@ -265,6 +267,7 @@ export const changeColorInstruction = async (
       data,
     })];
 
+  console.log(Ix);
   return Ix;
 };
 

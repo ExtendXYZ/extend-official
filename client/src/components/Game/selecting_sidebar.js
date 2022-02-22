@@ -327,7 +327,7 @@ export class SelectingSidebar extends React.Component {
                                 color: "#FFFFFF",
                                 background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                               }}
-                              disabled={!this.state.ownedSelection.size && this.state.editableSelection.size === 0}
+                              disabled={!this.props.user || (!this.state.ownedSelection.size && this.state.editableSelection.size === 0)}
                             >
                               Change Color
                             </Button>
@@ -370,7 +370,7 @@ export class SelectingSidebar extends React.Component {
                               variant="contained"
                               component="label"
                               size="small"
-                              disabled={!this.state.ownedSelection.size && this.state.editableSelection.size === 0}
+                              disabled={!this.props.user || (!this.state.ownedSelection.size && this.state.editableSelection.size === 0)}
                               style={{
                                 width: "100%",
                                 marginLeft: "5px",
