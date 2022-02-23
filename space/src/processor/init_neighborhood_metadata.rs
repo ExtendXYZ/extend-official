@@ -170,6 +170,7 @@ pub fn process(
     neighborhood_metadata_data.candymachine_config= *candymachine_config.key;
     neighborhood_metadata_data.candymachine_account = *candymachine_account.key;
     neighborhood_metadata_data.neighborhood_name = args.neighborhood_name;
+    neighborhood_metadata_data.voucher_live_date = args.voucher_live_date;
     neighborhood_metadata_data.serialize(&mut *neighborhood_metadata.data.borrow_mut())?;
     
     // write to neighborhood list

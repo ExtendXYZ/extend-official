@@ -1,10 +1,10 @@
 use solana_program::{
     msg,
 };
-use std::cmp;
+use std::{cmp, f64};
 use crate::{
     state::{
-        NEIGHBORHOOD_SIZE,
+        NEIGHBORHOOD_SIZE, VOUCHER_PRICE_CONSTANT, VOUCHER_MAX_PRICE
     },
 };
 
@@ -39,7 +39,13 @@ pub fn get_space_xy_from_name(name: &str) -> (i64, i64) {
 pub fn get_neighborhood_creation_price(n_x: i64, n_y: i64) -> u64 {
     let dist = cmp::max(n_x.abs(), n_y.abs()) as u64;
 
+    // TODO: put constants in state
     let price = 400000+400000*cmp::max(dist-3, 0);
     
     return price;
+}
+
+pub fn get_voucher_price(count: u64) -> u64{
+    let base = VOUCHER_PRICE_CONSTANT * (count - 1) as f64;
+    return base.exp().max(0.0).min(VOUCHER_MAX_PRICE) as u64;
 }

@@ -8,7 +8,7 @@ pub const NEIGHBORHOOD_METADATA_SEED: &[u8] = b"neighborhood_metadata";
 pub const SPACE_METADATA_SEED: &[u8] = b"space_metadata";
 pub const INACTIVITY_THRESHOLD_OWNER: usize = 3600*24*14;
 pub const INACTIVITY_THRESHOLD_ARBITRARY: usize = 0;
-pub const EDIT_FEE: u64 = 1000; // edit fee in lamports
+pub const EDIT_FEE: u64 = 10000; // edit fee in lamports
 pub const CREATOR_CUT: f64 = 0.00; // percentage of edit fee going to neighborhood creator
 
 pub const BASE_RESERVE: usize = 2048;

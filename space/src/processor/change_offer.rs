@@ -31,7 +31,7 @@ pub fn process(
     let base = next_account_info(account_info_iter)?;
     let space_metadata = next_account_info(account_info_iter)?;
     let owner = next_account_info(account_info_iter)?;
-    let ata_account = next_account_info(account_info_iter)?;
+    let owner_ata_space = next_account_info(account_info_iter)?;
     let sell_delegate = next_account_info(account_info_iter)?;
     let token_program = next_account_info(account_info_iter)?;
 
@@ -61,10 +61,10 @@ pub fn process(
     assert_keys_equal(key, *sell_delegate.key)?;
 
     //check ATAs
-    assert_is_ata(ata_account, owner.key, &space_metadata_data.mint)?;
+    assert_is_ata(owner_ata_space, owner.key, &space_metadata_data.mint)?;
 
     // check NFT owned
-    let ata_data = spl_token::state::Account::unpack_from_slice(&ata_account.data.borrow())?;
+    let ata_data = spl_token::state::Account::unpack_from_slice(&owner_ata_space.data.borrow())?;
     if ata_data.amount != 1 {
         msg!("Error: token account does not own token");
         return Err(CustomError::MissingTokenOwner.into());
@@ -76,7 +76,7 @@ pub fn process(
         invoke(
             &spl_token::instruction::approve(
                 token_program.key,
-                ata_account.key,
+                owner_ata_space.key,
                 sell_delegate.key,
                 owner.key,
                 &[],
@@ -84,7 +84,7 @@ pub fn process(
             )?,
             &[
                 token_program.clone(),
-                ata_account.clone(),
+                owner_ata_space.clone(),
                 sell_delegate.clone(),
                 owner.clone(),
             ],
@@ -92,8 +92,8 @@ pub fn process(
     } else {
         // revoke delegate
         invoke(
-            &spl_token::instruction::revoke(token_program.key, ata_account.key, owner.key, &[])?,
-            &[token_program.clone(), ata_account.clone(), owner.clone()],
+            &spl_token::instruction::revoke(token_program.key, owner_ata_space.key, owner.key, &[])?,
+            &[token_program.clone(), owner_ata_space.clone(), owner.clone()],
         )?;
     }
 

@@ -4,6 +4,10 @@ use std::mem::size_of;
 
 pub const NEIGHBORHOOD_SIZE: usize = 200;
 pub const MARKETPLACE_FEE: f64 = 0.01;
+pub const VOUCHER_RECEIVE_LIMIT: u64 = 100;
+pub const VOUCHER_PRICE_CONSTANT: f64 = 0.01059;
+pub const VOUCHER_MAX_PRICE: f64 = 1000000.0;
+
 pub const EXTEND_TOKEN_MINT: &str = "PLACEHOLDER";
 pub const NEIGHBORHOOD_METADATA_SEED: &[u8] = b"neighborhood_metadata";
 pub const NEIGHBORHOOD_LIST_SEED: &[u8] = b"neighborhood_list";
@@ -42,6 +46,7 @@ pub struct NeighborhoodMetadata {
     pub candymachine_config: Pubkey,
     pub candymachine_account: Pubkey,
     pub neighborhood_name: [u8; 64],
+    pub voucher_live_date: u64,
 }
 
 impl NeighborhoodMetadata {
