@@ -558,9 +558,6 @@ export class Game extends React.Component {
             mint: this.state.focus.mint,
             owner: this.state.focus.owner,
         });
-        notify({
-            message: "Changing color...",
-        });
     }
 
     changeColors = () => {
@@ -571,9 +568,6 @@ export class Game extends React.Component {
             mints: this.state.selecting.mints,
             editable: this.state.selecting.totalEditable,
             owners: this.state.selecting.owners,
-        });
-        notify({
-            message: "Changing colors...",
         });
     }
 
@@ -681,9 +675,6 @@ export class Game extends React.Component {
                         mints: this.state.selecting.mints,
                         editable: this.state.selecting.totalEditable,
                         owners: this.state.selecting.owners,
-                    });
-                    notify({
-                        message: "Uploading image...",
                     });
                 }.bind(this);
 
