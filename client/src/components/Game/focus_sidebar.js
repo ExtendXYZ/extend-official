@@ -1,7 +1,7 @@
 import React from "react";
 import "./index.css";
 import { formatPrice, notify, shortenAddress } from "../../utils";
-import { NEIGHBORHOOD_SIZE } from "../../constants";
+import { NEIGHBORHOOD_SIZE, EDIT_PRICE } from "../../constants";
 import {
   AppBar,
   Box,
@@ -321,7 +321,7 @@ export class FocusSidebar extends React.Component {
                                             COLOR
                                         </div>
                                         {this.state.editable && !this.state.owned ?
-                                        <Tooltip placement={'right'} title="Pay a fixed price to edit the color of this space. After changing color, the color will be able to be edited again in 30 seconds.">
+                                        <Tooltip placement={'right'} title="Pay a fixed price to edit the color of this space.">
                                         <div style={{width: "35%", float: "right"}}>
                                             EDIT PRICE
                                         </div>
@@ -355,7 +355,7 @@ export class FocusSidebar extends React.Component {
                                     </div>
                                     {(!this.state.owned && this.state.editable) ? 
                                         <div style={{ display: "flex", alignItems: "center", width: "35%", float: "right"}}>
-                                            0.000001 SOL
+                                            {EDIT_PRICE} SOL
                                         </div>
                                     : null
                                     }

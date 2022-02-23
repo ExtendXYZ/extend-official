@@ -30,6 +30,10 @@ export const BASE_TRANSACTION_SIZE = 3 + 32 + 65;
 export const VOUCHER_PRICE_CONSTANT = 0.01059;
 export const VOUCHER_MAX_PRICE = 1000000;
 export const MINT_PRICE = 0.014;
+export const CHANGE_COLOR_BATCH_SIZE = 6;
+export const BUY_BATCH_SIZE = 4;
+export const TX_COST = 0.000005;
+export const EDIT_PRICE = 0.00001;
 
 export const MINT_NOT_READY_NBDS = new Set();
 export const MINT_TIME = 1645106400;
