@@ -33,7 +33,7 @@ import Search from "antd/es/input/Search";
 const SIDE_NAV_WIDTH = 400;
 const FETCH_COLORS_INTERVAL = 10 * 1000;
 const FETCH_NAMES_INTERVAL = 60 * 1000;
-const FETCH_PRICES_INTERVAL = 3 * 60 * 1000;
+const FETCH_PRICES_INTERVAL = 20 * 1000;
 const ANIMATION_INTERVAL = 300;
 
 export const getBounds = (spaces) => {
@@ -437,6 +437,12 @@ export class Game extends React.Component {
                     message: "Please enter a valid wallet address",
                 });
             }
+        }
+        else if ("nX" in this.props.locator && "nY" in this.props.locator) {
+            const n_x = parseInt(this.props.locator.nX);
+            const n_y = parseInt(this.props.locator.nY);
+            this.board.current.drawCanvas();
+            this.setNeighborhood(n_x, n_y);
         }
         else if ("col" in this.props.locator && "row" in this.props.locator) {
             try {
@@ -1639,8 +1645,7 @@ export class Game extends React.Component {
         let info;
         try { // run props.database query
             // info = await this.props.database.getSpaceInfoWithRent(x, y);
-            // info = await this.props.database.getSpaceMetadata(x, y);
-            info = await this.props.server.getSpaceMetadata(connection, x, y);
+            info = await this.props.database.getSpaceMetadata(x, y);
         } catch(e) { // if fails, run RPC call
             console.error(e);
             // console.log("RPC call for Space metadata");
@@ -2040,6 +2045,23 @@ export class Game extends React.Component {
         });
     }
 
+    copyNeighborhood = (e) => {
+        const nX = this.state.neighborhood.n_x;
+        const nY = this.state.neighborhood.n_y;
+        let prefix = window.location.hostname;
+        if (window.location.port) { // for localhost
+            prefix += ":" + window.location.port;
+        }
+        navigator.clipboard.writeText(`https://${prefix}/neighborhood/${nX}/${nY}`);
+        notify({
+            description: "URL copied to clipboard",
+        });
+        this.setState({
+            shareMenuOpen: false,
+            shareMenuAnchorEl: null,
+        });
+    }
+
     handleViewMenuOpen = (e) => {
         this.setState({
             viewMenuOpen: true,
@@ -2354,6 +2376,8 @@ export class Game extends React.Component {
                         >
                             <MenuItem onClick={(e) => this.copyCurrentView()}>Current View</MenuItem>
                             <MenuItem onClick={(e) => this.copyMyView()}>My Spaces</MenuItem>
+                            {this.state.neighborhood.focused && <MenuItem onClick={(e) => this.copyNeighborhood()}>Neighborhood</MenuItem>}
+
                         </Menu>
                         <Tooltip
 
