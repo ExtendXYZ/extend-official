@@ -2,9 +2,6 @@ import React from "react";
 
 
 export class LoadingScreen extends React.Component {
-  constructor(props) {
-    super(props);
-  }
 
   componentDidMount(){
     document.body.style.backgroundColor = "black";
@@ -17,9 +14,9 @@ export class LoadingScreen extends React.Component {
     return (
 
         <div className="loadingScreen">
-            <img src={require("../../assets/images/space.gif").default} style={{height: window.innerHeight - 200 + "px"}} />
+            <img src={require("../../assets/images/space.gif").default} style={{height: window.innerHeight - 200 + "px"}} alt="Loading animation"/>
             <h1> Loading... </h1>
-            <h5> Turn on auto-approving transactions for the best experience </h5>
+            <h5> Tip: Visit the Help tab for tutorials on using the Canvas </h5>
 
         </div>
     );

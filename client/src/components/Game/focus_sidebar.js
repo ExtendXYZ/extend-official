@@ -73,13 +73,13 @@ export class FocusSidebar extends React.Component {
     }
     
     componentDidUpdate(prevProps) {
-        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.focus.x != prevProps.focus.x || this.props.focus.y != prevProps.focus.y) {  
+        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.focus.x !== prevProps.focus.x || this.props.focus.y !== prevProps.focus.y) {  
             this.setState({
                 owned: (this.props.ownedSpaces &&
                     this.props.ownedSpaces.has(JSON.stringify({ x: this.props.focus.x, y: this.props.focus.y })))
             });
         }
-        if (this.props.focus.time != prevProps.focus.time) {
+        if (this.props.focus.time !== prevProps.focus.time) {
             this.setState({
                 editable: (this.props.focus.time < (Date.now() / 1000))
             });
@@ -104,6 +104,7 @@ export class FocusSidebar extends React.Component {
                     style={this.props.focus.infoLoaded && this.props.focus.imgLoaded ? {maxWidth: "30%"} : {display: 'none'}}
                     className="center"
                     onLoad={() => this.props.handleOnImgLoad()}
+                    alt="NFT"
                 ></img>
             </div>
             </ListItem>
@@ -159,6 +160,7 @@ export class FocusSidebar extends React.Component {
                     style={this.props.focus.infoLoaded && this.props.focus.imgLoaded ? {maxWidth: "30%"} : {display: 'none'}}
                     className="center"
                     onLoad={() => this.props.handleOnImgLoad()}
+                    alt="NFT"
                 ></img>
             </div>
             </ListItem>
@@ -318,7 +320,7 @@ export class FocusSidebar extends React.Component {
                                         <div style={{width: "65%", float: "left"}}>
                                             COLOR
                                         </div>
-                                        {this.state.editable && !this.state.owned && this.props.focus.owner ?
+                                        {this.state.editable && !this.state.owned ?
                                         <Tooltip placement={'right'} title="Pay a fixed price to edit the color of this space. After changing color, the color will be able to be edited again in 30 seconds.">
                                         <div style={{width: "35%", float: "right"}}>
                                             EDIT PRICE
@@ -333,7 +335,7 @@ export class FocusSidebar extends React.Component {
                                         type="color"
                                         value={this.props.focus.color}
                                         onChange={(e) => this.props.handleChangeColor(e)}
-                                        disabled={(!this.state.owned && !this.state.editable) || !this.props.focus.owner}
+                                        disabled={(!this.state.owned && !this.state.editable)}
                                     ></input>
                                     <Button
                                         size="small"
@@ -346,12 +348,12 @@ export class FocusSidebar extends React.Component {
                                         color: "#FFFFFF",
                                         background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                                         }}
-                                        disabled={(!this.state.owned && !this.state.editable) || !this.props.focus.owner}
+                                        disabled={(!this.state.owned && !this.state.editable)}
                                     >
                                         Change Color
                                     </Button>
                                     </div>
-                                    {(!this.state.owned && this.state.editable && this.props.focus.owner) ? 
+                                    {(!this.state.owned && this.state.editable) ? 
                                         <div style={{ display: "flex", alignItems: "center", width: "35%", float: "right"}}>
                                             0.000001 SOL
                                         </div>
@@ -531,7 +533,7 @@ export class FocusSidebar extends React.Component {
                                     size="small"
                                     variant="contained"
                                     onClick={() => {
-                                        this.props.handleFocusRefresh();
+                                        this.props.refreshFocus();
                                     }}
                                     style={{
                                         width: "100%",

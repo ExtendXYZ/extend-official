@@ -139,7 +139,7 @@ export const makeEditableInstruction = async (
     x: 0, // hardcode 0 for u16 case
     y: 0, // hardcode 0 for u16 case
   });
-  
+
   let data = Buffer.from(serialize(MakeEditableInstructionData.schema, args));
   // borsh JS sucks, need to be able to serialize negative numbers
   let space_x_bytes_16 = new BN(x).toTwos(16).toArray('le', 2);
@@ -171,7 +171,7 @@ export const makeEditableInstructions = async (
 
     let n_x = Math.floor(change.x/NEIGHBORHOOD_SIZE);
     let n_y = Math.floor(change.y/NEIGHBORHOOD_SIZE);
-    
+
     let Ix = await makeEditableInstruction(
       connection,
       wallet,
@@ -180,9 +180,9 @@ export const makeEditableInstructions = async (
       timeClusterMap[JSON.stringify({n_x, n_y})],
     );
 
-    
+
     Ixs.push(Ix[0]);
   }
 
   return Ixs;
-};
+}; 

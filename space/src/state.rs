@@ -24,9 +24,7 @@ impl Base {
     pub const LEN: usize = size_of::<u64>() + size_of::<Pubkey>() + size_of::<bool>();
 }
 
-pub const MAX_NEIGHBORHOODS: usize = 8;
 pub const NEIGHBORHOOD_LIST_RESERVE: usize = 10240;
-// pub const MAX_NEIGHBORHOODS: usize = 0;
 #[repr(C)]
 #[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
 pub struct NeighborhoodList {

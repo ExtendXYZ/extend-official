@@ -1,36 +1,27 @@
 import React from "react";
 import "./index.css";
-import { Server } from "./server.js";
-import { Board } from './canvas.js';
 import {getBounds} from './index.js';
-import { GIF, notify, shortenAddress } from "../../utils";
-import { NEIGHBORHOOD_SIZE, RPC, UPPER } from "../../constants";
+import { notify } from "../../utils";
+import { NEIGHBORHOOD_SIZE } from "../../constants";
 import {
   Box,
   Button,
-  FormControl,
   FormControlLabel,
   InputAdornment,
-  Checkbox,
   TextField,
-  Select,
   RadioGroup,
   Typography,
   Radio,
+  FormControl,
+  Checkbox
 } from "@mui/material";
-import { Spin, Tooltip } from "antd";
+import { Tooltip } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
 import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
-import SearchIcon from "@mui/icons-material/Search";
-import CancelIcon from "@mui/icons-material/Cancel";
-import HelpIcon from "@mui/icons-material/Help";
-import { solToLamports, lamportsToSol, formatPrice, intersection, complement} from "../../utils";
+import { formatPrice, intersection, complement} from "../../utils";
 import {Tab, Tabs, AppBar} from "@mui/material";
-
-
-import ReactDOM from "react-dom";
 
 import PropTypes from "prop-types";
 
@@ -84,8 +75,8 @@ export class SelectingSidebar extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.ownedSpaces != prevProps.ownedSpaces || this.props.selecting.poses != prevProps.selecting.poses
-            || this.props.selecting.poses.size != this.selectionSize) {
+        if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.selecting.poses !== prevProps.selecting.poses
+            || this.props.selecting.poses.size !== this.selectionSize) {
                 this.setState({
                   ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses),
                   editable: this.props.selecting.editable,
@@ -94,7 +85,7 @@ export class SelectingSidebar extends React.Component {
                 });
                 this.selectionSize = this.props.selecting.poses.size;
         }
-        if (this.props.selecting.editable != this.state.editable || this.props.selecting.totalEditable != this.state.totalEditable ) {
+        if (this.props.selecting.editable !== this.state.editable || this.props.selecting.totalEditable !== this.state.totalEditable ) {
           this.setState({
             editable: this.props.selecting.editable,
             totalEditable: this.props.selecting.totalEditable,
@@ -102,47 +93,56 @@ export class SelectingSidebar extends React.Component {
           });
         }
 
-        // draw image on sidebar
-        let reader = new FileReader();
-        reader.onload = function (e) {
-            let bfile = e.target.result;
+        // if new image upload, render preview
+        if (this.props.selecting.hasImage && this.props.selecting.imgUpload !== prevProps.selecting.imgUpload) {
+          // draw image on sidebar
+          let reader = new FileReader();
+          reader.onload = function (e) {
+              let bfile = e.target.result;
 
-            let image = new Image();
+              let image = new Image();
 
-            // draw image in sidebar
-            const img = document.getElementById("img-render");
+              // draw image in sidebar
+              const img = document.getElementById("img-render");
 
-            let bounds = getBounds(this.props.selecting.poses);
-            const height = bounds.bottom - bounds.top + 1;
-            const width = bounds.right - bounds.left + 1;
+              let bounds = getBounds(this.props.selecting.poses);
+              const height = bounds.bottom - bounds.top + 1;
+              const width = bounds.right - bounds.left + 1;
 
-            let imgwidth;
-            let imgheight;
+              let imgwidth;
+              let imgheight;
 
-            if (width >= height) {
-                imgwidth = 0.6*this.props.canvasSize;
-                imgheight = (height/width) * imgwidth;
-            }
-            else {
-                imgheight = 0.6*this.props.canvasSize;
-                imgwidth = (width/height) * imgheight;
-            }
+              if (width >= height) {
+                  imgwidth = 0.6*this.props.canvasSize;
+                  imgheight = (height/width) * imgwidth;
+              }
+              else {
+                  imgheight = 0.6*this.props.canvasSize;
+                  imgwidth = (width/height) * imgheight;
+              }
 
-            image.onload = function () {
-                const context = img.getContext("2d", {
-                    alpha: false,
-                    desynchronized: true,
-                });
-                context.clearRect(0, 0, img.width, img.height);
-                context.fillStyle = "#000000";
-                context.fillRect(0, 0, img.width, img.height);
-                context.drawImage(image, 0, 0, imgwidth, imgheight);
-            }.bind(this);
-            image.setAttribute("src",bfile);
-        }.bind(this);
+              image.onload = function () {
+                  const context = img.getContext("2d", {
+                      alpha: false,
+                      desynchronized: true,
+                  });
+                  context.clearRect(0, 0, img.width, img.height);
+                  context.fillStyle = "#000000";
+                  context.fillRect(0, 0, img.width, img.height);
+                  context.drawImage(image, 0, 0, imgwidth, imgheight);
+              } // .bind(this)
+              image.setAttribute("src",bfile);
+          }.bind(this);
 
-        if (this.props.img_upl !== null) {
-          reader.readAsDataURL(this.props.img_upl);
+          reader.readAsDataURL(this.props.selecting.imgUpload);
+        }
+        else if (!this.props.selecting.hasImage){ // if no image, clear preview
+          const img = document.getElementById("img-render");
+          const context = img.getContext("2d", {
+              alpha: false,
+              desynchronized: true,
+          });
+          context.clearRect(0, 0, img.width, img.height);
         }
     }
 
@@ -200,15 +200,37 @@ export class SelectingSidebar extends React.Component {
               </div>
             </Box>
             &nbsp;
+            <Box>
+              <div style={{ display: "flex", alignItems: "center", width: "100%"}}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => {
+                    this.props.selectOwnedSpaces();
+                  }}
+                  style={{
+                    marginLeft: "5px",
+                    color: "#FFFFFF",
+                    background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                  }}
+                  disabled={!this.state.ownedSelection.size}
+                >
+                  SELECT OWNED SPACES
+                </Button>
+              </div>
+            </Box>
+            &nbsp;
         </ListItem>
         </List>;
 
-        let tooltipModifyColorTitle = `Estimated Cost to Change Colors:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
+        let tooltipModifyColorTitle = `Estimated Cost to Change Colors:  ${(this.state.ownedSelection.size * 0.000005 + this.state.editableSelection.size * 0.000001).toFixed(6)} SOL`;
         let tooltipSetPriceTitle = `Estimated Cost to List/Delist:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
         let tooltipBuyTitle = `Batch buying is non-atomic and is available as a convenience feature. Successful purchase of every Space selected is not guaranteed.
-        
+
         Estimated Transaction Cost to Buy:  ${(this.props.selecting.purchasableInfo.length * 0.000005).toFixed(6)} SOL`;
-        
+        let tooltipMakeEditable = `Click the checkbox to make your selected spaces editable by others and gain SOL from their color changes on the spaces. To make the spaces uneditable, simply change the color to your desired color.`;
+        let tooltipEditPrice = `Pay a fixed price to upload an image or edit the color of editable spaces that you don't own (0.000001 SOL per space). After changing colors, the colors will be able to be edited again in 30 seconds.`
+
         return (
 
                 <div>
@@ -277,7 +299,7 @@ export class SelectingSidebar extends React.Component {
                           </div>
                           </Tooltip>
                           {this.state.editableSelection.size > 0 ?
-                          <Tooltip placement={'right'} title="Pay a fixed price to upload an image or edit the color of these spaces (0.000001 SOL per space). After changing colors, the colors will be able to be edited again in 30 seconds.">
+                          <Tooltip placement={'right'} title={tooltipEditPrice}>
                           <div style={{width: "35%", float: "right"}}>
                               EDIT PRICE
                           </div>
@@ -305,7 +327,7 @@ export class SelectingSidebar extends React.Component {
                                 color: "#FFFFFF",
                                 background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                               }}
-                              disabled={!this.state.ownedSelection.size && this.state.editableSelection.size === 0}
+                              disabled={!this.props.user || (!this.state.ownedSelection.size && this.state.editableSelection.size === 0)}
                             >
                               Change Color
                             </Button>
@@ -320,7 +342,7 @@ export class SelectingSidebar extends React.Component {
 
                         {this.state.ownedSelection.size > 0 ?
                           <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                              <Tooltip placement={'right'} title="Click the checkbox to make your selected spaces editable by others and gain SOL from their color changes on the spaces. To make the spaces uneditable, simply change the color to your desired color.">
+                              <Tooltip placement={'right'} title={tooltipMakeEditable}>
                               <FormControl>
                               <FormControlLabel
                                   style={{marginLeft: "2px"}} // fix alignment
@@ -347,10 +369,10 @@ export class SelectingSidebar extends React.Component {
                             <Button
                               variant="contained"
                               component="label"
-                              style={{ width: "100%" }}
                               size="small"
-                              disabled={!this.state.ownedSelection.size && this.state.editableSelection.size === 0}
+                              disabled={!this.props.user || (!this.state.ownedSelection.size && this.state.editableSelection.size === 0)}
                               style={{
+                                width: "100%",
                                 marginLeft: "5px",
                                 color: "#FFFFFF",
                                 background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
@@ -365,15 +387,17 @@ export class SelectingSidebar extends React.Component {
                               />
                             </Button>
                           </Tooltip>
-                          {this.props.hasImage && 
+                          {this.props.selecting.hasImage && 
                             <Box className="infoText1" style={{marginLeft: "10px"}}>
-                              {this.props.img_upl.name}
+                              {this.props.selecting.imgUpload.name}
                             </Box> 
                           }
                         </div>
-                        {/* {this.props.hasImage &&  */}
-                        <canvas id="img-render" style={{marginTop: "20px"}} width={0.6*this.props.canvasSize + "px"} height={0.6*this.props.canvasSize + "px"}/> 
-                          {/* } */}
+                        <canvas 
+                          id="img-render"
+                          style={{marginTop: "20px"}}
+                          width={this.props.selecting.hasImage ? 0.6*this.props.canvasSize + "px" : 0}
+                          height={this.props.selecting.hasImage ? 0.6*this.props.canvasSize + "px" : 0}/> 
                         <Tooltip placement={'right'} title={tooltipModifyColorTitle}>
                           <Button
                             size="small"
@@ -387,7 +411,7 @@ export class SelectingSidebar extends React.Component {
                               color: "#FFFFFF",
                               background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                             }}
-                            disabled={!this.props.hasImage}
+                            disabled={!this.props.selecting.hasImage}
                           >
                             Upload
                           </Button>
@@ -402,16 +426,17 @@ export class SelectingSidebar extends React.Component {
                       {sidebarHeader}
                           
                       {/* Purchase info */}
+                      
                       {this.state.ownedSelection.size > 0 ? 
                         <div>
                         <Divider className="sidebarDivider">
                             Modify Listing
                         </Divider>
                         <ListItem className="info" style={{ display: "block" }}>
-                          {/* <Box className="infoText2">
-                            Estimated Cost:{" "}
-                            {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
-                          </Box> */}
+                          {/* // <Box className="infoText2">
+                          //   Estimated Cost:{" "}
+                          //   {(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL
+                          // </Box>  */}
                           <Tooltip placement={'right'} title={tooltipSetPriceTitle}>
                             <Box className="infoHeader">PRICE</Box>
                           </Tooltip>
@@ -537,23 +562,23 @@ export class SelectingSidebar extends React.Component {
                           </b>
                         </Box>
                       </ListItem>
-                      <ListItem className="info" style={{ display: "block" }}>
-                        {/* <Button
-                          size="small"
-                          variant="contained"
-                          onClick={() => {
-                            this.props.loadPurchasableInfo();
-                          }}
-                          style={{
-                            width: "100%",
-                            marginLeft: "5px",
-                            color: "#FFFFFF",
-                            background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                          }}
-                        >
-                          Load Price Info
-                        </Button> */}
-                      </ListItem>
+                      {/* <ListItem className="info" style={{ display: "block" }}>
+                        // <Button
+                        //   size="small"
+                        //   variant="contained"
+                        //   onClick={() => {
+                        //     this.props.loadPurchasableInfo();
+                        //   }}
+                        //   style={{
+                        //     width: "100%",
+                        //     marginLeft: "5px",
+                        //     color: "#FFFFFF",
+                        //     background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                        //   }}
+                        // >
+                        //   Load Price Info
+                        // </Button>
+                      </ListItem> */}
                       <ListItem className="info" style={{ display: "block" }}>
                         <Tooltip placement={'right'} title="Select all purchasable Spaces in your selection to prepare to purchase them.">
                           <Button
@@ -562,7 +587,7 @@ export class SelectingSidebar extends React.Component {
                             onClick={() => {
                               this.props.handleTargetAll();
                             }}
-                            // disabled={this.props.selecting.loadingPricesStatus != 2}
+                            // disabled={this.props.selecting.loadingPricesStatus !== 2}
                             disabled={!this.props.selecting.infoLoaded}
                             style={{
                               width: "100%",
@@ -585,7 +610,7 @@ export class SelectingSidebar extends React.Component {
                             defaultValue={1}
                             onChange={(e) => this.props.handleChangeFloorM(e)}
                             value={this.props.selecting.floorM}
-                            // disabled={this.props.selecting.loadingPricesStatus != 2}
+                            // disabled={this.props.selecting.loadingPricesStatus !== 2}
                             style={{ width: "25%" }}
                             size="small"
                           />
@@ -597,7 +622,7 @@ export class SelectingSidebar extends React.Component {
                             defaultValue={1}
                             onChange={(e) => this.props.handleChangeFloorN(e)}
                             value={this.props.selecting.floorN}
-                            // disabled={this.props.selecting.loadingPricesStatus != 2}
+                            // disabled={this.props.selecting.loadingPricesStatus !== 2}
                             style={{ width: "25%" }}
                             size="small"
                           />
@@ -611,7 +636,7 @@ export class SelectingSidebar extends React.Component {
                               disabled={!this.props.selecting.infoLoaded}
                               style={{
                                 width: "45%",
-                                marginLeft: "10px",
+                                // marginLeft: "10px",
                                 marginTop: "5px",
                                 marginLeft: "5px",
                                 color: "#FFFFFF",
@@ -628,7 +653,7 @@ export class SelectingSidebar extends React.Component {
                                                 <Switch 
                                                 onChange={(e) => this.handleTargetFloor(e)} 
                                                 checked={this.props.floor}
-                                                disabled={this.props.selecting.loadingPricesStatus != 2}
+                                                disabled={this.props.selecting.loadingPricesStatus !== 2}
                                                 />
                                             } 
                                             label="SHOW FLOOR"
@@ -675,7 +700,7 @@ export class SelectingSidebar extends React.Component {
                                 size="small"
                                 variant="contained"
                                 onClick={() => {
-                                    this.props.handleSelectingRefresh();
+                                    this.props.refreshSelecting();
                                 }}
                                 style={{
                                     width: "100%",
@@ -885,7 +910,7 @@ export class SelectingSidebar extends React.Component {
                               this.props.handleTargetRentAll();
                             }}
                 
-                            disabled={this.props.selecting.loadingRentStatus != 2}
+                            disabled={this.props.selecting.loadingRentStatus !== 2}
                             style={{
                               width: "100%",
                               marginLeft: "5px",
@@ -907,7 +932,7 @@ export class SelectingSidebar extends React.Component {
                             defaultValue={1}
                             onChange={(e) => this.props.handleChangeFloorM(e)}
                             value={this.props.selecting.floorM}
-                            disabled={this.props.selecting.loadingRentStatus != 2}
+                            disabled={this.props.selecting.loadingRentStatus !== 2}
                             style={{ width: "25%" }}
                             size="small"
                           />
@@ -919,7 +944,7 @@ export class SelectingSidebar extends React.Component {
                             defaultValue={1}
                             onChange={(e) => this.props.handleChangeFloorN(e)}
                             value={this.props.selecting.floorN}
-                            disabled={this.props.selecting.loadingRentStatus != 2}
+                            disabled={this.props.selecting.loadingRentStatus !== 2}
                             style={{ width: "25%" }}
                             size="small"
                           />
@@ -930,10 +955,10 @@ export class SelectingSidebar extends React.Component {
                               onClick={() => {
                                 this.props.handleTargetRentFloor();
                               }}
-                              disabled={this.props.selecting.loadingRentStatus != 2}
+                              disabled={this.props.selecting.loadingRentStatus !== 2}
                               style={{
                                 width: "45%",
-                                marginLeft: "10px",
+                                // marginLeft: "10px",
                                 marginTop: "5px",
                                 marginLeft: "5px",
                                 color: "#FFFFFF",
@@ -950,7 +975,7 @@ export class SelectingSidebar extends React.Component {
                                                 <Switch 
                                                 onChange={(e) => this.handleTargetFloor(e)} 
                                                 checked={this.props.floor}
-                                                disabled={this.props.selecting.loadingPricesStatus != 2}
+                                                disabled={this.props.selecting.loadingPricesStatus !== 2}
                                                 />
                                             } 
                                             label="SHOW FLOOR"
@@ -972,7 +997,7 @@ export class SelectingSidebar extends React.Component {
                             }}
                             disabled={
                               !this.props.user ||
-                              this.props.selecting.loadingRentStatus != 2 ||
+                              this.props.selecting.loadingRentStatus !== 2 ||
                               this.props.selecting.rentable.size === 0
                             }
                           >

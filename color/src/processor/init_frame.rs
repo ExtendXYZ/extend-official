@@ -97,12 +97,7 @@ pub fn process(
         neighborhood_frame_base_data.bump = neighborhood_frame_base_bump;
         neighborhood_frame_base_data.length = 0;
 
-        
-        // zero out data in time cluster
         let mut time_cluster_data = time_cluster.data.borrow_mut();
-        for val in time_cluster_data.iter_mut() {
-            *val = 0;
-        }
         // write other data into time cluster account
         let buffer_x = args.neighborhood_x.try_to_vec().unwrap();
         let buffer_y = args.neighborhood_y.try_to_vec().unwrap();
@@ -112,6 +107,12 @@ pub fn process(
         if time_cluster_data[start_initialized] != 0 {
             return Err(ProgramError::InvalidAccountData);
         }
+
+        // zero out data in time cluster
+        for val in time_cluster_data.iter_mut() {
+            *val = 255;
+        }
+
         for i in 0..size_of::<i64>(){
             time_cluster_data[start_x + i] = buffer_x[i]; 
         }
@@ -120,6 +121,8 @@ pub fn process(
         }
         time_cluster_data[start_initialized] = 1;
 
+        neighborhood_frame_base_data.time_cluster_account = *time_cluster.key;
+
     }
     else{
         neighborhood_frame_base_data = try_from_slice_unchecked(&neighborhood_frame_base.data.borrow_mut())?;
@@ -127,6 +130,10 @@ pub fn process(
     if neighborhood_frame_base_data.length >= MAX_FRAMES {
         msg!("Already have the maximum number of frames");
         return Err(ProgramError::InvalidInstructionData);
+    }
+    if neighborhood_frame_base_data.time_cluster_account != *time_cluster.key {
+        msg!("Time cluster account doesn't match key stored in neighborhood frame base");
+        return Err(ProgramError::InvalidAccountData);
     }
 
     // verify and create neighborhood frame pointer

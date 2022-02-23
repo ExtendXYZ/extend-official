@@ -2,7 +2,7 @@ import React from "react";
 import { PublicKey } from "@solana/web3.js";
 import "./index.css";
 import { Captcha } from "./captcha.js";
-import { priceToColor, rentPriceToColor, colorHighlight } from "../../utils";
+import { colorHighlight, complementaryColor } from "../../utils";
 import { NEIGHBORHOOD_SIZE, UPPER } from "../../constants";
 import {
     Button,
@@ -18,6 +18,11 @@ const CLICK_THRESHOLD = 5;
 const TOUCH_THRESHOLD = 10;
 const LEFT = 500;
 
+// these must be #RRGGBB
+const SELECTED_COLOR = "#CC0000";
+const OWNED_COLOR = "#00CC00";
+const PURCHASABLE_COLOR = "#0000CC";
+
 export class Board extends React.Component {
     constructor(props) {
         super(props);
@@ -25,7 +30,7 @@ export class Board extends React.Component {
         this.interval = 0; // refresh
         this.canvasCache = { t: Date.now() };
         this.boxed = {};
-        this.focus = {x: 0, y: 0};
+        this.focus = { x: 0, y: 0 };
         this.press = {
             pressed: false,
             x: 0,
@@ -40,15 +45,10 @@ export class Board extends React.Component {
         const height = window.innerHeight - UPPER;
         this.width = width;
         this.height = height;
-        this.fit = Math.min(
-            100,
-            this.height / NEIGHBORHOOD_SIZE,
-            this.width / NEIGHBORHOOD_SIZE
-        );
 
-        this.scale = ("scale" in locator)? parseInt(locator.scale) * this.height / 100 / NEIGHBORHOOD_SIZE : height / 2 / NEIGHBORHOOD_SIZE;
+        this.scale = ("scale" in locator) ? parseInt(locator.scale) * this.height / 100 / NEIGHBORHOOD_SIZE : height / 2 / NEIGHBORHOOD_SIZE;
         this.scale = Math.max(1, Math.round(this.scale));
-        
+
         if ("x" in locator) {
             this.x = width * 0.5 - parseInt(locator.x) * this.scale;
         }
@@ -56,7 +56,7 @@ export class Board extends React.Component {
             this.x = width * 0.5 - (parseInt(locator.col) + 0.5) * this.scale;
         }
         else if ("colStart" in locator && "colEnd" in locator) {
-            this.x = width * 0.5 - 0.5*(parseInt(locator.colStart)+parseInt(locator.colEnd)) * this.scale;
+            this.x = width * 0.5 - 0.5 * (parseInt(locator.colStart) + parseInt(locator.colEnd)) * this.scale;
         }
         else {
             this.x = 0.5 * width - (NEIGHBORHOOD_SIZE / 2) * this.scale;
@@ -69,12 +69,12 @@ export class Board extends React.Component {
             this.y = height * 0.5 - (parseInt(locator.row) + 0.5) * this.scale;
         }
         else if ("rowStart" in locator && "rowEnd" in locator) {
-            this.y = height * 0.5 - 0.5*(parseInt(locator.rowStart)+parseInt(locator.rowEnd)) * this.scale;
+            this.y = height * 0.5 - 0.5 * (parseInt(locator.rowStart) + parseInt(locator.rowEnd)) * this.scale;
         }
         else {
             this.y = 0.5 * height - (NEIGHBORHOOD_SIZE / 2) * this.scale;
         }
-        
+
         this.sensor = React.createRef();
         this.canvas = React.createRef();
         this.resizeHandler = this.resizeHandler.bind(this);
@@ -137,7 +137,7 @@ export class Board extends React.Component {
         if (event.shiftKey) {
             this.boxed = { x0: offsetX, y0: offsetY, x1: offsetX, y1: offsetY, alt: false };
         } else if (event.altKey) {
-            this.boxed = { x0: offsetX, y0: offsetY, x1: offsetX, y1: offsetY, alt: true }; 
+            this.boxed = { x0: offsetX, y0: offsetY, x1: offsetX, y1: offsetY, alt: true };
         } else {
             this.press.pressed = true;
             this.press.x = offsetX;
@@ -156,7 +156,7 @@ export class Board extends React.Component {
             const offsetX1 = touches[1].clientX - rect.left;
             const offsetY1 = touches[1].clientY - rect.top;
             this.pinchCache = [{
-                id: touches[0].identifier, 
+                id: touches[0].identifier,
                 x: offsetX0,
                 y: offsetY0
             }, {
@@ -209,7 +209,7 @@ export class Board extends React.Component {
             const center_x = Math.round((offsetX - this.x) / scale - 0.5);
             const center_y = Math.round((offsetY - this.y) / scale - 0.5);
             this.focus = { x: center_x, y: center_y };
-            
+
             requestAnimationFrame(() => {
                 this.drawMouseTracker();
                 this.drawNTracker();
@@ -242,7 +242,7 @@ export class Board extends React.Component {
             this.x = (this.x - sx0) * rate + sx1;
             this.y = (this.y - sy0) * rate + sy1;
             this.pinchCache = [{
-                id: touches[0].identifier, 
+                id: touches[0].identifier,
                 x: offsetX0,
                 y: offsetY0
             }, {
@@ -292,7 +292,7 @@ export class Board extends React.Component {
             const center_x = Math.round((offsetX - this.x) / scale - 0.5);
             const center_y = Math.round((offsetY - this.y) / scale - 0.5);
             this.focus = { x: center_x, y: center_y };
-            
+
             requestAnimationFrame(() => {
                 this.drawMouseTracker();
                 this.drawNTracker();
@@ -451,8 +451,8 @@ export class Board extends React.Component {
 
         window.addEventListener("resize", this.resizeHandler);
         // document.addEventListener("touchstart", this.preventDefault, {passive: false});
-        document.addEventListener("touchmove", this.onTouchMove, {passive: false});
-        document.addEventListener("wheel", this.onWheel, {passive: false});
+        document.addEventListener("touchmove", this.onTouchMove, { passive: false });
+        document.addEventListener("wheel", this.onWheel, { passive: false });
         // document.addEventListener("touchend", this.preventDefault, {passive: false});
         // document.addEventListener("touchcancel", this.preventDefault, {passive: false});
         await this.props.prepare();
@@ -469,7 +469,7 @@ export class Board extends React.Component {
         // document.removeEventListener("touchcancel", this.preventDefault);
     }
 
-    resetCanvas(){
+    resetCanvas() {
         for (let key in this.canvasCache) {
             if (key !== "t") {
                 const tmpCanvas = this.canvasCache[key];
@@ -488,6 +488,7 @@ export class Board extends React.Component {
         const n_x = Math.floor(this.focus.x / NEIGHBORHOOD_SIZE);
         const n_y = Math.floor(this.focus.y / NEIGHBORHOOD_SIZE);
         const key = JSON.stringify({ n_x, n_y });
+        currentMouse.style.display = "block";
         currentMouse.style.left = this.x + this.focus.x * this.scale + "px";
         currentMouse.style.top = this.y + this.focus.y * this.scale + "px";
         currentMouse.style.width = this.scale + "px";
@@ -496,7 +497,7 @@ export class Board extends React.Component {
             const p_x = this.focus.x - n_x * NEIGHBORHOOD_SIZE;
             const p_y = this.focus.y - n_y * NEIGHBORHOOD_SIZE;
             const color = this.map[key][p_y][p_x];
-            const newColor = colorHighlight(color);
+            const newColor = complementaryColor(color);
             currentMouse.style.borderColor = newColor;
         }
     }
@@ -506,6 +507,7 @@ export class Board extends React.Component {
         const n_x = Math.floor(this.focus.x / NEIGHBORHOOD_SIZE);
         const n_y = Math.floor(this.focus.y / NEIGHBORHOOD_SIZE);
         const neighborhood_scale = NEIGHBORHOOD_SIZE * this.scale;
+        currentMouse.style.display = "block";
         currentMouse.style.left = this.x + n_x * neighborhood_scale + "px";
         currentMouse.style.top = this.y + n_y * neighborhood_scale + "px";
         currentMouse.style.width = neighborhood_scale + "px";
@@ -513,15 +515,14 @@ export class Board extends React.Component {
         let key = JSON.stringify({ n_x, n_y });
         let neighborhoodNames = this.props.getNeighborhoodNames();
         const currentNeighborhood = document.getElementById("neighborhood");
+        currentNeighborhood.style.bottom = neighborhood_scale + "px";
         if (neighborhoodNames && (key in neighborhoodNames)) {
             this.neighborhood_name = neighborhoodNames[key];
-            if (this.scale <= this.fit - 1) {
-                currentNeighborhood.innerHTML = "<h1>" + this.neighborhood_name + "</h1>";
-            } else {
-                currentNeighborhood.innerHTML = "";
-            }
+            currentNeighborhood.style.display = "block";
+            currentNeighborhood.innerHTML = "<h1>" + this.neighborhood_name + "</h1>";
         } else {
             this.neighborhood_name = null;
+            currentNeighborhood.style.display = "none";
             currentNeighborhood.innerHTML = "<h1> Expand </h1>";
         }
     }
@@ -551,7 +552,7 @@ export class Board extends React.Component {
         const scale = this.scale;
         if (this.props.selecting.selecting) {
             this.props.ownedSpaces.forEach((pos) => {
-                if (!this.props.selecting.poses.has(pos)){
+                if (!this.props.selecting.poses.has(pos)) {
                     return;
                 }
                 // owned spaces
@@ -565,38 +566,23 @@ export class Board extends React.Component {
                 currentRef.style.top = deltay + 0.1 * scale + "px";
                 currentRef.style.width = scale - 0.2 * scale + "px";
                 currentRef.style.height = scale - 0.2 * scale + "px";
-                currentRef.style.border = 0.1 * scale + "px solid blue";
-                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight("#0000FF");
+                currentRef.style.border = 0.1 * scale + "px solid " + OWNED_COLOR;
+                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(OWNED_COLOR);
             });
             this.props.selecting.purchasableInfo.forEach((info) => {
                 // purchasable spaces
-                const { x, y, mint, price, seller } = info;
+                const { x, y } = info;
                 const pos = JSON.stringify({ x, y });
                 const deltax = x * scale + this.x;
                 const deltay = y * scale + this.y;
                 const currentRef = document.getElementById(`boxTracker${pos}`);
-                const color = "#" + priceToColor(price);
+                // const color = "#" + priceToColor(price);
                 currentRef.style.left = deltax + 0.1 * scale + "px";
                 currentRef.style.top = deltay + 0.1 * scale + "px";
                 currentRef.style.width = scale - 0.2 * scale + "px";
                 currentRef.style.height = scale - 0.2 * scale + "px";
-                currentRef.style.border = 0.1 * scale + "px solid " + color;
-                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(color);
-            });
-            this.props.selecting.purchasableInfo.forEach((info) => {
-                // purchasable spaces
-                const { x, y, mint, price} = info;
-                const pos = JSON.stringify({ x, y });
-                const deltax = x * scale + this.x;
-                const deltay = y * scale + this.y;
-                const currentRef = document.getElementById(`boxTracker${pos}`);
-                const color = "#" + priceToColor(price);
-                currentRef.style.left = deltax + 0.1 * scale + "px";
-                currentRef.style.top = deltay + 0.1 * scale + "px";
-                currentRef.style.width = scale - 0.2 * scale + "px";
-                currentRef.style.height = scale - 0.2 * scale + "px";
-                currentRef.style.border = 0.1 * scale + "px solid " + color;
-                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(color);
+                currentRef.style.border = 0.1 * scale + "px solid " + PURCHASABLE_COLOR;
+                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(PURCHASABLE_COLOR);
             });
             // this.props.selecting.rentableInfo.forEach((info) => {
             //     // purchasable spaces
@@ -633,8 +619,8 @@ export class Board extends React.Component {
                 currentRef.style.top = deltay + 0.1 * scale + "px";
                 currentRef.style.width = scale - 0.2 * scale + "px";
                 currentRef.style.height = scale - 0.2 * scale + "px";
-                currentRef.style.border = 0.1 * scale + "px solid red";
-                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight("#FF0000");
+                currentRef.style.border = 0.1 * scale + "px solid " + SELECTED_COLOR;
+                currentRef.style.outline = 0.1 * scale + "px solid " + colorHighlight(SELECTED_COLOR);
             });
         } else if (this.props.clicked) {
             const deltax = this.props.clicked_x * scale + this.x;
@@ -649,14 +635,15 @@ export class Board extends React.Component {
             const n_y = Math.floor(this.props.clicked_y / NEIGHBORHOOD_SIZE);
             const key = JSON.stringify({ n_x, n_y });
 
+            let newColor = "white";
             if (this.map && key in this.map) {
                 const p_x = this.props.clicked_x - n_x * NEIGHBORHOOD_SIZE;
                 const p_y = this.props.clicked_y - n_y * NEIGHBORHOOD_SIZE;
                 const color = this.map[key][p_y][p_x];
-                const newColor = colorHighlight(color);
-                const colorstr = `px dashed ${newColor}`;
-                currentRef.style.border = 0.1 * scale + colorstr;
+                newColor = colorHighlight(color);
             }
+            const colorstr = `px dashed ${newColor}`;
+            currentRef.style.border = 0.1 * scale + colorstr;
         }
     }
 
@@ -735,7 +722,7 @@ export class Board extends React.Component {
             alpha: false,
             desynchronized: true,
         });
-        
+
         if (center) {
             const dest = {}
             dest.scale = Math.max(
@@ -747,7 +734,7 @@ export class Board extends React.Component {
             const center_y = center.y + 0.5 * center.height;
             dest.x = -center_x * dest.scale + 0.5 * width + 0.5 * LEFT;
             dest.y = -center_y * dest.scale + 0.5 * height;
-            origin = {scale: this.scale, x: this.x, y: this.y};
+            origin = { scale: this.scale, x: this.x, y: this.y };
             this.approachAnimation(origin, dest, Date.now());
         } else {
             const scale = this.scale;
@@ -825,9 +812,9 @@ export class Board extends React.Component {
             censors.forEach(rect => {
                 tmpContext.fillStyle = "#FFFFFF";
                 tmpContext.fillRect(
-                    rect.left * scale, 
-                    rect.top * scale, 
-                    (rect.right - rect.left) * scale, 
+                    rect.left * scale,
+                    rect.top * scale,
+                    (rect.right - rect.left) * scale,
                     (rect.bottom - rect.top) * scale
                 );
             })
@@ -839,15 +826,13 @@ export class Board extends React.Component {
         let boxTracker = null;
         let clickTracker = null;
         const scale = this.scale;
-        const n_x = Math.floor(this.focus.x / NEIGHBORHOOD_SIZE);
-        const n_y = Math.floor(this.focus.y / NEIGHBORHOOD_SIZE);
 
         if (this.props.selecting.selecting) {
             boxTracker = [];
             boxTracker.push(
                 Array.from(this.props.ownedSpaces).map((pos) => {
-                    if (!this.props.selecting.poses.has(pos)){
-                        return;
+                    if (!this.props.selecting.poses.has(pos)) {
+                        return null;
                     }
                     // draw owned spaces
                     const p = JSON.parse(pos);
@@ -864,8 +849,8 @@ export class Board extends React.Component {
                                 top: deltay + 0.1 * scale,
                                 width: scale - 0.2 * scale,
                                 height: scale - 0.2 * scale,
-                                border: 0.1 * scale + "px solid blue",
-                                outline: 0.1 * scale + "px solid " + colorHighlight("#0000FF")
+                                border: 0.1 * scale + "px solid " + OWNED_COLOR,
+                                outline: 0.1 * scale + "px solid " + colorHighlight(OWNED_COLOR)
                             }}
                             key={pos}
                         >
@@ -876,11 +861,11 @@ export class Board extends React.Component {
             boxTracker.push(
                 Array.from(this.props.selecting.purchasableInfo).map((info) => {
                     // draw purchasable spaces
-                    const { x, y, mint, price, seller } = info;
+                    const { x, y } = info;
                     const pos = JSON.stringify({ x, y });
                     const deltax = x * scale + this.x;
                     const deltay = y * scale + this.y;
-                    const color = "#" + priceToColor(price);
+                    // const color = "#" + priceToColor(price);
                     return (
                         <div
                             className="boxTracker"
@@ -890,8 +875,8 @@ export class Board extends React.Component {
                                 top: deltay + 0.1 * scale,
                                 width: scale - 0.2 * scale,
                                 height: scale - 0.2 * scale,
-                                border: 0.1 * scale + "px solid " + color,
-                                outline: 0.1 * scale + "px solid " + colorHighlight(color)
+                                border: 0.1 * scale + "px solid " + PURCHASABLE_COLOR,
+                                outline: 0.1 * scale + "px solid " + colorHighlight(PURCHASABLE_COLOR)
                             }}
                             key={pos}
                         >
@@ -950,8 +935,8 @@ export class Board extends React.Component {
                                     top: deltay + 0.1 * scale,
                                     width: scale - 0.2 * scale,
                                     height: scale - 0.2 * scale,
-                                    border: 0.1 * scale + "px solid red",
-                                    outline: 0.1 * scale + "px solid " + colorHighlight("#FF0000")
+                                    border: 0.1 * scale + "px solid " + SELECTED_COLOR,
+                                    outline: 0.1 * scale + "px solid " + colorHighlight(SELECTED_COLOR)
                                 }}
                                 key={pos}
                             >
@@ -994,23 +979,24 @@ export class Board extends React.Component {
             <div className="myboard">
                 <canvas className="canvas" id="canvas" ref={this.canvas}></canvas>
                 <div className="nTracker" id="nTracker">
-                    <div className="examine">
-                        <div id="neighborhood" className="name" href="#" onClick={() => {
+                    <div id="neighborhood" className="name" href="#" style={{
+                        marginBottom: "-20px", 
+                        display: this.neighborhood_name? "block": "none"
+                    }} onClick={() => {
                             if (this.neighborhood_name) {
                                 this.examine();
                             } else {
-                                this.setState({inputConfig: true});
+                                this.setState({ inputConfig: true });
                             }
                         }}>
                         <h1> {this.neighborhood_name ? this.neighborhood_name : "Expand"} </h1>
-                        </div>
                     </div>
                 </div>
                 <Dialog
                     open={this.state.inputConfig}
                     onClose={() => this.setState({ inputConfig: false })}
                 >
-                    <DialogTitle>Expand To Neighborhood 
+                    <DialogTitle>Expand To Neighborhood
                         ({Math.floor(this.focus.x / NEIGHBORHOOD_SIZE)}, {Math.floor(this.focus.y / NEIGHBORHOOD_SIZE)})
                     </DialogTitle>
                     <DialogContent>

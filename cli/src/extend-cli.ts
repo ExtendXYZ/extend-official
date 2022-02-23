@@ -6,20 +6,24 @@ import {
   TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { parseDate, parsePrice } from "./helpers/various";
+import { parseDate, parsePrice, getVoucherMint, getVoucherSink, getNeighborhoodMetadata, sleep, getSpacesByOwner, registerDB, batchGetMultipleAccountsInfo } from "./helpers/various";
 import { clusterApiUrl, Keypair, PublicKey } from "@solana/web3.js";
 import { upload } from "./commands/upload";
 import { mint } from "./commands/mint";
 import { send_all_nfts } from "./commands/sendAllNfts";
 import {
   createColorClusterInstruction,
-  initColorClusterFrameInstruction,
-} from "./../../client/src/actions/init_color_frame_cluster";
+  createTimeClusterInstruction,
+  initFrameInstruction,
+} from "./../../client/src/actions/init_frame";
 import { initBaseInstruction } from "./../../client/src/actions/init_base";
 import { updateAuthorityInstruction } from "./../../client/src/actions/update_authority";
 import { initNeighborhoodMetadataInstruction } from "./../../client/src/actions/init_neighborhood_metadata";
+import { initSpaceMetadataInstructions } from "./../../client/src/actions/init_space_metadata";
 import { initVoucherSystemInstruction } from "./../../client/src/actions/init_voucher_system";
-import { sendTransactionWithRetryWithKeypair } from "./helpers/transactions";
+import { mintOneTokenInstructions, getCandyMachine } from "./../../client/src/components/Mint/candy-machine";
+import { MintLayout } from "@solana/spl-token";
+import { sendInstructionsGreedyBatchMint, sendInstructionsGreedyBatch, sendTransactionWithRetryWithKeypair } from "./helpers/transactions";
 import base58 from "bs58";
 import {
   getCandyMachineAddress,
@@ -36,6 +40,8 @@ import {
   VOUCHER_SINK_SEED,
   SPACE_PROGRAM_ID,
   VOUCHER_MINT_AUTH,
+  SPACE_METADATA_SEED,
+  MAX_REGISTER_ACCS
 } from "../../client/src/constants";
 import { twoscomplement_i2u } from "../../client/src/utils/borsh";
 
@@ -54,33 +60,156 @@ programCommand("send-all-nfts")
   });
 
 programCommand("mint-tokens")
-  .option("-r, --creator-signature <string>", "Creator's signature")
   .option("-nx, --neighborhood-row <number>", `Neighborhood x`, undefined)
   .option("-ny, --neighborhood-col <number>", `Neighborhood y`, undefined)
   .option("-t, --number-of-tokens <number>", `Number of tokens`, "1")
-  .option("-b, --base <string>", `Base`, undefined)
+  .option("-r, --rpc-token <string>", "RPC token")
   .action(async (directory, cmd) => {
     const {
       keypair,
       env,
-      cacheName,
-      creatorSignature,
       neighborhoodRow,
       neighborhoodCol,
       numberOfTokens,
-      base,
+      rpcToken,
     } = cmd.opts();
 
-    const n = parseInt(numberOfTokens);
-    const cacheContent = loadCache(
-      neighborhoodRow,
-      neighborhoodCol,
-      cacheName,
-      env
+    const n = parseInt(numberOfTokens); // parse args
+    // const solConnection = new anchor.web3.Connection(clusterApiUrl(env));
+    const solConnection = new anchor.web3.Connection(`https://extend.${env}.rpcpool.com/${rpcToken}`);
+    const walletKeyPair = await loadWalletKey(keypair);
+    const neighborhoodX = Number(neighborhoodRow);
+    const neighborhoodY = Number(neighborhoodCol);
+
+    const voucherSink = await getVoucherSink(neighborhoodX, neighborhoodY); // find relevant accounts
+    const voucherMint = await getVoucherMint(neighborhoodX, neighborhoodY);
+    const nhoodAcc = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
+    const account = await solConnection.getAccountInfo(nhoodAcc);
+    const candyConfig = new anchor.web3.PublicKey(account.data.slice(33, 65));
+    const candyId = new anchor.web3.PublicKey(account.data.slice(65, 97));
+    const wallet = new anchor.Wallet(walletKeyPair);
+    const candyMachine = await getCandyMachine(wallet, solConnection, candyId);
+
+    let ixs: anchor.web3.TransactionInstruction[][] = [];
+    let mints: anchor.web3.Keypair[] = [];
+    const rent = await solConnection.getMinimumBalanceForRentExemption(
+      MintLayout.span
     );
-    const configAddress = new PublicKey(cacheContent.program.config);
-    for (let i = 0; i < n; i++) {
-      const res = await mint(keypair, env, configAddress, creatorSignature);
+    
+    for (let i = 0; i < n; i++) { // get mint instructions
+      let mint = anchor.web3.Keypair.generate();
+      let mintInstructions = await mintOneTokenInstructions(
+        candyMachine,
+        candyConfig,
+        walletKeyPair.publicKey,
+        VOUCHER_MINT_AUTH,
+        wallet, // not using wallet to get instructions
+        mint,
+        voucherMint,
+        rent,
+        voucherSink,
+      );
+      ixs.push(mintInstructions);
+      mints.push(mint);
+    }
+
+    const response = await sendInstructionsGreedyBatchMint(
+      solConnection,
+      wallet,
+      ixs,
+      mints,
+    )
+
+    console.log(`Mint successful for ${response.numSucceed} out of ${response.total} NFTS`)
+  });
+
+  programCommand("register")
+  .option("-r, --rpc-token <string>", "RPC token")
+  .action(async (directory, cmd) => {
+    const {
+      keypair,
+      env,
+      rpcToken,
+    } = cmd.opts();
+
+    const solConnection = new anchor.web3.Connection(`https://extend.${env}.rpcpool.com/${rpcToken}`);
+    const walletKeyPair = await loadWalletKey(keypair);
+    const wallet = new anchor.Wallet(walletKeyPair);
+
+    const currSpaceAccs = {};
+    const currMints = {};
+    let accs: any[] = [];
+
+    const data = await getSpacesByOwner(solConnection, walletKeyPair.publicKey);
+    let ownedSpacesArray: any[] = [...data.spaces]; // get unregistered spaces and mints
+    let ownedMintsDict = data.mints;
+
+    for (const p of ownedSpacesArray) {
+      const pos = JSON.parse(p);
+      const space_x = twoscomplement_i2u(pos.x);
+      const space_y = twoscomplement_i2u(pos.y);
+      const spaceAcc = (await PublicKey.findProgramAddress(
+        [
+          BASE.toBuffer(),
+          Buffer.from(SPACE_METADATA_SEED),
+          Buffer.from(space_x),
+          Buffer.from(space_y),
+        ],
+        SPACE_PROGRAM_ID
+      ))[0];
+      accs.push(spaceAcc);
+    }
+    console.log("Accounts", accs.length)
+    const accInfos = await batchGetMultipleAccountsInfo(solConnection, accs);
+    
+    // pass the accounts and mints we want to initialize
+    let numAccountsToRegister = 0;
+    for (let i = 0; i < accInfos.length; i++) {
+      if (accInfos[i] === null) {
+        if (numAccountsToRegister < MAX_REGISTER_ACCS) { // limit to MAX register accs in current batch
+          currSpaceAccs[ownedSpacesArray[i]] = accs[i];
+          currMints[ownedSpacesArray[i]] = ownedMintsDict[ownedSpacesArray[i]];
+        }
+        numAccountsToRegister++;
+      }
+    }
+
+    const numRegistering = Object.keys(currMints).length;
+    console.log("Need to register", numRegistering)
+
+    if (numRegistering === 0) { // if there are no spaces to register
+      console.log("Nothing to register")
+    } else {
+      try {
+        let ixs = await initSpaceMetadataInstructions(wallet, BASE, currSpaceAccs, currMints);
+        let res = await sendInstructionsGreedyBatch(solConnection, wallet, ixs); 
+
+        // update mints that have been registered
+        let responses = res.responses;
+        let ixPerTx = res.ixPerTx;
+        let allPositions = Object.keys(currSpaceAccs);
+        let ind = 0;
+        let doneMints = {};
+        for (let i = 0; i < responses.length; i++) {
+          if (responses[i]) { // if tx success
+            for (let j = 0; j < ixPerTx[i]; j++) {
+              doneMints[allPositions[ind + j]] = currMints[allPositions[ind + j]];
+            }
+          }
+          ind += ixPerTx[i];
+        }
+
+        // update database for mints that have registered
+        await sleep(20000); // sleep 20 seconds metadata completion
+        await registerDB(walletKeyPair.publicKey, doneMints, env);
+
+        // notify if need to reclick register
+        let numSucceed = res.spacesSucceed;
+        console.log("Number of registered spaces that succeeded", numSucceed)
+      }
+      catch (e) {
+        console.log(e);
+      }
     }
   });
 
@@ -303,27 +432,32 @@ programCommand("initialize-cluster")
       );
     }
 
-    const res = await createColorClusterInstruction(
+    const colorRes = await createColorClusterInstruction(
+      solConnection,
+      walletKeyPair
+    );
+    const timeRes = await createTimeClusterInstruction(
       solConnection,
       walletKeyPair
     );
 
     log.debug("Parsed arguments!");
-    const ixs = await initColorClusterFrameInstruction(
+    const ixs = await initFrameInstruction(
       solConnection,
       walletKeyPair,
       base_address,
       neighborhoodRow,
       neighborhoodCol,
-      res["keypair"].publicKey
+      colorRes["keypair"].publicKey,
+      timeRes["keypair"].publicKey,
     );
 
     log.debug("Instructions complete");
     await sendTransactionWithRetryWithKeypair(
       solConnection,
       walletKeyPair,
-      [...res["ix"], ...ixs],
-      [res["keypair"]]
+      [...colorRes["ix"], ...timeRes["ix"], ...ixs],
+      [colorRes["keypair"], timeRes["keypair"]],
     );
 
     console.log("FRAME INITIALIZED");

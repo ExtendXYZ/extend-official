@@ -64,7 +64,7 @@ export const sendTransactionWithRetry = async (
   if (beforeSend) {
     beforeSend();
   }
-  console.log("About to send");
+  // console.log("About to send");
   try {
     const { txid, slot } = await sendSignedTransaction({
       connection,
@@ -99,7 +99,7 @@ export async function sendSignedTransaction({
     },
   );
 
-  // console.log("transaction ID:", txid);
+  // // console.log("transaction ID:", txid);
 
   log.debug('Started awaiting confirmation for', txid);
 
@@ -298,16 +298,20 @@ export const sendInstructionsGreedyBatchMint = async (
   let idx = 0;
   for (let i = 0; i < Ixs.length; i++){
     let newTransaction = [...transaction];
-    Ixs[i].forEach((instruction) => newTransaction.push(instruction));
-    Ixs[i].forEach((instruction) => newTx.add(instruction));
+    for(let instruction of Ixs[i]){
+      newTransaction.push(instruction);
+      newTx.add(instruction);
+    }
+    // Ixs[i].forEach((instruction) => newTransaction.push(instruction));
+    // Ixs[i].forEach((instruction) => newTx.add(instruction));
     newTx.recentBlockhash = staleBlockhash;
     newTx.feePayer = wallet.publicKey;
     try {
-      let _ = newTx.serialize({requireAllSignatures: false});
+      newTx.serialize({requireAllSignatures: false});
       transaction = newTransaction;
     }
     catch (e) {
-      //console.log(e)
+      //// console.log(e)
       // size limit reached, register the batched transaction and start a new batch
       transactions.push(transaction);
       signers.push(mints.slice(idx, i));
@@ -323,7 +327,7 @@ export const sendInstructionsGreedyBatchMint = async (
   signers.push(mints.slice(idx, Ixs.length));
   ixPerTx.push(Ixs.length - idx);
 
-  console.log("Num Transactions", transactions.length)
+  // console.log("Num Transactions", transactions.length)
 
   const responses = await sendTransactionsWithManualRetry(
     connection,

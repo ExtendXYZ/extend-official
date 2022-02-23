@@ -13,13 +13,13 @@ import {
     NEIGHBORHOOD_SIZE,
     SELL_DELEGATE_SEED,
     BATCH_LOAD_PRICE_SIZE,
-    RENT_ACCOUNT_SEED,
-    RENT_PROGRAM_ID,
+    // RENT_ACCOUNT_SEED,
+    // RENT_PROGRAM_ID,
 } from "../../constants";
 import {TOKEN_PROGRAM_ID} from '@solana/spl-token';
 import {decodeMetadata} from "../../actions/metadata";
 import {twoscomplement_i2u} from "../../utils/borsh";
-import { bytesToUInt } from "../../utils/utils";
+import { bytesToUInt, sleep } from "../../utils/utils";
 import {loading} from '../../utils/loading';
 
 window.frameKeyCache = {};
@@ -66,8 +66,8 @@ export class Server {
             const n_meta = (await PublicKey.findProgramAddress([
                 BASE.toBuffer(),
                 Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-                twoscomplement_i2u(n_x),
-                twoscomplement_i2u(n_y),
+                Buffer.from(twoscomplement_i2u(n_x)),
+                Buffer.from(twoscomplement_i2u(n_y)),
             ], SPACE_PROGRAM_ID))[0];
             neighborhood_metadatas.push(n_meta);
         }
@@ -129,8 +129,8 @@ export class Server {
         const n_meta = await PublicKey.findProgramAddress([
             BASE.toBuffer(),
             Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-            twoscomplement_i2u(n_x),
-            twoscomplement_i2u(n_y),
+            Buffer.from(twoscomplement_i2u(n_x)),
+            Buffer.from(twoscomplement_i2u(n_y)),
         ], SPACE_PROGRAM_ID);
         const account = await connection.getAccountInfo(n_meta[0]);
         if (account === null) {
@@ -142,12 +142,11 @@ export class Server {
     }
 
     async getNeighborhoodMetadata(connection, n_x, n_y) {
-        const hash = JSON.stringify({n_x, n_y});
         const n_meta = await PublicKey.findProgramAddress([
             BASE.toBuffer(),
             Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-            twoscomplement_i2u(n_x),
-            twoscomplement_i2u(n_y),
+            Buffer.from(twoscomplement_i2u(n_x)),
+            Buffer.from(twoscomplement_i2u(n_y)),
         ], SPACE_PROGRAM_ID);
         const account = await connection.getAccountInfo(n_meta[0]);
         if (account === null) {
@@ -174,14 +173,14 @@ export class Server {
         const account = await connection.getTokenLargestAccounts(mint);
         if (account !== null) {
             const account_data = await connection.getAccountInfo(account.value[0].address);
-            // console.log("account_data", account_data);
+            // // console.log("account_data", account_data);
             let owner = account_data.data.slice(32, 64);
             let has_delegate = (new BN(account_data.data.slice(72, 76))).toNumber();
             let delegate = account_data.data.slice(76, 108);
             if (!has_delegate){
                 delegate.fill(0);
             }
-            // console.log("owner", owner)
+            // // console.log("owner", owner)
             return { 
                 owner: new PublicKey(owner),
                 delegate: new PublicKey(delegate)
@@ -201,12 +200,12 @@ export class Server {
         const spaceMetadata = await PublicKey.findProgramAddress([
                 BASE.toBuffer(),
                 Buffer.from(SPACE_METADATA_SEED),
-                twoscomplement_i2u(p_x),
-                twoscomplement_i2u(p_y),
+                Buffer.from(twoscomplement_i2u(p_x)),
+                Buffer.from(twoscomplement_i2u(p_y)),
             ],
             SPACE_PROGRAM_ID
         );
-        //console.log(spaceMetadata[0].toBase58());
+        //// console.log(spaceMetadata[0].toBase58());
         const account = await connection.getAccountInfo(spaceMetadata[0]);
         if (account) {
             let mint = new PublicKey(account.data.slice(1, 33));
@@ -258,7 +257,7 @@ export class Server {
             const SPACE_METADATA_SEEDBuffer = Buffer.from(SPACE_METADATA_SEED);
             const spaceMetas = await Promise.all(poses_arr.map(async (x) => {
                 let coord = JSON.parse(x);
-                return (await PublicKey.findProgramAddress([BASEBuffer, SPACE_METADATA_SEEDBuffer, twoscomplement_i2u(coord.x), twoscomplement_i2u(coord.y),], SPACE_PROGRAM_ID))[0];
+                return (await PublicKey.findProgramAddress([BASEBuffer, SPACE_METADATA_SEEDBuffer, Buffer.from(twoscomplement_i2u(coord.x)), Buffer.from(twoscomplement_i2u(coord.y)),], SPACE_PROGRAM_ID))[0];
             }));
             let spaceDatas = await this.batchGetMultipleAccountsInfoLoading(connection, spaceMetas, 'Loading Info', user, false, 0, 10);
 
@@ -298,6 +297,7 @@ export class Server {
                 let responses = await Promise.all(promises);
                 tokenaccts.push(...responses);
                 // TODO: await sleep??
+                sleep(400);
             }
 
             loading(80, 'Loading Info', null);
@@ -318,7 +318,7 @@ export class Server {
                     }
                     delegate = new PublicKey(delegate);
 
-                    info.push({...priceDatas[j], owner, forSale: delegate.toBase58() == sell_del[0].toBase58()})
+                    info.push({...priceDatas[j], owner, forSale: delegate.toBase58() === sell_del[0].toBase58()})
                 }
             }
             loading(null, 'Loading Info', 'success');
@@ -339,7 +339,7 @@ export class Server {
         let infos = await this.getSpaceInfos(connection, poses);
         let purchasableInfo = []
         for (let info of infos){
-            if (info.owner.toBase58() == user || !info.forSale){
+            if (info.owner.toBase58() === user || !info.forSale){
                 continue;
             }
             purchasableInfo.push({
@@ -350,7 +350,7 @@ export class Server {
                 seller: info.owner,
             })
         }
-        purchasableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
+        purchasableInfo.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
 
         return purchasableInfo;
     }
@@ -420,13 +420,13 @@ export class Server {
                     }
                 }
             }
-            console.log("Done getting owner Spaces")
+            // console.log("Done getting owner Spaces")
 
             loading(null, infoText, 'success');
             return { spaces, mints };
         } catch (e) {
             loading(null, infoText, 'exception');
-            console.log(e);
+            // console.log(e);
             return null;
         }
     }
@@ -473,7 +473,7 @@ export class Server {
                 neighborhoodsFiltered.push({n_x, n_y});
             }
         }
-        // console.log("cache", window.frameKeyCache);
+        // // console.log("cache", window.frameKeyCache);
         neighborhoods = neighborhoodsFiltered;
 
         for (const {n_x, n_y} of neighborhoods){
@@ -723,7 +723,7 @@ export class Server {
     //         ],
     //         RENT_PROGRAM_ID
     //     );
-    //     //console.log(spaceMetadata[0].toBase58());
+    //     //// console.log(spaceMetadata[0].toBase58());
     //     const account = await connection.getAccountInfo(rent_account[0]);
     //     if (owner && account) {
     //         let rentPrice = this.bytesToNumber(account.data.slice(1, 1 + 8));
@@ -733,11 +733,11 @@ export class Server {
     //         let renter = new PublicKey(account.data.slice(33, 33 + 32));
     //         let rentEnd = this.bytesToNumber(account.data.slice(65, 65 + 8));
     //         let rentee = new PublicKey(account.data.slice(73, 73 + 32));
-    //         console.log(rentPrice);
+    //         // console.log(rentPrice);
 
     //         let now = Date.now() / 1000;
     //         let hasRentPrice = true;
-    //         if (rentPrice == 0 || (owner.toBase58() !== renter.toBase58()) || (maxTimestamp > 0 && now > maxTimestamp) || now < rentEnd) {
+    //         if (rentPrice === 0 || (owner.toBase58() !== renter.toBase58()) || (maxTimestamp > 0 && now > maxTimestamp) || now < rentEnd) {
     //             hasRentPrice = false;
     //             rentPrice = 0
     //         }
@@ -819,12 +819,12 @@ export class Server {
     
     //             let now = Date.now() / 1000;
     //             let hasRentPrice = true;
-    //             if (rentPrice == 0 || owner.toBase58() !== renter.toBase58() || (maxTimestamp > 0 && now > maxTimestamp) || now < rentEnd) {
+    //             if (rentPrice === 0 || owner.toBase58() !== renter.toBase58() || (maxTimestamp > 0 && now > maxTimestamp) || now < rentEnd) {
     //                 hasRentPrice = false;
     //                 rentPrice = 0;
     //             }
 
-    //             if (info.owner.toBase58() == user || !hasRentPrice){
+    //             if (info.owner.toBase58() === user || !hasRentPrice){
     //                 continue;
     //             }
     //             rentableInfo.push({
@@ -839,8 +839,8 @@ export class Server {
     //             })
     //         }
     //     }
-    //     rentableInfo.sort((a, b) => a.y == b.y ? a.x - b.x : a.y - b.y);
-    //     console.log(rentableInfo);
+    //     rentableInfo.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
+    //     // console.log(rentableInfo);
 
     //     return rentableInfo;
     // }

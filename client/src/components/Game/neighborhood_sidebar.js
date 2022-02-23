@@ -6,9 +6,6 @@ import { Tooltip, Spin } from "antd";
 import {formatPrice} from "../../utils"; 
 
 export class NeighborhoodSidebar extends React.Component {
-  constructor(props) {
-    super(props);
-  }
   componentDidMount() {
     if (!this.props.neighborhood.infoLoaded){
       return;
@@ -146,7 +143,7 @@ export class NeighborhoodSidebar extends React.Component {
                   Select
                 </Button>
               </div>
-            </ListItem>
+                </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
               <Box className="infoHeader">NUMBER OF DISTINCT OWNERS</Box>
               <Box>
@@ -173,7 +170,7 @@ export class NeighborhoodSidebar extends React.Component {
                 size="small"
                 variant="contained"
                 onClick={() => {
-                    this.props.addNewFrame();
+                    this.props.handleAddNewFrame();
                 }}
                 style={{
                     width: "100%",
@@ -182,7 +179,7 @@ export class NeighborhoodSidebar extends React.Component {
                     background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
                 }}
                 >
-                Add New Frame
+                Add New Frame (cost: 0.84 SOL)
                 </Button>
               </Tooltip>
             </ListItem>

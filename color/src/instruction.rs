@@ -60,17 +60,20 @@ pub enum ColorInstruction {
     InitFrame,
 
     /*
-    Change color at stage i
+    Change color at stage i. If space metadata is empty, any one can change the color.
     Accounts expected:
     0. Base account
     1. [Writable] Color cluster account
-    2. space metadata
-    2. neighborhood metadata
-    3. [Writable] Owner
-    4. Ata of owner
-    time cluster account
-    [Writable, signer] fee payer
-    system program
+    2. frame base
+    3. frame pointer
+    4. neighborhood metadata
+    5. [Writable] neighborhood creator
+    6. space metadata
+    7. [Writable] Owner
+    8. Space Ata of owner
+    9. time cluster account
+    10. [Writable, signer] fee payer
+    11. system program
 
     */
     ChangeColor,
@@ -87,7 +90,6 @@ pub enum ColorInstruction {
     */
     MakeEditable,
     MakeEditableBrief,
-
 }
 
 impl ColorInstruction {
@@ -96,8 +98,8 @@ impl ColorInstruction {
             0 => Self::InitFrame,
             1 => Self::ChangeColor,
             2 => Self::ChangeColorBrief,
-            3 => Self::MakeEditable,
-            4 => Self::MakeEditableBrief,
+            // 3 => Self::MakeEditable,
+            // 4 => Self::MakeEditableBrief,
             _ => return Err(ProgramError::InvalidInstructionData),
         })
     }
