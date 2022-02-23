@@ -69,16 +69,16 @@ export const Header = (props: { setNotificationsBar?: (type: string) => void }) 
                     }
                   }}>
               <Link to={"/"} style={{ color: '#FFFFFF' }}>
-                <Tab value={0} label="Canvas" sx={{ fontWeight: "bold" }} />
+                <Tab value={0} label="Canvas" sx={{ fontWeight: "bold", fontFamily: "Attila Sans Sharp" }} />
               </Link>
               <Link to={"/activity"} style={{ color: '#FFFFFF' }}>
-                <Tab value={1} label="Activity" sx={{ fontWeight: "bold" }} />
+                <Tab value={1} label="Activity" sx={{ fontWeight: "bold", fontFamily: "Attila Sans Sharp" }} />
               </Link>
               <Link to={"/mint"} style={{ color: '#FFFFFF' }}>
-                <Tab value={2} label="Mint" sx={{ fontWeight: "bold" }} />
+                <Tab value={2} label="Mint" sx={{ fontWeight: "bold", fontFamily: "Attila Sans Sharp" }} />
               </Link>
               <a href={HELP_URL} target="_blank" rel="noopener noreferrer" style={{ color: '#FFFFFF' }}>
-                <Tab value={2} label="Help" sx={{ fontWeight: "bold" }} />
+                <Tab value={2} label="Help" sx={{ fontWeight: "bold", fontFamily: "Attila Sans Sharp" }} />
               </a>
 
             </Tabs>
