@@ -2,7 +2,7 @@ import React from "react";
 import "./index.css";
 import {getBounds} from './index.js';
 import { notify } from "../../utils";
-import { NEIGHBORHOOD_SIZE } from "../../constants";
+import { NEIGHBORHOOD_SIZE, TX_COST, EDIT_PRICE, CHANGE_COLOR_BATCH_SIZE, BUY_BATCH_SIZE } from "../../constants";
 import {
   Box,
   Button,
@@ -223,13 +223,13 @@ export class SelectingSidebar extends React.Component {
         </ListItem>
         </List>;
 
-        let tooltipModifyColorTitle = `Estimated Cost to Change Colors:  ${(this.state.ownedSelection.size * 0.000005 + this.state.editableSelection.size * 0.000001).toFixed(6)} SOL`;
-        let tooltipSetPriceTitle = `Estimated Cost to List/Delist:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
+        let tooltipModifyColorTitle = `Estimated Cost to Change Colors:  ${((this.state.ownedSelection.size + this.state.editableSelection.size) * TX_COST / CHANGE_COLOR_BATCH_SIZE + this.state.editableSelection.size * EDIT_PRICE).toFixed(6)} SOL`;
+        let tooltipSetPriceTitle = `Estimated Cost to List/Delist:  ${(this.state.ownedSelection.size * TX_COST / CHANGE_COLOR_BATCH_SIZE).toFixed(6)} SOL`;
         let tooltipBuyTitle = `Batch buying is non-atomic and is available as a convenience feature. Successful purchase of every Space selected is not guaranteed.
 
-        Estimated Transaction Cost to Buy:  ${(this.props.selecting.purchasableInfo.length * 0.000005).toFixed(6)} SOL`;
+        Estimated Transaction Cost to Buy:  ${(this.props.selecting.purchasableInfo.length * TX_COST / BUY_BATCH_SIZE).toFixed(6)} SOL`;
         let tooltipMakeEditable = `Click the checkbox to make your selected spaces editable by others and gain SOL from their color changes on the spaces. To make the spaces uneditable, simply change the color to your desired color.`;
-        let tooltipEditPrice = `Pay a fixed price to upload an image or edit the color of editable spaces that you don't own (0.000001 SOL per space). After changing colors, the colors will be able to be edited again in 30 seconds.`
+        let tooltipEditPrice = `Pay a fixed price to upload an image or edit the color of editable spaces that you don't own (${EDIT_PRICE} SOL per space).`
 
         return (
 
@@ -335,7 +335,7 @@ export class SelectingSidebar extends React.Component {
                         </div>
                         {this.state.editableSelection.size > 0 ? 
                             <div style={{ display: "flex", alignItems: "center", width: "35%", float: "right"}}>
-                                {(this.state.editableSelection.size * 0.000001).toFixed(6)} SOL
+                                {(this.state.editableSelection.size * EDIT_PRICE).toFixed(6)} SOL
                             </div>
                           : null
                         }
