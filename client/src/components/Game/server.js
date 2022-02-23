@@ -18,8 +18,8 @@ import {
 } from "../../constants";
 import {TOKEN_PROGRAM_ID} from '@solana/spl-token';
 import {decodeMetadata} from "../../actions/metadata";
-import {twoscomplement_i2u} from "../../utils/borsh";
-import { bytesToUInt, sleep } from "../../utils/utils";
+import {signedIntToBytes, bytesToUInt} from "../../utils/borsh";
+import { sleep } from "../../utils/utils";
 import {loading} from '../../utils/loading';
 
 window.frameKeyCache = {};
@@ -66,8 +66,8 @@ export class Server {
             const n_meta = (await PublicKey.findProgramAddress([
                 BASE.toBuffer(),
                 Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-                Buffer.from(twoscomplement_i2u(n_x)),
-                Buffer.from(twoscomplement_i2u(n_y)),
+                Buffer.from(signedIntToBytes(n_x)),
+                Buffer.from(signedIntToBytes(n_y)),
             ], SPACE_PROGRAM_ID))[0];
             neighborhood_metadatas.push(n_meta);
         }
@@ -109,8 +109,8 @@ export class Server {
         const n_meta = await PublicKey.findProgramAddress([
             BASE.toBuffer(),
             Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-            Buffer.from(twoscomplement_i2u(n_x)),
-            Buffer.from(twoscomplement_i2u(n_y)),
+            Buffer.from(signedIntToBytes(n_x)),
+            Buffer.from(signedIntToBytes(n_y)),
         ], SPACE_PROGRAM_ID);
         const account = await connection.getAccountInfo(n_meta[0]);
         if (account === null) {
@@ -129,8 +129,8 @@ export class Server {
         const n_meta = await PublicKey.findProgramAddress([
             BASE.toBuffer(),
             Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-            Buffer.from(twoscomplement_i2u(n_x)),
-            Buffer.from(twoscomplement_i2u(n_y)),
+            Buffer.from(signedIntToBytes(n_x)),
+            Buffer.from(signedIntToBytes(n_y)),
         ], SPACE_PROGRAM_ID);
         const account = await connection.getAccountInfo(n_meta[0]);
         if (account === null) {
@@ -145,8 +145,8 @@ export class Server {
         const n_meta = await PublicKey.findProgramAddress([
             BASE.toBuffer(),
             Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-            Buffer.from(twoscomplement_i2u(n_x)),
-            Buffer.from(twoscomplement_i2u(n_y)),
+            Buffer.from(signedIntToBytes(n_x)),
+            Buffer.from(signedIntToBytes(n_y)),
         ], SPACE_PROGRAM_ID);
         const account = await connection.getAccountInfo(n_meta[0]);
         if (account === null) {
@@ -200,8 +200,8 @@ export class Server {
         const spaceMetadata = await PublicKey.findProgramAddress([
                 BASE.toBuffer(),
                 Buffer.from(SPACE_METADATA_SEED),
-                Buffer.from(twoscomplement_i2u(p_x)),
-                Buffer.from(twoscomplement_i2u(p_y)),
+                Buffer.from(signedIntToBytes(p_x)),
+                Buffer.from(signedIntToBytes(p_y)),
             ],
             SPACE_PROGRAM_ID
         );
@@ -257,7 +257,7 @@ export class Server {
             const SPACE_METADATA_SEEDBuffer = Buffer.from(SPACE_METADATA_SEED);
             const spaceMetas = await Promise.all(poses_arr.map(async (x) => {
                 let coord = JSON.parse(x);
-                return (await PublicKey.findProgramAddress([BASEBuffer, SPACE_METADATA_SEEDBuffer, Buffer.from(twoscomplement_i2u(coord.x)), Buffer.from(twoscomplement_i2u(coord.y)),], SPACE_PROGRAM_ID))[0];
+                return (await PublicKey.findProgramAddress([BASEBuffer, SPACE_METADATA_SEEDBuffer, Buffer.from(signedIntToBytes(coord.x)), Buffer.from(signedIntToBytes(coord.y)),], SPACE_PROGRAM_ID))[0];
             }));
             let spaceDatas = await this.batchGetMultipleAccountsInfoLoading(connection, spaceMetas, 'Loading Info', user, false, 0, 10);
 
@@ -440,8 +440,8 @@ export class Server {
         const n_meta = await PublicKey.findProgramAddress([
             BASE.toBuffer(),
             Buffer.from(NEIGHBORHOOD_FRAME_BASE_SEED),
-            Buffer.from(twoscomplement_i2u(n_x)),
-            Buffer.from(twoscomplement_i2u(n_y)),
+            Buffer.from(signedIntToBytes(n_x)),
+            Buffer.from(signedIntToBytes(n_y)),
             ], COLOR_PROGRAM_ID
         );
         const account = await connection.getAccountInfo(n_meta[0]);
@@ -480,8 +480,8 @@ export class Server {
             let framePointerAccount = (await PublicKey.findProgramAddress([
                     BASE.toBuffer(),
                     Buffer.from(NEIGHBORHOOD_FRAME_POINTER_SEED),
-                    Buffer.from(twoscomplement_i2u(n_x)),
-                    Buffer.from(twoscomplement_i2u(n_y)),
+                    Buffer.from(signedIntToBytes(n_x)),
+                    Buffer.from(signedIntToBytes(n_y)),
                     new BN(frame).toArray('le', 8),
                 ], 
                 COLOR_PROGRAM_ID
@@ -537,8 +537,8 @@ export class Server {
                     const key = (await PublicKey.findProgramAddress([
                             BASE.toBuffer(),
                             Buffer.from(NEIGHBORHOOD_FRAME_POINTER_SEED),
-                            Buffer.from(twoscomplement_i2u(n_x)),
-                            Buffer.from(twoscomplement_i2u(n_y)),
+                            Buffer.from(signedIntToBytes(n_x)),
+                            Buffer.from(signedIntToBytes(n_y)),
                             new BN(frame).toArray('le', 8),
                         ], 
                         COLOR_PROGRAM_ID
@@ -567,8 +567,8 @@ export class Server {
         const frame_pointer = await PublicKey.findProgramAddress([
                     BASE.toBuffer(),
                     Buffer.from(NEIGHBORHOOD_FRAME_POINTER_SEED),
-                    Buffer.from(twoscomplement_i2u(n_x)),
-                    Buffer.from(twoscomplement_i2u(n_y)),
+                    Buffer.from(signedIntToBytes(n_x)),
+                    Buffer.from(signedIntToBytes(n_y)),
                     new BN(frame).toArray('le', 8),
                 ], COLOR_PROGRAM_ID
             );
@@ -604,8 +604,8 @@ export class Server {
             const frameBase = (await PublicKey.findProgramAddress([
                         BASE.toBuffer(),
                         Buffer.from(NEIGHBORHOOD_FRAME_BASE_SEED),
-                        Buffer.from(twoscomplement_i2u(n_x)),
-                        Buffer.from(twoscomplement_i2u(n_y)),
+                        Buffer.from(signedIntToBytes(n_x)),
+                        Buffer.from(signedIntToBytes(n_y)),
                     ], COLOR_PROGRAM_ID
                 ))[0];
             frameBaseAccounts.push(frameBase);
@@ -633,8 +633,8 @@ export class Server {
         const frameBase = await PublicKey.findProgramAddress([
                     BASE.toBuffer(),
                     Buffer.from(NEIGHBORHOOD_FRAME_BASE_SEED),
-                    Buffer.from(twoscomplement_i2u(n_x)),
-                    Buffer.from(twoscomplement_i2u(n_y)),
+                    Buffer.from(signedIntToBytes(n_x)),
+                    Buffer.from(signedIntToBytes(n_y)),
                 ], COLOR_PROGRAM_ID
             );
         const account = await connection.getAccountInfo(frameBase[0]);
@@ -682,8 +682,8 @@ export class Server {
 
     /* Finds time cluster account from neighborhood frame base. */
     async getTimeClusterAcc(connection, n_x, n_y) {
-        const n_x_bytes = twoscomplement_i2u(n_x);
-        const n_y_bytes = twoscomplement_i2u(n_y);
+        const n_x_bytes = signedIntToBytes(n_x);
+        const n_y_bytes = signedIntToBytes(n_y);
         const [neighborhoodFrameBase,] =
             await PublicKey.findProgramAddress(
                 [
@@ -718,8 +718,8 @@ export class Server {
     //     const rent_account = await PublicKey.findProgramAddress([
     //             BASE.toBuffer(),
     //             Buffer.from(RENT_ACCOUNT_SEED),
-    //             twoscomplement_i2u(x),
-    //             twoscomplement_i2u(y),
+    //             signedIntToBytes(x),
+    //             signedIntToBytes(y),
     //         ],
     //         RENT_PROGRAM_ID
     //     );
@@ -792,8 +792,8 @@ export class Server {
     //             const key = (await PublicKey.findProgramAddress([
     //                     BASE.toBuffer(),
     //                     Buffer.from(RENT_ACCOUNT_SEED),
-    //                     twoscomplement_i2u(x),
-    //                     twoscomplement_i2u(y),
+    //                     signedIntToBytes(x),
+    //                     signedIntToBytes(y),
     //                 ],
     //                 RENT_PROGRAM_ID
     //             ))[0];

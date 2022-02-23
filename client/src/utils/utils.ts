@@ -68,15 +68,6 @@ export function compact_u16_len (x) {
   return 3;
 }
 
-export function bytesToUInt(arr) {
-  var length = arr.length;
-
-  let buffer = Buffer.from(arr);
-  var result = buffer.readUIntLE(0, length);
-
-  return result;
-}
-
 export const solToLamports = (n: any) => {
   if (n === null){
     return null;

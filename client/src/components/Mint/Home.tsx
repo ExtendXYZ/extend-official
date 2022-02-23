@@ -50,7 +50,7 @@ import {
 import { Divider } from "antd";
 
 import { ModalEnum, useModal, useWalletModal } from "../../contexts";
-import { sleep, twoscomplement_i2u, twoscomplement_u2i, bytesToUInt, loading, notify, register_succeed_notify } from "../../utils";
+import { sleep, signedIntToBytes, bytesToSignedInt, bytesToUInt, loading, notify, register_succeed_notify } from "../../utils";
 import { Server } from "../Game/server.js";
 import { Database } from "../Game/database.js";
 import { initSpaceMetadataInstructions, sendInstructionsGreedyBatch } from "../../actions";
@@ -138,8 +138,8 @@ export const Home = (props: HomeProps) => {
   const captchaRef = useRef<Reaptcha>(null);
 
   const getVoucherMint = async (x, y) => {
-    const n_x = twoscomplement_i2u(x);
-    const n_y = twoscomplement_i2u(y);
+    const n_x = signedIntToBytes(x);
+    const n_y = signedIntToBytes(y);
     return (await anchor.web3.PublicKey.findProgramAddress(
       [
         BASE.toBuffer(),
@@ -152,8 +152,8 @@ export const Home = (props: HomeProps) => {
   }
 
   const getVoucherSink = async (x, y) => {
-    const n_x = twoscomplement_i2u(x);
-    const n_y = twoscomplement_i2u(y);
+    const n_x = signedIntToBytes(x);
+    const n_y = signedIntToBytes(y);
     return (await anchor.web3.PublicKey.findProgramAddress(
       [
         BASE.toBuffer(),
@@ -166,8 +166,8 @@ export const Home = (props: HomeProps) => {
   }
 
   const getNeighborhoodMetadata = async (x, y) => {
-    const n_x = twoscomplement_i2u(x);
-    const n_y = twoscomplement_i2u(y);
+    const n_x = signedIntToBytes(x);
+    const n_y = signedIntToBytes(y);
     return (await anchor.web3.PublicKey.findProgramAddress(
       [
         BASE.toBuffer(),
@@ -536,8 +536,8 @@ export const Home = (props: HomeProps) => {
 
     for (const p of ownedSpacesArray) {
       const pos = JSON.parse(p);
-      const space_x = twoscomplement_i2u(pos.x);
-      const space_y = twoscomplement_i2u(pos.y);
+      const space_x = signedIntToBytes(pos.x);
+      const space_y = signedIntToBytes(pos.y);
       const spaceAcc = (await PublicKey.findProgramAddress(
         [
           BASE.toBuffer(),
@@ -706,8 +706,8 @@ export const Home = (props: HomeProps) => {
       for (let i = 0; i < len; i++) {
         let x, y;
         try {
-          x = twoscomplement_u2i(activeNeighborhoods.slice(i * 8 + preBuffer, (i + 1) * 8 + preBuffer));
-          y = twoscomplement_u2i(activeNeighborhoods.slice((len + i) * 8 + preBuffer + 4, (len + i + 1) * 8 + preBuffer + 4));
+          x = bytesToSignedInt(activeNeighborhoods.slice(i * 8 + preBuffer, (i + 1) * 8 + preBuffer));
+          y = bytesToSignedInt(activeNeighborhoods.slice((len + i) * 8 + preBuffer + 4, (len + i + 1) * 8 + preBuffer + 4));
         } catch (e) {
           // console.log(e)
           return;

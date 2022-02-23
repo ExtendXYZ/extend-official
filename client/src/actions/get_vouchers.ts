@@ -2,7 +2,7 @@ import {PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction,} f
 import {Schema, serialize} from "borsh";
 import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID,} from "@solana/spl-token";
 import {SPACE_PROGRAM_ID, NEIGHBORHOOD_METADATA_SEED, VOUCHER_MINT_SEED, VOUCHER_SINK_SEED, VOUCHER_MINT_AUTH} from "../constants";
-import {correct_negative_serialization, twoscomplement_i2u} from "../utils/borsh";
+import {correct_negative_serialization, signedIntToBytes} from "../utils/borsh";
 
 export class GetVouchersInstructionData {
   instruction: number = 9;
@@ -50,8 +50,8 @@ export const getVouchersInstruction = async (
   count,
   fee,
 ) => {
-  const n_x_bytes = twoscomplement_i2u(n_x); 
-  const n_y_bytes = twoscomplement_i2u(n_y);
+  const n_x_bytes = signedIntToBytes(n_x); 
+  const n_y_bytes = signedIntToBytes(n_y);
 
   const [nhoodAcc,] = await PublicKey.findProgramAddress(
     [

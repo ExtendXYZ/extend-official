@@ -47,7 +47,7 @@ import {
 import {Server} from "./server.js";
 import {Database} from "./database.js";
 import {notify, loading, rgbToHex} from "../../utils";
-import {twoscomplement_i2u} from "../../utils/borsh"
+import {signedIntToBytes} from "../../utils/borsh"
 import * as anchor from "@project-serum/anchor";
 import {sleep} from "../../utils";
 
@@ -196,8 +196,8 @@ export function Screen(props) {
                     
                     for (const p of ownedSpacesArray) {
                         const pos = JSON.parse(p);
-                        const space_x = twoscomplement_i2u(pos.x);
-                        const space_y = twoscomplement_i2u(pos.y);
+                        const space_x = signedIntToBytes(pos.x);
+                        const space_y = signedIntToBytes(pos.y);
                         const spaceAcc = (await PublicKey.findProgramAddress(
                             [
                                 BASE.toBuffer(),
@@ -957,6 +957,7 @@ export function Screen(props) {
                         candyMachineConfig,
                         candyMachineAddress,
                         newNeighborhoodTrigger["name"],
+                        newNeighborhoodTrigger["voucherLiveDate"],
                     ))[0];
 
                     const initVoucherSystemIx = (await initVoucherSystemInstruction(
@@ -971,8 +972,8 @@ export function Screen(props) {
                         [
                         BASE.toBuffer(),
                         Buffer.from(VOUCHER_MINT_SEED),
-                        Buffer.from(twoscomplement_i2u(n_x)),
-                        Buffer.from(twoscomplement_i2u(n_y))
+                        Buffer.from(signedIntToBytes(n_x)),
+                        Buffer.from(signedIntToBytes(n_y))
                         ],
                         SPACE_PROGRAM_ID
                     ))[0];
@@ -980,8 +981,8 @@ export function Screen(props) {
                         [
                             BASE.toBuffer(),
                             Buffer.from(VOUCHER_SINK_SEED),
-                            Buffer.from(twoscomplement_i2u(n_x)),
-                            Buffer.from(twoscomplement_i2u(n_y))
+                            Buffer.from(signedIntToBytes(n_x)),
+                            Buffer.from(signedIntToBytes(n_y))
                         ],
                         SPACE_PROGRAM_ID
                     ))[0];

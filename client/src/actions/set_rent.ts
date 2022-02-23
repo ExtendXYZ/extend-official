@@ -3,7 +3,7 @@ import BN from "bn.js";
 import {Schema, serialize} from "borsh";
 import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID} from "@solana/spl-token";
 import {SPACE_METADATA_SEED, RENT_ACCOUNT_SEED, SPACE_PROGRAM_ID, RENT_PROGRAM_ID} from "../constants";
-import {correct_negative_serialization, twoscomplement_i2u} from "../utils/borsh";
+import {correct_negative_serialization, signedIntToBytes} from "../utils/borsh";
 
 export class SetRentInstructionData {
   instruction: number = 0;
@@ -90,8 +90,8 @@ export const setRentInstruction = async (
 ) => {
   const {x, y, mint, price, min_duration, max_duration, max_timestamp, create} = change;
 
-  const space_x = twoscomplement_i2u(x);
-  const space_y = twoscomplement_i2u(y);
+  const space_x = signedIntToBytes(x);
+  const space_y = signedIntToBytes(y);
   const [space_metadata_account,] =
     await PublicKey.findProgramAddress(
       [

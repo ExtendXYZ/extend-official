@@ -28,7 +28,7 @@ import {
   PublicKey,
 } from "@solana/web3.js";
 import Moment from "react-moment";
-import { chunks, rgbToHex, twoscomplement_u2i } from "../utils";
+import { chunks, rgbToHex, bytesToSignedInt } from "../utils";
 import base58 from "bs58";
 import {
   CHANGE_COLOR_INSTRUCTION_ID,
@@ -68,8 +68,8 @@ function parseInstruction(
 
         return {
           res,
-          x: twoscomplement_u2i(new BN(res["x"]).toArray('le', 8)),
-          y: twoscomplement_u2i(new BN(res["y"]).toArray('le', 8)),
+          x: bytesToSignedInt(new BN(res["x"]).toArray('le', 8)),
+          y: bytesToSignedInt(new BN(res["y"]).toArray('le', 8)),
           type: res.price ? "Space list" : "Space delist",
           seller: instruction.accounts[2].toBase58(),
         };
@@ -83,8 +83,8 @@ function parseInstruction(
         return {
           res,
           type: "Space buy",
-          x: twoscomplement_u2i(new BN(res["x"]).toArray('le', 8)),
-          y: twoscomplement_u2i(new BN(res["y"]).toArray('le', 8)),
+          x: bytesToSignedInt(new BN(res["x"]).toArray('le', 8)),
+          y: bytesToSignedInt(new BN(res["y"]).toArray('le', 8)),
           buyer: instruction.accounts[5].toBase58(),
           seller: instruction.accounts[7].toBase58(),
         };

@@ -8,7 +8,7 @@ import {
     NEIGHBORHOOD_FRAME_BASE_SEED,
     NEIGHBORHOOD_SIZE,
 } from "../constants";
-import {correct_negative_serialization, twoscomplement_i2u} from "../utils/borsh";
+import {correct_negative_serialization, signedIntToBytes} from "../utils/borsh";
 import BN from 'bn.js';
 
 export const MAKE_EDITABLE_INSTRUCTION_ID = 4;
@@ -66,8 +66,8 @@ export const makeEditableInstruction = async (
 
   const {x, y, mint} = change;
 
-  const space_x_bytes = twoscomplement_i2u(x);
-  const space_y_bytes = twoscomplement_i2u(y);
+  const space_x_bytes = signedIntToBytes(x);
+  const space_y_bytes = signedIntToBytes(y);
   const [spaceAcc,] = await PublicKey.findProgramAddress(
     [
       base.toBuffer(),
@@ -86,8 +86,8 @@ export const makeEditableInstruction = async (
       ],
       ASSOCIATED_TOKEN_PROGRAM_ID
     );
-  const n_x_bytes = twoscomplement_i2u(Math.floor(x / NEIGHBORHOOD_SIZE));
-  const n_y_bytes = twoscomplement_i2u(Math.floor(y / NEIGHBORHOOD_SIZE));
+  const n_x_bytes = signedIntToBytes(Math.floor(x / NEIGHBORHOOD_SIZE));
+  const n_y_bytes = signedIntToBytes(Math.floor(y / NEIGHBORHOOD_SIZE));
   const [neighborhoodFrameBase,] =
     await PublicKey.findProgramAddress(
         [

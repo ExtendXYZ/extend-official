@@ -10,7 +10,7 @@ import {
     NEIGHBORHOOD_METADATA_SEED,
     NEIGHBORHOOD_SIZE,
 } from "../constants";
-import {correct_negative_serialization, twoscomplement_i2u} from "../utils/borsh";
+import {correct_negative_serialization, signedIntToBytes} from "../utils/borsh";
 import BN from 'bn.js';
 
 export const CHANGE_COLOR_INSTRUCTION_ID = 2;
@@ -101,8 +101,8 @@ export const changeColorInstruction = async (
 
   const {x, y, frame, r, g, b, mint, owner} = change;
 
-  const space_x_bytes = twoscomplement_i2u(x);
-  const space_y_bytes = twoscomplement_i2u(y);
+  const space_x_bytes = signedIntToBytes(x);
+  const space_y_bytes = signedIntToBytes(y);
   const [spaceAcc,] = await PublicKey.findProgramAddress(
     [
       base.toBuffer(),
@@ -123,8 +123,8 @@ export const changeColorInstruction = async (
     );
   const n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
   const n_y = Math.floor(y / NEIGHBORHOOD_SIZE)
-  const n_x_bytes = twoscomplement_i2u(n_x);
-  const n_y_bytes = twoscomplement_i2u(n_y);
+  const n_x_bytes = signedIntToBytes(n_x);
+  const n_y_bytes = signedIntToBytes(n_y);
   
   const [neighborhoodFrameBase,] =
     await PublicKey.findProgramAddress(

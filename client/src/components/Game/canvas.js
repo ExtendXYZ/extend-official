@@ -1022,6 +1022,14 @@ export class Board extends React.Component {
                             fullWidth
                             variant="standard"
                         />
+                        <TextField
+                            autoFocus
+                            id="voucherLiveDate"
+                            margin="dense"
+                            label="Go Live Date (unix timestamp)"
+                            fullWidth
+                            variant="standard"
+                        />
                         <Captcha
                             onVerify={(response) => {
                                 this.captchaResponse = response;
@@ -1039,6 +1047,7 @@ export class Board extends React.Component {
                                     n_y: Math.floor(this.focus.y / NEIGHBORHOOD_SIZE),
                                     address: new PublicKey(document.getElementById("candyMachineAddress").value),
                                     name: document.getElementById("neighborhoodName").value,
+                                    voucherLiveDate: document.getElementById("voucherLiveDate").value,
                                     captcha: this.captchaResponse,
                                 });
                                 this.setState({ inputConfig: false });

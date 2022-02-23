@@ -19,7 +19,7 @@ import { CopyOutlined } from "@ant-design/icons";
 import CancelIcon from "@mui/icons-material/Cancel";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import VisibilityIcon from "@mui/icons-material/Visibility"
-import { twoscomplement_i2u } from "../../utils/borsh";
+import { signedIntToBytes } from "../../utils/borsh";
 
 import { LoadingScreen } from './loading_screen.js';
 import { Board } from './canvas.js';
@@ -282,8 +282,8 @@ export class Game extends React.Component {
                 const n_meta = await PublicKey.findProgramAddress([
                     BASE.toBuffer(),
                     Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-                    Buffer.from(twoscomplement_i2u(n_x)),
-                    Buffer.from(twoscomplement_i2u(n_y)),
+                    Buffer.from(signedIntToBytes(n_x)),
+                    Buffer.from(signedIntToBytes(n_y)),
                 ], SPACE_PROGRAM_ID
                 );
                 return n_meta[0];
@@ -1382,8 +1382,8 @@ export class Game extends React.Component {
         });
     }
 
-    expand = (neighborhood) => {
-        this.props.setNewNeighborhoodTrigger(neighborhood);
+    expand = (trigger) => {
+        this.props.setNewNeighborhoodTrigger(trigger);
         notify({
             message: "Initializing new Neighborhood...",
         });
