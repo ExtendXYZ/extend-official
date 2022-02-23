@@ -9,3 +9,4 @@ export * from "./accept_offer";
 export * from "./make_editable";
 export * from "./set_rent";
 export * from "./accept_rent";
+export * from "./get_vouchers";

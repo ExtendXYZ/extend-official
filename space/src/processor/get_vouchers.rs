@@ -8,7 +8,7 @@ use solana_program::{
     msg,
     program::{invoke, invoke_signed},
     system_instruction, system_program,
-    sysvar::{rent},
+    sysvar::{rent, Sysvar},
 };
 use spl_associated_token_account;
 use spl_token;
@@ -20,9 +20,11 @@ use crate::{
         VOUCHER_RECEIVE_LIMIT,
         NEIGHBORHOOD_METADATA_SEED,
         VOUCHER_MINT_SEED,
+        VOUCHER_PRICE_TOLERANCE,
         NeighborhoodMetadata,
     },
     validation_utils::{assert_keys_equal, assert_is_ata},
+    error::CustomError
 };
 
 pub fn process(
@@ -113,19 +115,23 @@ pub fn process(
         msg!("Error: too many vouchers requested");
         return Err(ProgramError::InvalidInstructionData);
     }
-    if args.fee != get_voucher_price(args.count){
+    let fee = get_voucher_price(args.count);
+    if (args.fee as i64 - fee as i64).abs() as u64 > VOUCHER_PRICE_TOLERANCE{
         msg!("Error: invalid voucher price");
         return Err(ProgramError::InvalidInstructionData);
     }
-    const now_ts = Clock::get().unwrap().unix_timestamp as u64;
-
+    let now_ts = Clock::get().unwrap().unix_timestamp as u64;
+    if now_ts < neighborhood_metadata_data.voucher_live_date{
+        msg!("Error: mint is not open");
+        return Err(CustomError::NotOpenYet.into());
+    }
 
     // transfer sol
     invoke(
         &system_instruction::transfer(
             user.key,
             neighborhood_creator.key,
-            args.fee,
+            fee,
         ),
         &[
             user.clone(),

@@ -85,7 +85,7 @@ impl Processor {
             }
             SpaceInstruction::GetVouchers => {
                 let args = GetVouchersArgs::try_from_slice(rest)?;
-                msg!("Instruction: change neighborhood name");
+                msg!("Instruction: change get vouchers");
                 get_vouchers::process(program_id, accounts, &args)
             }
             // SpaceInstruction::TempAddxy => { // elim

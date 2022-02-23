@@ -29,10 +29,10 @@ pub enum CustomError {
     IncorrectOwner,
     #[error("MintMismatch")]
     MintMismatch,
-    #[error("NotSwappable")]
-    NotSwappable,
     #[error("InvalidListing")]
     InvalidListing,
+    #[error("NotOpenYet")]
+    NotOpenYet,
 }
 
 impl From<CustomError> for ProgramError {

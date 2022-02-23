@@ -16,13 +16,14 @@ import { Tooltip } from "antd";
 
 import { sendInstructionsGreedyBatchMint, sendSignedTransaction } from "../../helpersMint/transactions";
 
+import {getVouchersInstruction} from "../../actions";
+
 import {
   awaitTransactionSignatureConfirmation,
   CandyMachine,
   getCandyMachineState,
   getTokenWallet,
   mintOneTokenInstructions,
-  receiveTokenInstructions,
 } from "./candy-machine";
 
 import Reaptcha from 'reaptcha';
@@ -118,8 +119,8 @@ export const Home = (props: HomeProps) => {
   const [clicked, setClicked] = useState(false); // if getTokens button is clicked
   const [verified, setVerified] = useState(false);
 
-  const [neighborhoodX, setNeighborhoodX] = useState<Number>(0); // for switching neighborhoods
-  const [neighborhoodY, setNeighborhoodY] = useState<Number>(0);
+  const [neighborhoodX, setNeighborhoodX] = useState<number>(0); // for switching neighborhoods
+  const [neighborhoodY, setNeighborhoodY] = useState<number>(0);
   const [currNeighborhood, setCurrNeighborhood] = useState<string>("0,0");
   const [neighborhoods, setNeighborhoods] = useState<string[]>();
   const [neighborhoodsToColor, setNeighborhoodsToColor] = useState({});
@@ -364,6 +365,7 @@ export const Home = (props: HomeProps) => {
     if (!wallet || !tokenTransaction) {
       return;
     }
+    loading(null, "sending transaction", null);
     try {
       setIsReceivingToken(true);
       setClicked(false);
@@ -375,7 +377,6 @@ export const Home = (props: HomeProps) => {
         return false;
       }
 
-      loading(null, "sending transaction", null);
       try {
         var { txid } = await sendSignedTransaction({
           connection,
@@ -432,6 +433,7 @@ export const Home = (props: HomeProps) => {
       await sleep(2000);
       refreshVoucherSystemState();
     }
+    //TODO: fix issue where loading doesn't go away when transaction fails
     loading(null, "sending transaction", "success");
   };
 
@@ -452,21 +454,22 @@ export const Home = (props: HomeProps) => {
 
       const price = getPrice(numTokens) * Math.pow(10, 9);
 
-      let nbd = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
-      let account = await props.connection.getAccountInfo(nbd);
-      if (!account) {
-        return;
-      }
-      let creator = new PublicKey(account.data.slice(1, 33));
+      // let nbd = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
+      // let account = await props.connection.getAccountInfo(nbd);
+      // if (!account) {
+      //   return;
+      // }
+      // let creator = new PublicKey(account.data.slice(1, 33));
 
-      const tokenInstructions = await receiveTokenInstructions(
+      const tokenInstructions = await getVouchersInstruction(
         connection,
-        wallet as anchor.Wallet,
-        creator,
-        VOUCHER_MINT_AUTH,
-        voucherMint,
-        price,
+        new Server(),
+        wallet,
+        BASE,
+        neighborhoodX,
+        neighborhoodY,
         numTokens,
+        price,
       );
 
       let tokenTransaction = new Transaction();

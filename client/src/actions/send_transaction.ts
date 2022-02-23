@@ -1,4 +1,4 @@
-import { Keypair, TransactionInstruction, } from "@solana/web3.js";
+import { Keypair, TransactionInstruction, Transaction, Commitment} from "@solana/web3.js";
 import { Connection as Conn } from "../contexts";
 import { notify, compact_u16_len } from "../utils";
 import { MAX_TRANSACTION_SIZE, BASE_TRANSACTION_SIZE } from "../constants";
@@ -48,10 +48,10 @@ export const sendInstructionsGreedyBatch = async (
     let ixPerTx: number[] = [];
 
     //code to allow us to check correctness
-    // let tx = new Transaction();
-    // let commitment: Commitment = "singleGossip";
-    // tx.recentBlockhash = (await connection.getRecentBlockhash(commitment)).blockhash;
-    // tx.feePayer = wallet.publicKey;
+    let tx = new Transaction();
+    let commitment: Commitment = "singleGossip";
+    tx.recentBlockhash = (await connection.getRecentBlockhash(commitment)).blockhash;
+    tx.feePayer = wallet.publicKey;
 
     for (let i = 0; i < instructions.length; i++) {
         let instruction = instructions[i];
@@ -77,8 +77,8 @@ export const sendInstructionsGreedyBatch = async (
             transaction.push(instruction);
             numInstructions = numInstructions + 1;
             //code to allow us to check correctness
-            // tx.add(instruction);
-            // // console.log(tx.serialize({requireAllSignatures: false}).length, newTransactionSize);
+            tx.add(instruction);
+            // console.log(tx.serialize({requireAllSignatures: false}).length, newTransactionSize);
         }
         else {
             // register batched ransaction
@@ -89,13 +89,14 @@ export const sendInstructionsGreedyBatch = async (
             transactionSize = BASE_TRANSACTION_SIZE;
             transactionAccounts = new Set();
             i = i - 1;
+            console.log(numInstructions);
             numInstructions = 0;
 
             //code to allow us to check correctness
-            // tx = new Transaction();
-            // commitment = "singleGossip";
-            // tx.recentBlockhash = (await connection.getRecentBlockhash(commitment)).blockhash;
-            // tx.feePayer = wallet.publicKey;  
+            tx = new Transaction();
+            commitment = "singleGossip";
+            tx.recentBlockhash = (await connection.getRecentBlockhash(commitment)).blockhash;
+            tx.feePayer = wallet.publicKey;  
         }
     }
 

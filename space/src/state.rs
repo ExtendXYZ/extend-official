@@ -7,6 +7,7 @@ pub const MARKETPLACE_FEE: f64 = 0.01;
 pub const VOUCHER_RECEIVE_LIMIT: u64 = 100;
 pub const VOUCHER_PRICE_CONSTANT: f64 = 0.01059;
 pub const VOUCHER_MAX_PRICE: f64 = 1000000.0;
+pub const VOUCHER_PRICE_TOLERANCE: u64 = 100;
 
 pub const EXTEND_TOKEN_MINT: &str = "PLACEHOLDER";
 pub const NEIGHBORHOOD_METADATA_SEED: &[u8] = b"neighborhood_metadata";
