@@ -61,6 +61,12 @@ export const RENT_PROGRAM_ID = new PublicKey(
 export const METADATA_PROGRAM_ID = new PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 );
+export const MESSAGE_PROGRAM_ID = new PublicKey(
+  "DeEEBMXQHwVswPkVQcxngQtm66nqT3ch4287Gn5VuKbk"
+);
+export const GlOBAL_CHANNEL = new PublicKey(
+  "gbBGoujYwo5phcb25sjsBr4fcWViATL8NPfphL62c7q"
+);
 export const CANDY_MACHINE_PROGRAM_ID = new PublicKey(
   "XCNDrq9XYHPWi6BBWJg8huhtf6ZciNAQunkrtQgFHEz"
 );

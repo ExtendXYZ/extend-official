@@ -13,6 +13,15 @@ import {
     Switch,
     Select,
     Menu,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    TextField,
+    List,
+    ListItem,
+    ListItemText,
 } from "@mui/material";
 import { Tooltip } from 'antd';
 import { CopyOutlined } from "@ant-design/icons";
@@ -139,6 +148,10 @@ export class Game extends React.Component {
             shareMenuAnchorEl: null,
             mySpacesMenuOpen: false,
             mySpacesMenuAnchorEl: null,
+            messageMenuOpen: false,
+            messageMenuAnchorEl: null,
+            inputMessage: false,
+            outputMessage: false,
         };
 
         this.viewport = {
@@ -2097,10 +2110,25 @@ export class Game extends React.Component {
         });
     }
 
+    handleMessageMenuOpen = (e) => {
+        this.props.setMessageOpenTrigger({});
+        this.setState({
+            messageMenuOpen: true,
+            messageMenuAnchorEl: e.currentTarget,
+        });
+    }
+
     handleMySpacesMenuClose = () => {
         this.setState({
             mySpacesMenuOpen: false,
             mySpacesMenuAnchorEl: null,
+        });
+    }
+
+    handleMessageMenuClose = (e) => {
+        this.setState({
+            messageMenuOpen: false,
+            messageMenuAnchorEl: null,
         });
     }
 
@@ -2391,6 +2419,139 @@ export class Game extends React.Component {
                             />
                         </Tooltip>
 
+                        <Tooltip title="Click for your inbox, create one if not exist">
+                            <Button
+                                variant="contained"
+                                disabled={!this.props.user}
+                                className={"defaultButton"}
+                                id="message-button"
+                                aria-controls={this.state.messageMenuOpen ? 'message-menu' : undefined}
+                                aria-haspopup="true"
+                                aria-expanded={this.state.messageMenuOpen ? 'true' : undefined}
+                                onClick={(e) => this.handleMessageMenuOpen(e)}
+                                endIcon={<KeyboardArrowDownIcon />}
+                            >
+                                Message
+                            </Button>
+                        </Tooltip>
+                        <Menu
+                                id="message-menu"
+                                aria-labelledby="message-button"
+                                anchorEl={this.state.messageMenuAnchorEl}
+                                open={this.state.messageMenuOpen}
+                                onClose={() => this.handleMessageMenuClose()}
+                            >
+                            <Tooltip title="Click to send message" placement="right">
+                                <MenuItem onClick={() => this.setState({inputMessage: true})}>Send message</MenuItem>
+                            </Tooltip>
+                            <Tooltip title="Click to see your inbox" placement="right">
+                                <MenuItem onClick={() => {
+                                    this.props.setCheckInboxTrigger({});
+                                    this.setState({outputMessage: true});
+                                    }}>My inbox</MenuItem>
+                            </Tooltip>
+                            <Tooltip title="Click to see global message" placement="right">
+                                <MenuItem onClick={() => {
+                                    this.props.setCheckGlobalTrigger({});
+                                    this.setState({globalMessage: true});
+                                    }}>Broadcast</MenuItem>
+                            </Tooltip>
+                        </Menu>
+
+                        <Dialog
+                                open={this.state.inputMessage}
+                                onClose={() => this.setState({ inputMessage: false })}
+                            >
+                                <DialogTitle>
+                                    Send Message
+                                </DialogTitle>
+                                <DialogContent>
+                                    <TextField
+                                        autoFocus
+                                        id="toAddress"
+                                        margin="dense"
+                                        label="To"
+                                        fullWidth
+                                        variant="standard"
+                                        helperText='Public Key or "Global"'
+                                    />
+                                    <TextField
+                                        id="messageContent"
+                                        margin="dense"
+                                        label="Message"
+                                        fullWidth
+                                        variant="standard"
+                                        multiline
+                                    />
+                                </DialogContent>
+                                <DialogActions>
+                                    <Button onClick={() => this.setState({ inputMessage: false })}>
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        onClick={() => {this.props.setSendMessageTrigger({
+                                            to: document.getElementById("toAddress").value,
+                                            message: document.getElementById("messageContent").value});
+                                            this.setState({ inputMessage: false });
+                                        }}
+                                    >
+                                        Send
+                                    </Button>
+                                </DialogActions>
+                            </Dialog>
+
+                            <Dialog 
+                                maxWidth="md"
+                                fullWidth={true}
+                                open={this.state.outputMessage}
+                                onClose={() => this.setState({ outputMessage: false })}
+                            >
+                                <DialogTitle>
+                                    My Inbox
+                                </DialogTitle>
+                                <DialogContent>
+                                    <List sx={{width: "100%"}}>
+                                        {this.props.inboxMessage.map(v => 
+                                            <ListItem alignItems="flex-start">
+                                                <ListItemText primary={v.message} secondary={v.from + " - " + v.at.toString()}/>
+                                            </ListItem>
+                                        )}
+                                    </List>
+                                </DialogContent>
+                                <DialogActions>
+                                    <Button onClick={() => 
+                                        this.setState({ outputMessage: false })}>
+                                        Ok
+                                    </Button>
+                                </DialogActions>
+                            </Dialog>
+
+                            <Dialog 
+                                maxWidth="md"
+                                fullWidth={true}
+                                open={this.state.globalMessage}
+                                onClose={() => this.setState({ globalMessage: false })}
+                            >
+                                <DialogTitle>
+                                    Broadcast
+                                </DialogTitle>
+                                <DialogContent>
+                                    <List sx={{width: "100%"}}>
+                                        {this.props.globalMessage.map(v => {
+                                            return <ListItem alignItems="flex-start">
+                                                <ListItemText primary={v.message} secondary={v.from + " - " + v.at.toString()}/>
+                                            </ListItem>
+                                        })}
+                                    </List>
+                                </DialogContent>
+                                <DialogActions>
+                                    <Button onClick={() =>
+                                        this.setState({ globalMessage: false })}>
+                                        Ok
+                                    </Button>
+                                </DialogActions>
+                            </Dialog>
+
                         <Tooltip title="Click for your Spaces">
                             <Button
                                 variant="contained"
@@ -2426,6 +2587,7 @@ export class Game extends React.Component {
                                 <MenuItem onClick={() => this.register()}>Register Spaces</MenuItem>
                             </Tooltip>
                         </Menu>
+                        
                     </Box>}
                 </Box>
                 <div className="botnav" id="botnav"></div>

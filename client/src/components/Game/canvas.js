@@ -1034,7 +1034,6 @@ export class Board extends React.Component {
                             variant="standard"
                         />
                         <TextField
-                            autoFocus
                             id="neighborhoodName"
                             margin="dense"
                             label="Neighborhood Name"
