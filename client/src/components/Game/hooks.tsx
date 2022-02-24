@@ -21,6 +21,9 @@ import {
     createTimeClusterInstruction,
     initFrameInstruction,
     initVoucherSystemInstruction,
+    MakeEditableArgs,
+    makeEditableInstruction,
+    makeEditableInstructions,
     SetRentArgs,
     setRentInstruction,
     setRentInstructions,
@@ -42,11 +45,12 @@ import {
     VOUCHER_MINT_AUTH,
     MESSAGE_PROGRAM_ID,
     GlOBAL_CHANNEL,
+    DEFAULT_MINT,
 } from "../../constants";
 import {Server} from "./server.js";
 import {Database} from "./database.js";
-import {notify, loading} from "../../utils";
-import {twoscomplement_i2u} from "../../utils/borsh"
+import {notify, loading, rgbToHex} from "../../utils";
+import {signedIntToBytes} from "../../utils/borsh"
 import * as anchor from "@project-serum/anchor";
 import {sleep} from "../../utils";
 
@@ -67,6 +71,8 @@ export function Screen(props) {
     const [loadedOwned, setLoadedOwned] = useState(false);
     const [changeColorTrigger, setChangeColorTrigger] = useState({});
     const [changeColorsTrigger, setChangeColorsTrigger] = useState({});
+    const [makeEditableColorTrigger, setMakeEditableColorTrigger] = useState({});
+    const [makeEditableColorsTrigger, setMakeEditableColorsTrigger] = useState({});
     const [changePriceTrigger, setChangePriceTrigger] = useState({});
     const [changePricesTrigger, setChangePricesTrigger] = useState({});
     const [purchaseSpaceTrigger, setPurchaseSpaceTrigger] = useState({});
@@ -426,8 +432,8 @@ export function Screen(props) {
                     
                     for (const p of ownedSpacesArray) {
                         const pos = JSON.parse(p);
-                        const space_x = twoscomplement_i2u(pos.x);
-                        const space_y = twoscomplement_i2u(pos.y);
+                        const space_x = signedIntToBytes(pos.x);
+                        const space_y = signedIntToBytes(pos.y);
                         const spaceAcc = (await PublicKey.findProgramAddress(
                             [
                                 BASE.toBuffer(),
@@ -509,7 +515,7 @@ export function Screen(props) {
                         }
                     }
                     catch (e) {
-                        // console.log(e);
+                        console.error(e);
                     }
                 }
                 loading(null, 'Registering', 'success'); // TODO use correct status
@@ -533,8 +539,25 @@ export function Screen(props) {
                 const frame = changeColorTrigger["frame"];
                 const position = JSON.stringify({x, y});
 
-                const mint = changeColorTrigger["mint"];
-                const owner = changeColorTrigger["owner"];
+                const n_x = Math.floor(x / NEIGHBORHOOD_SIZE); // filter out same color
+                const n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
+                const p_y = ((y % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                const p_x = ((x % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                const nhood = JSON.stringify({n_x, n_y});
+                if (frame !== -1 && game.current?.viewport.neighborhoodColors[nhood][p_y][p_x] === color) {
+                    notify({
+                        message: "Already the selected color, try changing to a different color",
+                    });
+                    return;
+                }
+
+                let mint = changeColorTrigger["mint"];
+                let owner = changeColorTrigger["owner"];
+                if (!owner) { // if there is no owner
+                    owner = user;
+                    mint = DEFAULT_MINT;
+                }
+
                 let changes: ChangeColorArgs[] = [];
 
                 let numFramesMap = {};
@@ -544,8 +567,6 @@ export function Screen(props) {
                 const timeClusterMap = await server.getEditableTimeClusterKeys(connection, neighborhoods);
                 if (frame === -1){
                     ({numFramesMap, frameKeysMap} = await server.getAllFrameKeys(connection, neighborhoods));
-                    let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
-                    let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
 
                     n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
                     for (let frame_i = 0; frame_i < n_frames; frame_i++){
@@ -557,11 +578,14 @@ export function Screen(props) {
                     changes.push(change);
                 }
                 try {
-                    let ixs = await changeColorInstructions(connection, wallet, BASE, changes, frameKeysMap, timeClusterMap);
+                    notify({
+                        message: "Changing color...",
+                    });
+                    let ixs = await changeColorInstructions(connection, server, wallet, BASE, changes, frameKeysMap, timeClusterMap);
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change color", true, n_frames);
                 }
                 catch (e) {
-                    // console.log(e)
+                    console.error(e);
                     return;
                 }
             }
@@ -571,6 +595,75 @@ export function Screen(props) {
         [changeColorTrigger]
     );
 
+    // useEffect(() => {
+    //     const asyncChangeColors = async () => {
+    //         let changes: ChangeColorArgs[] = [];
+    //         const color = changeColorsTrigger["color"];
+    //         const spaces = changeColorsTrigger["spaces"];
+    //         const frame = changeColorsTrigger["frame"];
+    //         const owners = changeColorsTrigger["owners"];
+    //         const mints = changeColorsTrigger["mints"];
+    //         const editable = changeColorsTrigger["editable"];
+
+    //         if (color != null && wallet.publicKey) {
+    //             const r = parseInt(color.slice(1, 3), 16);
+    //             const g = parseInt(color.slice(3, 5), 16);
+    //             const b = parseInt(color.slice(5, 7), 16);
+                
+    //             const spaceGrid = ownedSpaces;
+    //             let n_x;
+    //             let n_y;
+
+    //             let neighborhoods = server.getNeighborhoods(spaces);
+    //             let numFramesMap = {};
+    //             let frameKeysMap = {};
+    //             let n_frames = -1;
+    //             if (frame == -1){
+    //                 ({numFramesMap, frameKeysMap} = await server.getAllFrameKeys(connection, neighborhoods));
+    //             }
+    //             else{
+    //                 frameKeysMap = await server.getFrameKeys(connection, neighborhoods, frame);
+    //             }
+    //             const timeClusterMap = await server.getEditableTimeClusterKeys(connection, neighborhoods);
+
+    //             for (const s of spaces) {
+    //                 if (spaceGrid.has(s)) {
+    //                     let p = JSON.parse(s);
+    //                     const x = p.x;
+    //                     const y = p.y;
+    //                     const mint = ownedMints[s];
+    //                     const owner = owners[s];
+
+    //                     if (frame == -1){
+    //                         let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
+    //                         let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
+                            
+    //                         n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
+    //                         for (let frame_i = 0; frame_i < n_frames; frame_i++){
+    //                             changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, mint, owner}));
+    //                         }
+    //                     }
+    //                     else{
+    //                         let change = new ChangeColorArgs({x, y, frame, r, g, b, mint, owner});
+    //                         changes.push(change);
+    //                     }
+    //                 }
+    //             }
+    //             try {
+    //                 let ixs = await changeColorInstructions(connection, wallet, BASE, changes, frameKeysMap, timeClusterMap);
+    //                 sendInstructionsGreedyBatch(connection, wallet, ixs, "change colors", true, n_frames);
+    //             }
+    //             catch (e) {
+    //                 console.log(e)
+    //                 return;
+    //             }
+    //         }
+    //     }
+    //     asyncChangeColors();
+    // },
+    //     [changeColorsTrigger]
+    // );
+
     useEffect(() => {
         const asyncChangeColors = async () => {
             let changes: ChangeColorArgs[] = [];
@@ -578,6 +671,8 @@ export function Screen(props) {
             const spaces = changeColorsTrigger["spaces"];
             const frame = changeColorsTrigger["frame"];
             const owners = changeColorsTrigger["owners"];
+            const mints = changeColorsTrigger["mints"];
+            const editable = changeColorsTrigger["editable"];
 
             if (color && wallet.publicKey) {
                 const r = parseInt(color.slice(1, 3), 16);
@@ -599,22 +694,28 @@ export function Screen(props) {
                 const timeClusterMap = await server.getEditableTimeClusterKeys(connection, neighborhoods);
 
                 for (const s of spaces) {
-                    if (spaceGrid.has(s)) {
+                    if ((frame !== -1 && editable.has(s)) || (frame === -1 && spaceGrid.has(s))) {
                         let p = JSON.parse(s);
                         const x = p.x;
                         const y = p.y;
-                        const mint = ownedMints[s];
-                        let owner;
-                        if (Object.keys(owners).length > 0) {
+                        const n_x = Math.floor(x / NEIGHBORHOOD_SIZE); // filter out same color
+                        const n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
+                        const p_y = ((y % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                        const p_x = ((x % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                        const nhood = JSON.stringify({n_x, n_y});
+                        if (frame !== -1 && game.current?.viewport.neighborhoodColors[nhood][p_y][p_x] === color) { // same color
+                            continue;
+                        }
+                        let owner, mint;
+                        if (Object.keys(owners).length > 0 && owners[s] && mints[s]) {
                             owner = owners[s];
+                            mint = mints[s];
                         } else { // if owners is null, db is down
                             owner = user;
+                            mint = DEFAULT_MINT;
                         }
 
                         if (frame === -1){
-                            let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
-                            let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
-                            
                             n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
                             for (let frame_i = 0; frame_i < n_frames; frame_i++){
                                 changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, mint, owner}));
@@ -626,12 +727,24 @@ export function Screen(props) {
                         }
                     }
                 }
+
+                if (changes.length === 0) { // if empty
+                    notify({
+                        message: "All spaces already have the selected color",
+                    });
+                    return;
+                }
+
                 try {
-                    let ixs = await changeColorInstructions(connection, wallet, BASE, changes, frameKeysMap, timeClusterMap);
+                    notify({
+                        message: "Changing colors...",
+                    });
+                    let ixs = await changeColorInstructions(connection, server, wallet, BASE, changes, frameKeysMap, timeClusterMap);
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change colors", true, n_frames);
                 }
                 catch (e) {
-                    // console.log(e)
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
             }
@@ -639,6 +752,72 @@ export function Screen(props) {
         asyncChangeColors();
     },
         [changeColorsTrigger]
+    );
+
+    useEffect(() => {
+        const asyncMakeEditableColor = async() => {
+            const editable = makeEditableColorTrigger["editable"];
+            if (editable !== null && wallet.publicKey) {
+                const x = makeEditableColorTrigger["x"];
+                const y = makeEditableColorTrigger["y"];
+                const position = JSON.stringify({x, y});
+                const mint = makeEditableColorTrigger["mint"];
+
+                const n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
+                const n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
+                const timeClusterKey = await server.getEditableTimeClusterKey(connection, n_x, n_y);
+                try {
+                    let change = new MakeEditableArgs({x, y, mint});
+                    let ix = await makeEditableInstruction(connection, wallet, BASE, change, timeClusterKey);
+                    sendTransaction(connection, wallet, ix, "Make color editable");
+                }
+                catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
+                    return;
+                }
+            }
+        }
+        asyncMakeEditableColor();
+    },
+        [makeEditableColorTrigger]
+    );
+
+    useEffect(() => {
+        const asyncMakeEditableColors = async() => {
+            const editable = makeEditableColorsTrigger["editable"];
+            const spaces = makeEditableColorsTrigger["spaces"];
+            if (editable !== null && wallet.publicKey && spaces) {
+                const mints = makeEditableColorsTrigger["mints"];
+                let changes: MakeEditableArgs[] = [];
+                const spaceGrid = ownedSpaces;
+                for (let space of spaces) {
+                    if (spaceGrid.has(space)) {
+                        const mint = mints[space];
+                        const p = JSON.parse(space);
+                        const x = p.x;
+                        const y = p.y;
+                        let change = new MakeEditableArgs({x, y, mint});
+                        changes.push(change);
+                    }
+                }
+                let neighborhoods = server.getNeighborhoods(spaces);
+                const timeClusterMap = await server.getEditableTimeClusterKeys(connection, neighborhoods);
+
+                try {
+                    let ixs = await makeEditableInstructions(connection, wallet, BASE, changes, timeClusterMap);
+                    sendInstructionsGreedyBatch(connection, wallet, ixs, "Make colors editable");
+                }
+                catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
+                    return;
+                }
+            }
+        }
+        asyncMakeEditableColors();
+    },
+        [makeEditableColorsTrigger]
     );
 
     useEffect(() => {
@@ -659,6 +838,8 @@ export function Screen(props) {
                     sendTransaction(connection, wallet, ix, name);
                 }
                 catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
             }
@@ -696,6 +877,8 @@ export function Screen(props) {
                     sendInstructionsGreedyBatch(connection, wallet, ixs, name);
                 }
                 catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
             }
@@ -718,7 +901,7 @@ export function Screen(props) {
                     const mint = purchaseSpaceTrigger["mint"];
                     try {
                         let change = new AcceptOfferArgs({x, y, mint: mint, price, seller: bob});
-                        let ix = await acceptOfferInstruction(server, connection, wallet, BASE, change);
+                        let ix = await acceptOfferInstruction(connection, server, wallet, BASE, change);
                         const response = await sendTransaction(connection, wallet, ix, "Buy space");
                         if (response) {
                             let finalOwnedSpaces = new Set(ownedSpaces);
@@ -736,6 +919,8 @@ export function Screen(props) {
                         }
                     }
                     catch (e) {
+                        notify({ message: `Unexpected error, please try again later` });
+                        console.error(e);
                         return;
                     }
                 } else { // user isn't logged in
@@ -756,7 +941,7 @@ export function Screen(props) {
                     let changes = purchaseSpacesTrigger["purchasableInfo"].map(x => new AcceptOfferArgs(x));
 
                     try {
-                        let ixs = await acceptOfferInstructions(server, connection, wallet, BASE, changes);
+                        let ixs = await acceptOfferInstructions(connection, server, wallet, BASE, changes);
                         const inter = await sendInstructionsGreedyBatch(connection, wallet, ixs, "Buy spaces");
                         let responses = inter.responses;
                         let ixPerTx = inter.ixPerTx;
@@ -790,6 +975,8 @@ export function Screen(props) {
                         database.register(wallet.publicKey, newOwnedMints);
                     }
                     catch (e) {
+                        notify({ message: `Unexpected error, please try again later` });
+                        console.error(e);
                         return;
                     }
                 } else { // user isn't logged in
@@ -810,7 +997,10 @@ export function Screen(props) {
             const init_y = imgUploadTrigger["init_y"];
             const frame = imgUploadTrigger["frame"];
             const owners = imgUploadTrigger["owners"];
+            const mints = imgUploadTrigger["mints"];
+            const editable = imgUploadTrigger["editable"];
             if (image && wallet.publicKey) {
+
                 const spaceGrid = ownedSpaces;
 
                 let changes: any[] = [];
@@ -835,23 +1025,31 @@ export function Screen(props) {
                     for (let j = 0; j < image[0].length; ++j){
                         const x = init_x+j;
                         const y = init_y+i;
-                        const position = JSON.stringify({x, y});
-                        if (spaces.has(position) && spaceGrid.has(position)) {
+                        const s = JSON.stringify({x, y});
+                        if ( spaces.has(s) && ((frame !== -1 && editable.has(s)) || (frame === -1 && spaceGrid.has(s))) ) {
                             const r = image[i][j][0];
                             const g = image[i][j][1];
                             const b = image[i][j][2];
-                            const mint = ownedMints[position];
-                            let owner;
-                            if (Object.keys(owners).length > 0) {
-                                owner = owners[position];
-                            } else { // if owners is null, db is down
-                                owner = user;
+                            
+                            const n_x = Math.floor(x / NEIGHBORHOOD_SIZE); // filter out same color
+                            const n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
+                            const p_y = ((y % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                            const p_x = ((x % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                            const nhood = JSON.stringify({n_x, n_y});
+                            if (frame !== -1 && game.current?.viewport.neighborhoodColors[nhood][p_y][p_x] === rgbToHex(r, g, b)) { // same color
+                                continue;
                             }
 
-                            if (frame === -1){
-                                let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
-                                let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
-                                
+                            let owner, mint;
+                            if (Object.keys(owners).length > 0 && owners[s] && mints[s]) {
+                                owner = owners[s];
+                                mint = mints[s];
+                            } else { // if owners is null, db is down
+                                owner = user;
+                                mint = DEFAULT_MINT;
+                            }
+
+                            if (frame === -1){  
                                 n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
                                 for (let frame_i = 0; frame_i < n_frames; frame_i++){
                                     changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, mint, owner}));
@@ -864,12 +1062,23 @@ export function Screen(props) {
                         }
                     }
                 }
+                if (changes.length === 0) { // if empty
+                    notify({
+                        message: "All spaces already have the selected color",
+                    });
+                    return;
+                }
+
                 try {
-                    let ixs = await changeColorInstructions(connection, wallet, BASE, changes, frameKeysMap, timeClusterMap);
+                    notify({
+                        message: "Uploading image...",
+                    });
+                    let ixs = await changeColorInstructions(connection, server, wallet, BASE, changes, frameKeysMap, timeClusterMap);
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change color", true, n_frames);
                 }
                 catch (e) {
-                    // console.log(e)
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
             }
@@ -886,6 +1095,8 @@ export function Screen(props) {
             const init_x = gifUploadTrigger["init_x"];
             const init_y = gifUploadTrigger["init_y"];
             const owners = gifUploadTrigger["owners"];
+            const mints = gifUploadTrigger["mints"];
+            const editable = gifUploadTrigger["editable"];
             if (gif && wallet.publicKey) {
 
                 // console.log("GIF Length", gif.length)
@@ -908,14 +1119,15 @@ export function Screen(props) {
                         const x = init_x+j;
                         const y = init_y+i;
 
-                        const position = JSON.stringify({x, y});
-                        if (spaces.has(position) && spaceGrid.has(position)) {
-                            const mint = ownedMints[position];
-                            let owner;
-                            if (Object.keys(owners).length > 0) {
-                                owner = owners[position];
+                        const s = JSON.stringify({x, y});
+                        if (spaces.has(s) && editable.has(s)) {
+                            let owner, mint;
+                            if (Object.keys(owners).length > 0 && owners[s] && mints[s]) {
+                                owner = owners[s];
+                                mint = mints[s];
                             } else { // if owners is null, db is down
                                 owner = user;
+                                mint = DEFAULT_MINT;
                             }
 
                             // To get num frames
@@ -937,11 +1149,12 @@ export function Screen(props) {
                 }
 
                 try {
-                    let ixs = await changeColorInstructions(connection, wallet, BASE, changes, frameKeysMap, timeClusterMap);
+                    let ixs = await changeColorInstructions(connection, server, wallet, BASE, changes, frameKeysMap, timeClusterMap);
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change color", true, n_frames);
                 }
                 catch (e) {
-                    // console.log(e)
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
 
@@ -980,6 +1193,7 @@ export function Screen(props) {
                         candyMachineConfig,
                         candyMachineAddress,
                         newNeighborhoodTrigger["name"],
+                        newNeighborhoodTrigger["voucherLiveDate"],
                     ))[0];
 
                     const initVoucherSystemIx = (await initVoucherSystemInstruction(
@@ -994,8 +1208,8 @@ export function Screen(props) {
                         [
                         BASE.toBuffer(),
                         Buffer.from(VOUCHER_MINT_SEED),
-                        Buffer.from(twoscomplement_i2u(n_x)),
-                        Buffer.from(twoscomplement_i2u(n_y))
+                        Buffer.from(signedIntToBytes(n_x)),
+                        Buffer.from(signedIntToBytes(n_y))
                         ],
                         SPACE_PROGRAM_ID
                     ))[0];
@@ -1003,8 +1217,8 @@ export function Screen(props) {
                         [
                             BASE.toBuffer(),
                             Buffer.from(VOUCHER_SINK_SEED),
-                            Buffer.from(twoscomplement_i2u(n_x)),
-                            Buffer.from(twoscomplement_i2u(n_y))
+                            Buffer.from(signedIntToBytes(n_x)),
+                            Buffer.from(signedIntToBytes(n_y))
                         ],
                         SPACE_PROGRAM_ID
                     ))[0];
@@ -1151,8 +1365,8 @@ export function Screen(props) {
                     notify({ message: `Expand succeeded` });
 
                 } catch (e) {
-                    // console.log("failed to expand: ", e);
-                    notify({ message: `Expand failed` });
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                 }
                 loading(null, "Expanding", "success");
                     
@@ -1195,7 +1409,8 @@ export function Screen(props) {
                         [colorRes.keypair]
                     );
                 } catch (e) {
-                    // console.log("failed to add new frame", e)
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                 }
             }
         }
@@ -1226,6 +1441,8 @@ export function Screen(props) {
                     // console.log(response);
                 }
                 catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
             }
@@ -1266,6 +1483,8 @@ export function Screen(props) {
                     sendInstructionsGreedyBatch(connection, wallet, ixs, name);
                 }
                 catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
                     return;
                 }
             }
@@ -1299,7 +1518,7 @@ export function Screen(props) {
                         //     // refresh focus if not changed
                         //     const focus = game.current?.state.focus;
                         //     if (focus && focus.focus && focus.x === x && focus.y === y){
-                        //         game.current?.handleFocusRefresh();
+                        //         game.current?.refreshFocus();
                         //     }
                         //     // if wallet is unchanged, update state
                         //     if (wallet.publicKey === currentUser){
@@ -1310,6 +1529,8 @@ export function Screen(props) {
                         // }
                     }
                     catch (e) {
+                        notify({ message: `Unexpected error, please try again later` });
+                        console.error(e);
                         return;
                     }
                 } else { // user isn't logged in
@@ -1363,6 +1584,8 @@ export function Screen(props) {
                         // database.register(wallet.publicKey, newOwnedMints);
                     }
                     catch (e) {
+                        notify({ message: `Unexpected error, please try again later` });
+                        console.error(e);
                         return;
                     }
                 } else { // user isn't logged in
@@ -1387,6 +1610,8 @@ export function Screen(props) {
             setOwnedMints={setOwnedMints}
             setChangeColorTrigger={setChangeColorTrigger}
             setChangeColorsTrigger={setChangeColorsTrigger}
+            setMakeEditableColorTrigger={setMakeEditableColorTrigger}
+            setMakeEditableColorsTrigger={setMakeEditableColorsTrigger}
             setChangePriceTrigger={setChangePriceTrigger}
             setChangePricesTrigger={setChangePricesTrigger}
             setPurchaseSpaceTrigger={setPurchaseSpaceTrigger}

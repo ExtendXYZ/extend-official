@@ -28,7 +28,7 @@ import {
   PublicKey,
 } from "@solana/web3.js";
 import Moment from "react-moment";
-import { chunks, rgbToHex, twoscomplement_u2i } from "../utils";
+import { chunks, rgbToHex, bytesToSignedInt } from "../utils";
 import base58 from "bs58";
 import {
   CHANGE_COLOR_INSTRUCTION_ID,
@@ -52,7 +52,10 @@ function parseInstruction(
           ChangeColorInstructionData,
           buffer
         );
-        return { res, type: "Change color" };
+        return { res, 
+          x: res['x'] < Math.pow(2, 15) ? res['x'] : - Math.pow(2,16) + res['x'],
+          y: res['y'] < Math.pow(2, 15) ? res['y'] : - Math.pow(2,16) + res['y'], type: "Change color" };
+          
       }
       case CHANGE_OFFER_INSTRUCTION_ID: {
         const res = deserialize(
@@ -65,6 +68,8 @@ function parseInstruction(
 
         return {
           res,
+          x: bytesToSignedInt(new BN(res["x"]).toArray('le', 8)),
+          y: bytesToSignedInt(new BN(res["y"]).toArray('le', 8)),
           type: res.price ? "Space list" : "Space delist",
           seller: instruction.accounts[2].toBase58(),
         };
@@ -78,6 +83,8 @@ function parseInstruction(
         return {
           res,
           type: "Space buy",
+          x: bytesToSignedInt(new BN(res["x"]).toArray('le', 8)),
+          y: bytesToSignedInt(new BN(res["y"]).toArray('le', 8)),
           buyer: instruction.accounts[5].toBase58(),
           seller: instruction.accounts[7].toBase58(),
         };
@@ -299,8 +306,8 @@ export function Activity() {
                 txns.push({
                   signature: element.transaction.signatures[0],
                   time: element.blockTime,
-                  x: twoscomplement_u2i(new BN(parsed.res["x"]).toArray('le', 8)),
-                  y: twoscomplement_u2i(new BN(parsed.res["y"]).toArray('le', 8)),
+                  x : parsed.x,
+                  y:  parsed.y,
                   frame: parsed.res["frame"],
                   r: parsed.res["r"],
                   g: parsed.res["g"],
@@ -354,7 +361,7 @@ export function Activity() {
   }, [transactionHistory, type]);
 
   useEffect(()=>{
-    setLoading(detailsList.length == 0);
+    setLoading(detailsList.length === 0);
   }, [detailsList]);
 
 

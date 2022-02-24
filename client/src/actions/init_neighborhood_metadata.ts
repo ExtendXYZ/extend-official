@@ -2,8 +2,7 @@ import {PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction,} f
 import {Schema, serialize} from "borsh";
 import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID,} from "@solana/spl-token";
 import {SPACE_PROGRAM_ID, NEIGHBORHOOD_LIST_SEED, NEIGHBORHOOD_METADATA_SEED, EXTEND_TOKEN_MINT} from "../constants";
-import {correct_negative_serialization, twoscomplement_i2u} from "../utils/borsh";
-
+import {correct_negative_serialization, signedIntToBytes, UIntToBytes} from "../utils/borsh";
 
 
 
@@ -45,9 +44,10 @@ export const initNeighborhoodMetadataInstruction = async (
   candyMachineConfig: PublicKey,
   candyMachineAddress: PublicKey,
   name: string = "",
+  voucherLiveDate: number,
 ) => {
-  const n_x_bytes = twoscomplement_i2u(n_x); 
-  const n_y_bytes = twoscomplement_i2u(n_y);
+  const n_x_bytes = signedIntToBytes(n_x); 
+  const n_y_bytes = signedIntToBytes(n_y);
 
   const [nhoodAcc,] = await PublicKey.findProgramAddress(
     [
@@ -149,6 +149,12 @@ export const initNeighborhoodMetadataInstruction = async (
   name_buffer = Buffer.concat([name_buffer, zeros]);
   
   data = Buffer.concat([data, name_buffer]);
+
+  //add go live date to instruction data
+
+  // date is small enough that signed and unsigned have the same representation
+  let ts_buffer = Buffer.from(UIntToBytes(voucherLiveDate));
+  data = Buffer.concat([data, ts_buffer]);
 
   let Ix = 
     [new TransactionInstruction({

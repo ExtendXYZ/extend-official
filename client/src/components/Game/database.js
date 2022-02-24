@@ -83,11 +83,19 @@ export class Database {
     async getSpaceMetadata(x, y) {
         const results = await axios.get(this.mysql + '/info/' + x + '/' + y);
         const data = results.data[0];
+        if (!data){
+            return {
+                mint: null,
+                owner: null,
+                price: null,
+                hasPrice: false,
+            }
+        }
         const [mint, owner, price, forSale] = data;
 
         return {
-            mint: new PublicKey(mint),
-            owner: new PublicKey(owner),
+            mint: mint ? new PublicKey(mint) : null,
+            owner: owner ? new PublicKey(owner) : null,
             price: Number(price),
             hasPrice: Boolean(forSale)
         }
@@ -112,19 +120,21 @@ export class Database {
 
         let purchasableInfo = [];
         let owners = {};
+        let mints = {};
         for (let arr of data) {
             const [x, y, mint, owner, price, forSale] = arr;
             const pos = JSON.stringify({x, y});
             if (poses.has(pos) && (!user || user.toBase58() !== owner) && (forSale === 1)) { // if in poses, not owned by curr user, and for Sale 
                 purchasableInfo.push({x, y, mint: new PublicKey(mint), price: Number(price), seller: new PublicKey(owner)});
             }
-            if (poses.has(pos)) { // if it is in the poses
+            if (poses.has(pos)) {
                 owners[pos] = new PublicKey(owner);
-            }   
+                mints[pos] = new PublicKey(mint);
+            }
         }
         purchasableInfo.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
 
-        return {purchasableInfo, owners};
+        return {purchasableInfo, owners, mints};
     }
 
     async getPurchasableInfo(user, poses) {

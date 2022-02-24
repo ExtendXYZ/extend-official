@@ -4,7 +4,7 @@ import weighted from "weighted";
 import path from "path";
 import * as anchor from "@project-serum/anchor";
 import {BASE, VOUCHER_MINT_SEED, VOUCHER_SINK_SEED, NEIGHBORHOOD_METADATA_SEED, SPACE_PROGRAM_ID, NEIGHBORHOOD_SIZE, METADATA_PROGRAM_ID, MAX_ACCOUNTS, DATABASE_SERVER_URL} from "../../../client/src/constants"
-import { twoscomplement_i2u } from "../../../client/src/utils/borsh"
+import { signedIntToBytes } from "../../../client/src/utils/borsh"
 import {TOKEN_PROGRAM_ID} from '@solana/spl-token';
 import {decodeMetadata} from "../../../client/src/actions/metadata";
 
@@ -193,8 +193,8 @@ export const getMetadata = (
 };
 
 export const getVoucherMint = async (x: number, y: number) => {
-  const n_x = twoscomplement_i2u(x);
-  const n_y = twoscomplement_i2u(y);
+  const n_x = signedIntToBytes(x);
+  const n_y = signedIntToBytes(y);
   return (await anchor.web3.PublicKey.findProgramAddress(
     [
       BASE.toBuffer(),
@@ -207,8 +207,8 @@ export const getVoucherMint = async (x: number, y: number) => {
 }
 
 export const getVoucherSink = async (x: number, y: number) => {
-  const n_x = twoscomplement_i2u(x);
-  const n_y = twoscomplement_i2u(y);
+  const n_x = signedIntToBytes(x);
+  const n_y = signedIntToBytes(y);
   return (await anchor.web3.PublicKey.findProgramAddress(
     [
       BASE.toBuffer(),
@@ -221,8 +221,8 @@ export const getVoucherSink = async (x: number, y: number) => {
 }
 
 export const getNeighborhoodMetadata = async (x: number, y: number) => {
-  const n_x = twoscomplement_i2u(x);
-  const n_y = twoscomplement_i2u(y);
+  const n_x = signedIntToBytes(x);
+  const n_y = signedIntToBytes(y);
   return (await anchor.web3.PublicKey.findProgramAddress(
     [
       BASE.toBuffer(),
@@ -279,8 +279,8 @@ const getNeighborhoodCandyMachine = async(connection, n_x: number, n_y: number) 
   const n_meta = await PublicKey.findProgramAddress([
       BASE.toBuffer(),
       Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-      Buffer.from(twoscomplement_i2u(n_x)),
-      Buffer.from(twoscomplement_i2u(n_y)),
+      Buffer.from(signedIntToBytes(n_x)),
+      Buffer.from(signedIntToBytes(n_y)),
   ], SPACE_PROGRAM_ID);
   const account = await connection.getAccountInfo(n_meta[0]);
   if (account === null) {

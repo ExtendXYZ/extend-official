@@ -43,16 +43,16 @@ impl Processor {
                 msg!("Instruction: changing color");
                 change_color::process_brief(program_id, accounts, &args)
             }
-            // ColorInstruction::MakeEditable => {
-            //     let args = MakeEditableArgs::try_from_slice(rest)?;
-            //     msg!("Instruction: making editable");
-            //     make_editable::process(program_id, accounts, &args)
-            // }
-            // ColorInstruction::MakeEditableBrief => {
-            //     let args = MakeEditableBriefArgs::try_from_slice(rest)?;
-            //     msg!("Instruction: making editable");
-            //     make_editable::process_brief(program_id, accounts, &args)
-            // }
+            ColorInstruction::MakeEditable => {
+                let args = MakeEditableArgs::try_from_slice(rest)?;
+                msg!("Instruction: making editable");
+                make_editable::process(program_id, accounts, &args)
+            }
+            ColorInstruction::MakeEditableBrief => {
+                let args = MakeEditableBriefArgs::try_from_slice(rest)?;
+                msg!("Instruction: making editable");
+                make_editable::process_brief(program_id, accounts, &args)
+            }
         }
     }
 }

@@ -1,40 +1,54 @@
 import {PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction,} from "@solana/web3.js";
 import {Schema, serialize} from "borsh";
 import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID,} from "@solana/spl-token";
-import {SPACE_PROGRAM_ID, NEIGHBORHOOD_METADATA_SEED, VOUCHER_MINT_SEED, VOUCHER_SINK_SEED} from "../constants";
+import {SPACE_PROGRAM_ID, NEIGHBORHOOD_METADATA_SEED, VOUCHER_MINT_SEED, VOUCHER_SINK_SEED, VOUCHER_MINT_AUTH} from "../constants";
 import {correct_negative_serialization, signedIntToBytes} from "../utils/borsh";
 
-export class InitVoucherSystemInstructionData {
-  instruction: number = 5;
+export class GetVouchersInstructionData {
+  instruction: number = 9;
   n_x: number;
   n_y: number;
+  count: number;
+  fee: number;
 
   static schema: Schema = new Map([
     [
-      InitVoucherSystemInstructionData,
+      GetVouchersInstructionData,
       {
         kind: "struct",
         fields: [
           ["instruction", "u8"],
           ["n_x", "u64"],
           ["n_y", "u64"],
+          ["count", "u64"],
+          ["fee", "u64"],
         ],
       },
     ],
   ]);
 
-  constructor(args: { n_x: number; n_y: number;}) {
+  constructor(args: {
+    n_x: number;
+    n_y: number;
+    count: number;
+    fee: number;
+  }) {
     this.n_x = args.n_x;
     this.n_y = args.n_y;
+    this.count = args.count;
+    this.fee = args.fee;
   }
 }
 
-export const initVoucherSystemInstruction = async (
+export const getVouchersInstruction = async (
+  connection,
+  server,
   wallet: any,
   base: PublicKey,
   n_x: number,
   n_y: number,
-  voucherAuth: PublicKey,
+  count,
+  fee,
 ) => {
   const n_x_bytes = signedIntToBytes(n_x); 
   const n_y_bytes = signedIntToBytes(n_y);
@@ -48,6 +62,9 @@ export const initVoucherSystemInstruction = async (
     ],
     SPACE_PROGRAM_ID
   );
+
+  const neighborhoodCreator = await server.getNeighborhoodCreator(connection, n_x, n_y);
+
   const [voucherMint,] = await PublicKey.findProgramAddress(
     [
       base.toBuffer(),
@@ -61,17 +78,15 @@ export const initVoucherSystemInstruction = async (
     ASSOCIATED_TOKEN_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
     voucherMint,
-    voucherAuth,
+    VOUCHER_MINT_AUTH,
     false
-  ); 
-  const [voucherSink,] = await PublicKey.findProgramAddress(
-    [
-      base.toBuffer(),
-      Buffer.from(VOUCHER_SINK_SEED),
-      Buffer.from(n_x_bytes),
-      Buffer.from(n_y_bytes),
-    ],
-    SPACE_PROGRAM_ID
+  );
+  const userVoucherATA = await Token.getAssociatedTokenAddress(
+    ASSOCIATED_TOKEN_PROGRAM_ID,
+    TOKEN_PROGRAM_ID,
+    voucherMint,
+    wallet.publicKey,
+    false
   );
 
   const keys = [
@@ -86,19 +101,19 @@ export const initVoucherSystemInstruction = async (
       isWritable: true,
     },
     {
-      pubkey: wallet.publicKey,
-      isSigner: true,
-      isWritable: false,
+      pubkey: neighborhoodCreator,
+      isSigner: false,
+      isWritable: true,
     },
     {
-      pubkey: voucherAuth,
+      pubkey: VOUCHER_MINT_AUTH,
       isSigner: true,
       isWritable: false,
     },
     {
       pubkey: voucherMint,
       isSigner: false,
-      isWritable: true,
+      isWritable: false,
     },
     {
       pubkey: voucherSourceATA,
@@ -106,7 +121,12 @@ export const initVoucherSystemInstruction = async (
       isWritable: true,
     },
     {
-      pubkey: voucherSink,
+      pubkey: wallet.publicKey,
+      isSigner: true,
+      isWritable: false,
+    },
+    {
+      pubkey: userVoucherATA,
       isSigner: false,
       isWritable: true,
     },
@@ -131,11 +151,13 @@ export const initVoucherSystemInstruction = async (
     isWritable: false,
     },
   ];
-  let args = new InitVoucherSystemInstructionData({
+  let args = new GetVouchersInstructionData({
     n_x,
     n_y,
+    count,
+    fee,
   });
-  let data = Buffer.from(serialize(InitVoucherSystemInstructionData.schema, args));
+  let data = Buffer.from(serialize(GetVouchersInstructionData.schema, args));
   // borsh JS sucks, need to be able to serialize negative numbers
   data = correct_negative_serialization(data, 1, 9, n_x_bytes);
   data = correct_negative_serialization(data, 9, 17, n_y_bytes);

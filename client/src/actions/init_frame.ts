@@ -9,7 +9,7 @@ import {
     NEIGHBORHOOD_FRAME_POINTER_SEED,
     NEIGHBORHOOD_METADATA_SEED
 } from "../constants";
-import {correct_negative_serialization, twoscomplement_i2u} from "../utils/borsh";
+import {correct_negative_serialization, signedIntToBytes} from "../utils/borsh";
 import BN from "bn.js";
 
 export class InitFrameInstructionData {
@@ -80,8 +80,8 @@ export const initFrameInstruction = async (
   colorFrameCluster: PublicKey,
   timeCluster: PublicKey,
 ) => {
-  const n_x_bytes = twoscomplement_i2u(n_x);
-  const n_y_bytes = twoscomplement_i2u(n_y);
+  const n_x_bytes = signedIntToBytes(n_x);
+  const n_y_bytes = signedIntToBytes(n_y);
   // initialize cluster without PDA
   const [neighborhoodFrameBase,] =
   await PublicKey.findProgramAddress(

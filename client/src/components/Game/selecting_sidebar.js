@@ -2,7 +2,7 @@ import React from "react";
 import "./index.css";
 import {getBounds} from './index.js';
 import { notify } from "../../utils";
-import { NEIGHBORHOOD_SIZE } from "../../constants";
+import { NEIGHBORHOOD_SIZE, TX_COST, EDIT_PRICE, CHANGE_COLOR_BATCH_SIZE, BUY_BATCH_SIZE } from "../../constants";
 import {
   Box,
   Button,
@@ -12,13 +12,15 @@ import {
   RadioGroup,
   Typography,
   Radio,
+  FormControl,
+  Checkbox
 } from "@mui/material";
 import { Tooltip } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
 import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
-import { formatPrice, intersection} from "../../utils";
+import { formatPrice, intersection, complement} from "../../utils";
 import {Tab, Tabs, AppBar} from "@mui/material";
 
 import PropTypes from "prop-types";
@@ -57,21 +59,38 @@ function TabPanel(props) {
 export class SelectingSidebar extends React.Component {
     constructor(props) {
       super(props);
-      this.state = {value: 0, ownedSelection: new Set()};
+      this.state = {value: 0, ownedSelection: new Set(), editable: new Set(), totalEditable: new Set(), editableSelection: new Set()};
       this.handleTabChange = this.handleTabChange.bind(this);
       this.selectionSize = 0;
     }
 
     componentDidMount(){
-        this.setState({ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses)});
+        this.setState({
+          ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses),
+          editable: this.props.selecting.editable,
+          totalEditable: this.props.selecting.totalEditable,
+          editableSelection: complement(this.props.selecting.editable, this.props.ownedSpaces),
+        });
         this.selectionSize = this.props.selecting.poses.size;
     }
 
     componentDidUpdate(prevProps) {
         if (this.props.ownedSpaces !== prevProps.ownedSpaces || this.props.selecting.poses !== prevProps.selecting.poses
             || this.props.selecting.poses.size !== this.selectionSize) {
-                this.setState({ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses)});
+                this.setState({
+                  ownedSelection: intersection(this.props.ownedSpaces, this.props.selecting.poses),
+                  editable: this.props.selecting.editable,
+                  totalEditable: this.props.selecting.totalEditable,
+                  editableSelection: complement(this.props.selecting.editable, this.props.ownedSpaces),
+                });
                 this.selectionSize = this.props.selecting.poses.size;
+        }
+        if (this.props.selecting.editable !== this.state.editable || this.props.selecting.totalEditable !== this.state.totalEditable ) {
+          this.setState({
+            editable: this.props.selecting.editable,
+            totalEditable: this.props.selecting.totalEditable,
+            editableSelection: complement(this.props.selecting.editable, this.props.ownedSpaces),
+          });
         }
 
         // if new image upload, render preview
@@ -150,12 +169,68 @@ export class SelectingSidebar extends React.Component {
         </ListItem>
         </List>;
 
-        let tooltipModifyColorTitle = `Estimated Cost to Change Colors:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
-        let tooltipSetPriceTitle = `Estimated Cost to List/Delist:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
+        const modifyColorHeader = <List style={{ marginTop: "0px" }}>
+        <ListItem className="info" style={{ display: "block" }}>
+            <Box className="infoHeader">
+            <div style={{ display: "flex", alignItems: "center", width: "50%", float: "left"}}>
+              OWNED SPACES
+            </div>
+            <div style={{ display: "flex", alignItems: "center", width: "50%", float: "right"}}>
+              EDITABLE SPACES
+            </div>
+            </Box>
+            <Box>
+              <div style={{ display: "flex", alignItems: "center", width: "50%", float: "left"}}>
+              <b>
+                <font color="#82CBC5">
+                  {this.state.ownedSelection.size +
+                    "/" +
+                    this.props.selecting.poses.size}
+                </font>
+              </b>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", width: "50%", float: "right"}}>
+              <b>
+                <font color="#82CBC5">
+                  {this.state.totalEditable.size +
+                    "/" +
+                    this.props.selecting.poses.size}
+                </font>
+              </b>
+              </div>
+            </Box>
+            &nbsp;
+            <Box>
+              <div style={{ display: "flex", alignItems: "center", width: "100%"}}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => {
+                    this.props.selectOwnedSpaces();
+                  }}
+                  style={{
+                    marginLeft: "5px",
+                    color: "#FFFFFF",
+                    background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                  }}
+                  disabled={!this.state.ownedSelection.size}
+                >
+                  SELECT OWNED SPACES
+                </Button>
+              </div>
+            </Box>
+            &nbsp;
+        </ListItem>
+        </List>;
+
+        let tooltipModifyColorTitle = `Estimated Cost to Change Colors:  ${((this.state.ownedSelection.size + this.state.editableSelection.size) * TX_COST / CHANGE_COLOR_BATCH_SIZE + this.state.editableSelection.size * EDIT_PRICE).toFixed(6)} SOL`;
+        let tooltipSetPriceTitle = `Estimated Cost to List/Delist:  ${(this.state.ownedSelection.size * TX_COST / CHANGE_COLOR_BATCH_SIZE).toFixed(6)} SOL`;
         let tooltipBuyTitle = `Batch buying is non-atomic and is available as a convenience feature. Successful purchase of every Space selected is not guaranteed.
-        
-        Estimated Transaction Cost to Buy:  ${(this.props.selecting.purchasableInfo.length * 0.000005).toFixed(6)} SOL`;
-        
+
+        Estimated Transaction Cost to Buy:  ${(this.props.selecting.purchasableInfo.length * TX_COST / BUY_BATCH_SIZE).toFixed(6)} SOL`;
+        let tooltipMakeEditable = `Click the checkbox to make your selected spaces editable by others and gain SOL from their color changes on the spaces. To make the spaces uneditable, simply change the color to your desired color.`;
+        let tooltipEditPrice = `Pay a fixed price to upload an image or edit the color of editable spaces that you don't own (${EDIT_PRICE} SOL per space).`
+
         return (
 
                 <div>
@@ -179,10 +254,9 @@ export class SelectingSidebar extends React.Component {
                   
 
                   <TabPanel value={this.state.value} index={0}>
-                      {sidebarHeader}
+                      {modifyColorHeader}
 
                       {/* Color stuff */}
-
                       <Divider className="sidebarDivider">
                           Modify Colors
                       </Divider>
@@ -217,44 +291,86 @@ export class SelectingSidebar extends React.Component {
                             }
                           />
                         </RadioGroup>
-                        <Tooltip placement={'right'} title={tooltipModifyColorTitle}>
-                          <Box className="infoHeader">COLOR</Box>
-                        </Tooltip>
-                        <div style={{ display: "flex", alignItems: "center" }}>
+                        
+                        <Box className="infoHeader">
+                          <Tooltip placement={'right'} title={tooltipModifyColorTitle}>
+                          <div style={{width: "65%", float: "left"}}>
+                            COLOR
+                          </div>
+                          </Tooltip>
+                          {this.state.editableSelection.size > 0 ?
+                          <Tooltip placement={'right'} title={tooltipEditPrice}>
+                          <div style={{width: "35%", float: "right"}}>
+                              EDIT PRICE
+                          </div>
+                          </Tooltip> 
+                          : null
+                          }
+                        </Box>
+                        <div style={{ display: "flex", alignItems: "center", width: "65%", float: "left"}}>
                           <input
                             className="newColor"
                             type="color"
                             value={this.props.selecting.color}
                             onChange={(e) => this.props.handleChangeColors(e)}
-                            disabled={!this.state.ownedSelection.size}
+                            disabled={!this.state.ownedSelection.size && this.state.editableSelection.size === 0}
                           ></input>
-                        <Tooltip placement={'right'} title={tooltipModifyColorTitle}>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            onClick={() => {
-                              this.props.changeColors();
-                            }}
-                            style={{
-                              marginLeft: "5px",
-                              color: "#FFFFFF",
-                              background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
-                            }}
-                            disabled={!this.state.ownedSelection.size}
-                          >
-                            Change Color
-                          </Button>
-                        </Tooltip>
+                          <Tooltip placement={'right'} title={tooltipModifyColorTitle}>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={() => {
+                                this.props.changeColors();
+                              }}
+                              style={{
+                                marginLeft: "5px",
+                                color: "#FFFFFF",
+                                background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                              }}
+                              disabled={!this.props.user || (!this.state.ownedSelection.size && this.state.editableSelection.size === 0)}
+                            >
+                              Change Color
+                            </Button>
+                          </Tooltip>
                         </div>
+                        {this.state.editableSelection.size > 0 ? 
+                            <div style={{ display: "flex", alignItems: "center", width: "35%", float: "right"}}>
+                                {(this.state.editableSelection.size * EDIT_PRICE).toFixed(6)} SOL
+                            </div>
+                          : null
+                        }
 
-                        <Box className="infoHeader" style={{marginTop: "10px"}}>IMAGE</Box>
+                        {this.state.ownedSelection.size > 0 ?
+                          <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                              <Tooltip placement={'right'} title={tooltipMakeEditable}>
+                              <FormControl>
+                              <FormControlLabel
+                                  style={{marginLeft: "2px"}} // fix alignment
+                                  control={
+                                      <Checkbox
+                                          onChange={(e) => this.props.makeEditableColors(e)}
+                                          checked={intersection(this.state.ownedSelection, this.state.editable).size === this.state.ownedSelection.size}
+                                      />
+                                  }
+                                  labelPlacement="start"
+                                  label="EDITABLE"
+                              />
+                              </FormControl>
+                              </Tooltip>
+                          </div>
+                          : 
+                          null
+                        }
+                        <div style={{display: "flex", alignItems: "center", width: "100%"}}>
+                        <Box className="infoHeader" style={{marginTop: "10px", width: "100%"}}>IMAGE</Box>
+                        </div>
                         <div style={{ display: "flex", alignItems: "center" }}>
                           <Tooltip placement={'right'} title="Upload an image on your selected spaces">
                             <Button
                               variant="contained"
                               component="label"
                               size="small"
-                              disabled={!this.state.ownedSelection.size}
+                              disabled={!this.props.user || (!this.state.ownedSelection.size && this.state.editableSelection.size === 0)}
                               style={{
                                 width: "100%",
                                 marginLeft: "5px",
@@ -584,7 +700,7 @@ export class SelectingSidebar extends React.Component {
                                 size="small"
                                 variant="contained"
                                 onClick={() => {
-                                    this.props.handleSelectingRefresh();
+                                    this.props.refreshSelecting();
                                 }}
                                 style={{
                                     width: "100%",

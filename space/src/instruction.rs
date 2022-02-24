@@ -14,6 +14,7 @@ pub struct InitNeighborhoodMetadataArgs {
     pub neighborhood_y: i64,
     pub price: u64,
     pub neighborhood_name: [u8; 64],
+    pub voucher_live_date: u64,
 }
 
 #[repr(C)]
@@ -61,18 +62,27 @@ pub struct UpdateAuthorityArgs {
 
 #[repr(C)] // elim
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)] // elim
-pub struct TempAddxyArgs { // elim
-    pub space_x: i64, // elim
-    pub space_y: i64, // elim
-} // elim
-
-#[repr(C)] // elim
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)] // elim
 pub struct ChangeNeighborhoodNameArgs { // elim
     pub neighborhood_x: i64, // elim
     pub neighborhood_y: i64, // elim
     pub neighborhood_name: [u8; 64], // elim
 } // elim
+
+#[repr(C)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+pub struct GetVouchersArgs {
+    pub neighborhood_x: i64,
+    pub neighborhood_y: i64,
+    pub count: u64,
+    pub fee: u64,
+}
+
+// #[repr(C)] // elim
+// #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)] // elim
+// pub struct TempAddxyArgs { // elim
+//     pub space_x: i64, // elim
+//     pub space_y: i64, // elim
+// } // elim
 
 pub enum SpaceInstruction {
 
@@ -159,7 +169,7 @@ pub enum SpaceInstruction {
     )
     Accounts expected:
     0. Base account
-    1. Neighborhood metadata[
+    1. Neighborhood metadata
     2. [Signer] Neighborhood creator
     3. [Signer] Voucher mint authority
     4. [Signer, Writable] voucher_mint
@@ -189,9 +199,28 @@ pub enum SpaceInstruction {
     */
     UpdateAuthority,
 
-    TempAddxy, // elim
 
-    ChangeNeighborhoodName, // elim
+    ChangeNeighborhoodName,
+
+    /*
+    obtain voucher tokens
+    Accounts expected:
+    0. Base account
+    1. neighborhood metadata
+    2. [Writable] neighborhood creator
+    3. [Signer] Voucher mint authority
+    4. voucher_mint
+    5. [Writable] source token account of voucher tokens
+    6. user wallet
+    7. user voucher ATA
+    8. system program
+    9. token program
+    10. associated token program
+    11. rent program
+    */
+    GetVouchers,
+
+    // TempAddxy, // elim
 }
 
 impl SpaceInstruction {
@@ -205,8 +234,9 @@ impl SpaceInstruction {
             5 => Self::InitVoucherSystem,
             6 => Self::RevokeAuthorityPrivileges,
             7 => Self::UpdateAuthority,
-            8 => Self::ChangeNeighborhoodName, // elim?
-            9 => Self::TempAddxy, // elim
+            8 => Self::ChangeNeighborhoodName,
+            9 => Self::GetVouchers,
+            // 9 => Self::TempAddxy, // elim
             _ => return Err(ProgramError::InvalidInstructionData),
         })
     }

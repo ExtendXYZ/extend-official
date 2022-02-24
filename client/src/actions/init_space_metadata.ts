@@ -8,7 +8,7 @@ import {
     NEIGHBORHOOD_METADATA_SEED,
     NEIGHBORHOOD_SIZE,
 } from "../constants";
-import {correct_negative_serialization, twoscomplement_i2u} from "../utils/borsh";
+import {correct_negative_serialization, signedIntToBytes} from "../utils/borsh";
 
 export class InitSpaceMetadataInstructionData {
   instruction: number = 2;
@@ -42,8 +42,8 @@ export const initSpaceMetadataInstruction = async (
   y: number,
   spaceMint: PublicKey,
 ) => {
-  const space_x = twoscomplement_i2u(x);
-  const space_y = twoscomplement_i2u(y);
+  const space_x = signedIntToBytes(x);
+  const space_y = signedIntToBytes(y);
   const [spaceAcc,] = await PublicKey.findProgramAddress(
     [
       base.toBuffer(),
@@ -62,8 +62,8 @@ export const initSpaceMetadataInstruction = async (
       ],
       ASSOCIATED_TOKEN_PROGRAM_ID
     );
-  const n_x = twoscomplement_i2u(Math.floor(x / NEIGHBORHOOD_SIZE));
-  const n_y = twoscomplement_i2u(Math.floor(y / NEIGHBORHOOD_SIZE));
+  const n_x = signedIntToBytes(Math.floor(x / NEIGHBORHOOD_SIZE));
+  const n_y = signedIntToBytes(Math.floor(y / NEIGHBORHOOD_SIZE));
   const [nhoodAcc,] = await PublicKey.findProgramAddress(
     [
       base.toBuffer(),

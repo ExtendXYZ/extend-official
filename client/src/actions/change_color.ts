@@ -10,7 +10,7 @@ import {
     NEIGHBORHOOD_METADATA_SEED,
     NEIGHBORHOOD_SIZE,
 } from "../constants";
-import {correct_negative_serialization, twoscomplement_i2u} from "../utils/borsh";
+import {correct_negative_serialization, signedIntToBytes} from "../utils/borsh";
 import BN from 'bn.js';
 
 export const CHANGE_COLOR_INSTRUCTION_ID = 2;
@@ -91,6 +91,7 @@ export class ChangeColorArgs {
 
 export const changeColorInstruction = async (
   connection,
+  server,
   wallet: any,
   base: PublicKey,
   change: ChangeColorArgs,
@@ -100,8 +101,8 @@ export const changeColorInstruction = async (
 
   const {x, y, frame, r, g, b, mint, owner} = change;
 
-  const space_x_bytes = twoscomplement_i2u(x);
-  const space_y_bytes = twoscomplement_i2u(y);
+  const space_x_bytes = signedIntToBytes(x);
+  const space_y_bytes = signedIntToBytes(y);
   const [spaceAcc,] = await PublicKey.findProgramAddress(
     [
       base.toBuffer(),
@@ -114,14 +115,17 @@ export const changeColorInstruction = async (
   const [spaceATA,] =
     await PublicKey.findProgramAddress(
       [
-        wallet.publicKey.toBuffer(),
+        owner.toBuffer(),
         TOKEN_PROGRAM_ID.toBuffer(),
         mint.toBuffer(),
       ],
       ASSOCIATED_TOKEN_PROGRAM_ID
     );
-  const n_x_bytes = twoscomplement_i2u(Math.floor(x / NEIGHBORHOOD_SIZE));
-  const n_y_bytes = twoscomplement_i2u(Math.floor(y / NEIGHBORHOOD_SIZE));
+  const n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
+  const n_y = Math.floor(y / NEIGHBORHOOD_SIZE)
+  const n_x_bytes = signedIntToBytes(n_x);
+  const n_y_bytes = signedIntToBytes(n_y);
+  
   const [neighborhoodFrameBase,] =
     await PublicKey.findProgramAddress(
       [
@@ -155,6 +159,8 @@ export const changeColorInstruction = async (
       ],
       SPACE_PROGRAM_ID
     );
+
+  const neighborhoodCreator = await server.getNeighborhoodCreator(connection, n_x, n_y);
 
   var colorCluster;
   if (!colorCluster_input) {
@@ -201,6 +207,11 @@ export const changeColorInstruction = async (
       isWritable: false,
     },
     {
+      pubkey: neighborhoodCreator,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
       pubkey: spaceAcc,
       isSigner: false,
       isWritable: false,
@@ -208,7 +219,7 @@ export const changeColorInstruction = async (
     {
       pubkey: owner,
       isSigner: false,
-      isWritable: false,
+      isWritable: true,
     },
     {
       pubkey: spaceATA,
@@ -259,6 +270,7 @@ export const changeColorInstruction = async (
 
 export const changeColorInstructions = async (
   connection,
+  server,
   wallet: any,
   base: PublicKey,
   changes: ChangeColorArgs[],
@@ -275,6 +287,7 @@ export const changeColorInstructions = async (
     
     let Ix = await changeColorInstruction(
       connection,
+      server,
       wallet,
       base,
       change,

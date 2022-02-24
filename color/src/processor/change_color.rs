@@ -33,7 +33,8 @@ use crate::{
         NeighborhoodFramePointer,
         INACTIVITY_THRESHOLD_OWNER,
         INACTIVITY_THRESHOLD_ARBITRARY,
-        ARBITRARY_CHANGER_FEE,
+        EDIT_FEE,
+        CREATOR_CUT
     },
     processor::processor_utils::{get_neighborhood_xy},
     validation_utils::{assert_is_ata, assert_keys_equal},
@@ -50,6 +51,7 @@ pub fn process(
     let neighborhood_frame_base = next_account_info(account_info_iter)?;
     let neighborhood_frame_pointer = next_account_info(account_info_iter)?;
     let neighborhood_metadata = next_account_info(account_info_iter)?;
+    let neighborhood_creator = next_account_info(account_info_iter)?;
     let space_metadata = next_account_info(account_info_iter)?;
     let owner = next_account_info(account_info_iter)?;
     let space_ata = next_account_info(account_info_iter)?;
@@ -69,8 +71,6 @@ pub fn process(
         try_from_slice_unchecked(&neighborhood_frame_pointer.data.borrow())?;
     let neighborhood_metadata_data: NeighborhoodMetadata =
         try_from_slice_unchecked(&neighborhood_metadata.data.borrow())?;
-    let space_metadata_data: SpaceMetadata =
-        try_from_slice_unchecked(&space_metadata.data.borrow())?;
 
     let (neighborhood_x, neighborhood_y) = get_neighborhood_xy(args.space_x, args.space_y);
     
@@ -108,26 +108,35 @@ pub fn process(
     let key = Pubkey::create_program_address(seeds_neighborhood_metadata, &Pubkey::from_str(SPACE_PID).unwrap())?;
     assert_keys_equal(key, *neighborhood_metadata.key)?;
 
-    // verify space metadata
+    let space_registered: bool = space_metadata.data_len() > 0;
+    
     let seeds_space_metadata = &[
         &base.key.to_bytes(),
         SPACE_METADATA_SEED,
         &args.space_x.to_le_bytes(),
         &args.space_y.to_le_bytes(),
-        &[space_metadata_data.bump],
     ];
-    let key = Pubkey::create_program_address(seeds_space_metadata, &Pubkey::from_str(SPACE_PID).unwrap())?;
+    let (key, _) = Pubkey::find_program_address(seeds_space_metadata, &Pubkey::from_str(SPACE_PID).unwrap());
     assert_keys_equal(key, *space_metadata.key)?;
 
-    // check ATAs
-    assert_is_ata(space_ata, owner.key, &space_metadata_data.mint)?;
+    // verify space metadata and ownership (if space is registered)
+    if space_registered{
+        let space_metadata_data: SpaceMetadata =
+        try_from_slice_unchecked(&space_metadata.data.borrow())?;
 
-    // verify token is owned
-    let space_ata_data = spl_token::state::Account::unpack_from_slice(&space_ata.data.borrow())?;
-    if space_ata_data.amount != 1 {
-        msg!("Error: token account does not own token");
-        return Err(CustomError::MissingTokenOwner.into());
+        // check ATAs
+        assert_is_ata(space_ata, owner.key, &space_metadata_data.mint)?;
+        
+        // verify token is owned
+        let space_ata_data = spl_token::state::Account::unpack_from_slice(&space_ata.data.borrow())?;
+        if space_ata_data.amount != 1 {
+            msg!("Error: token account does not own token");
+            return Err(CustomError::MissingTokenOwner.into());
+        }
     }
+    
+    // check neighborhood creator is passed in correctly
+    assert_keys_equal(neighborhood_metadata_data.creator, *neighborhood_creator.key)?;
     
     // verify frame
     if neighborhood_frame_base_data.length <= args.frame {
@@ -150,37 +159,51 @@ pub fn process(
     let idx_time_start = (8 * n * x_mod + 8 * y_mod) as usize;
     let idx_time_end = idx_time_start + 8;
     let time_thresh = u64::from_le_bytes( time_cluster_data[idx_time_start..idx_time_end].try_into().expect("incorrect") );
-    if (*fee_payer.key != *owner.key) && (time_thresh > now_ts) {
+    if (space_registered && *fee_payer.key != *owner.key) && (time_thresh > now_ts) {
         msg!("Cannot change unowned space's color until inactivity period");
         return Err(ProgramError::IllegalOwner);
     }
     let thresh_add;
-    if *fee_payer.key == *owner.key {
+    if space_registered && *fee_payer.key == *owner.key {
         thresh_add = INACTIVITY_THRESHOLD_OWNER as u64;
     }
     else {
         thresh_add = INACTIVITY_THRESHOLD_ARBITRARY as u64;
-        // transfer fee
-        let fee = ARBITRARY_CHANGER_FEE;
-        invoke(
+        // transfer fees
+        let fee = EDIT_FEE;
+        let creator_cut: u64 = (fee as f64 * CREATOR_CUT) as u64;
+        if space_registered{ // pay owner if Space is registered
+            invoke(
+                &system_instruction::transfer(
+                    fee_payer.key,
+                    owner.key,
+                    fee - creator_cut,
+                ),
+                &[
+                    fee_payer.clone(),
+                    owner.clone(),
+                    system_program.clone(),
+                ],
+            )?;
+        }
+        invoke( // pay portion of fee to neighborhood creator
             &system_instruction::transfer(
                 fee_payer.key,
-                owner.key,
-                fee,
+                neighborhood_creator.key,
+                creator_cut,
             ),
             &[
                 fee_payer.clone(),
-                owner.clone(),
+                neighborhood_creator.clone(),
                 system_program.clone(),
             ],
         )?;
     }
 
-    // let fut_thresh_bytes = u64::to_le_bytes(now_ts + thresh_add);
-    // for i in 0..size_of::<u64>(){
-    //     time_cluster_data[idx_time_start + i] = fut_thresh_bytes[i]; 
-    // }
-
+    let fut_thresh_bytes = u64::to_le_bytes(now_ts + thresh_add);
+    for i in 0..size_of::<u64>(){
+        time_cluster_data[idx_time_start + i] = fut_thresh_bytes[i]; 
+    }
 
     // change color
     let mut frame_data = frame.data.borrow_mut();    

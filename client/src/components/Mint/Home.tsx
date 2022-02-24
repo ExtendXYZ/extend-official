@@ -16,13 +16,14 @@ import { Tooltip } from "antd";
 
 import { sendInstructionsGreedyBatchMint, sendSignedTransaction } from "../../helpersMint/transactions";
 
+import {getVouchersInstruction} from "../../actions";
+
 import {
   awaitTransactionSignatureConfirmation,
   CandyMachine,
   getCandyMachineState,
   getTokenWallet,
   mintOneTokenInstructions,
-  receiveTokenInstructions,
 } from "./candy-machine";
 
 import Reaptcha from 'reaptcha';
@@ -49,7 +50,7 @@ import {
 import { Divider } from "antd";
 
 import { ModalEnum, useModal, useWalletModal } from "../../contexts";
-import { sleep, twoscomplement_i2u, twoscomplement_u2i, bytesToUInt, loading, notify, register_succeed_notify } from "../../utils";
+import { sleep, signedIntToBytes, bytesToSignedInt, bytesToUInt, loading, notify, register_succeed_notify } from "../../utils";
 import { Server } from "../Game/server.js";
 import { Database } from "../Game/database.js";
 import { initSpaceMetadataInstructions, sendInstructionsGreedyBatch } from "../../actions";
@@ -87,6 +88,7 @@ export const Home = (props: HomeProps) => {
   });
 
 
+  // UI state
   const [balance, setBalance] = useState<number>();
   const [isActive, setIsActive] = useState(false); // true when countdown completes
   const [isSoldOut, setIsSoldOut] = useState(true); // true when items remaining is zero
@@ -108,8 +110,6 @@ export const Home = (props: HomeProps) => {
 
   const wallet = useAnchorWallet();
   const [candyMachine, setCandyMachine] = useState<CandyMachine>();
-  const [candyConfig, setCandyConfig] = useState<anchor.web3.PublicKey>();
-  const [candyId, setCandyId] = useState<anchor.web3.PublicKey>();
   const [tokenTransaction, setTokenTransaction] = useState<Transaction>();
   const [isReceivingToken, setIsReceivingToken] = useState(false); // for get tokens button
   const [numTokens, setNumTokens] = useState(1); // num tokens user wants
@@ -117,28 +117,35 @@ export const Home = (props: HomeProps) => {
   const [totalTokens, setTotalTokens] = useState(0);
   const [clicked, setClicked] = useState(false); // if getTokens button is clicked
   const [verified, setVerified] = useState(false);
-
-  const [neighborhoodX, setNeighborhoodX] = useState<Number>(0); // for switching neighborhoods
-  const [neighborhoodY, setNeighborhoodY] = useState<Number>(0);
-  const [currNeighborhood, setCurrNeighborhood] = useState<string>("0,0");
-  const [neighborhoods, setNeighborhoods] = useState<string[]>();
-  const [neighborhoodsToColor, setNeighborhoodsToColor] = useState({});
-  const [nhoodNames, setNhoodNames] = useState<string[]>();
-  const [doneFetching, setDoneFetching] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false); // for register
   const [noMint, setNoMint] = useState(false);
   const [disableMint, setDisableMint] = useState(false); // disable buttons while changing neighborhoods
   const [disableToken, setDisableToken] = useState(false);
-  const [statuses, setStatuses] = useState<string[]>();
 
-  const [isRegistering, setIsRegistering] = useState(false); // for register
+  // neighborhood selection state
+  const [statuses, setStatuses] = useState<string[]>();
+  const [neighborhoods, setNeighborhoods] = useState<string[]>();
+  const [neighborhoodsToColor, setNeighborhoodsToColor] = useState({});
+  const [nhoodNames, setNhoodNames] = useState<string[]>();
+  const [neighborhoodX, setNeighborhoodX] = useState<number>(0); // for switching neighborhoods
+  const [neighborhoodY, setNeighborhoodY] = useState<number>(0);
+  const [doneFetching, setDoneFetching] = useState(false);
+  const [currNeighborhood, setCurrNeighborhood] = useState<string>("0,0"); // for dropdown state
+
+  // current neighborhood state
+  const [candyConfig, setCandyConfig] = useState<anchor.web3.PublicKey>();
+  const [candyId, setCandyId] = useState<anchor.web3.PublicKey>();
+  const [voucherLiveDate, setVoucherLiveDate] = useState<number>(Infinity);
+
+
   const server = new Server();
   const database = new Database();
 
   const captchaRef = useRef<Reaptcha>(null);
 
   const getVoucherMint = async (x, y) => {
-    const n_x = twoscomplement_i2u(x);
-    const n_y = twoscomplement_i2u(y);
+    const n_x = signedIntToBytes(x);
+    const n_y = signedIntToBytes(y);
     return (await anchor.web3.PublicKey.findProgramAddress(
       [
         BASE.toBuffer(),
@@ -151,8 +158,8 @@ export const Home = (props: HomeProps) => {
   }
 
   const getVoucherSink = async (x, y) => {
-    const n_x = twoscomplement_i2u(x);
-    const n_y = twoscomplement_i2u(y);
+    const n_x = signedIntToBytes(x);
+    const n_y = signedIntToBytes(y);
     return (await anchor.web3.PublicKey.findProgramAddress(
       [
         BASE.toBuffer(),
@@ -165,8 +172,8 @@ export const Home = (props: HomeProps) => {
   }
 
   const getNeighborhoodMetadata = async (x, y) => {
-    const n_x = twoscomplement_i2u(x);
-    const n_y = twoscomplement_i2u(y);
+    const n_x = signedIntToBytes(x);
+    const n_y = signedIntToBytes(y);
     return (await anchor.web3.PublicKey.findProgramAddress(
       [
         BASE.toBuffer(),
@@ -364,6 +371,7 @@ export const Home = (props: HomeProps) => {
     if (!wallet || !tokenTransaction) {
       return;
     }
+    loading(null, "sending transaction", null);
     try {
       setIsReceivingToken(true);
       setClicked(false);
@@ -375,7 +383,6 @@ export const Home = (props: HomeProps) => {
         return false;
       }
 
-      loading(null, "sending transaction", null);
       try {
         var { txid } = await sendSignedTransaction({
           connection,
@@ -432,6 +439,7 @@ export const Home = (props: HomeProps) => {
       await sleep(2000);
       refreshVoucherSystemState();
     }
+    //TODO: fix issue where loading doesn't go away when transaction fails
     loading(null, "sending transaction", "success");
   };
 
@@ -452,21 +460,22 @@ export const Home = (props: HomeProps) => {
 
       const price = getPrice(numTokens) * Math.pow(10, 9);
 
-      let nbd = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
-      let account = await props.connection.getAccountInfo(nbd);
-      if (!account) {
-        return;
-      }
-      let creator = new PublicKey(account.data.slice(1, 33));
+      // let nbd = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
+      // let account = await props.connection.getAccountInfo(nbd);
+      // if (!account) {
+      //   return;
+      // }
+      // let creator = new PublicKey(account.data.slice(1, 33));
 
-      const tokenInstructions = await receiveTokenInstructions(
+      const tokenInstructions = await getVouchersInstruction(
         connection,
-        wallet as anchor.Wallet,
-        creator,
-        VOUCHER_MINT_AUTH,
-        voucherMint,
-        price,
+        new Server(),
+        wallet,
+        BASE,
+        neighborhoodX,
+        neighborhoodY,
         numTokens,
+        price,
       );
 
       let tokenTransaction = new Transaction();
@@ -533,8 +542,8 @@ export const Home = (props: HomeProps) => {
 
     for (const p of ownedSpacesArray) {
       const pos = JSON.parse(p);
-      const space_x = twoscomplement_i2u(pos.x);
-      const space_y = twoscomplement_i2u(pos.y);
+      const space_x = signedIntToBytes(pos.x);
+      const space_y = signedIntToBytes(pos.y);
       const spaceAcc = (await PublicKey.findProgramAddress(
         [
           BASE.toBuffer(),
@@ -703,8 +712,8 @@ export const Home = (props: HomeProps) => {
       for (let i = 0; i < len; i++) {
         let x, y;
         try {
-          x = twoscomplement_u2i(activeNeighborhoods.slice(i * 8 + preBuffer, (i + 1) * 8 + preBuffer));
-          y = twoscomplement_u2i(activeNeighborhoods.slice((len + i) * 8 + preBuffer + 4, (len + i + 1) * 8 + preBuffer + 4));
+          x = bytesToSignedInt(activeNeighborhoods.slice(i * 8 + preBuffer, (i + 1) * 8 + preBuffer));
+          y = bytesToSignedInt(activeNeighborhoods.slice((len + i) * 8 + preBuffer + 4, (len + i + 1) * 8 + preBuffer + 4));
         } catch (e) {
           // console.log(e)
           return;
@@ -793,11 +802,14 @@ export const Home = (props: HomeProps) => {
       setClicked(false);
       if (neighborhoodX !== null && neighborhoodY !== null) {
         const nhoodAcc = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
-        const account = await props.connection.getAccountInfo(nhoodAcc);
+        const account = await server.getNeighborhoodMetadata(props.connection, neighborhoodX, neighborhoodY);
         if (account) {
-          setCandyConfig(new anchor.web3.PublicKey(account.data.slice(33, 65)));
-          setCandyId(new anchor.web3.PublicKey(account.data.slice(65, 97)));
+          setCandyConfig(account.candymachineConfig);
+          setCandyId(account.candymachineID);
+          setVoucherLiveDate(account.voucherLiveDate);
+          console.log(account.candymachineID);
         }
+
         setDoneFetching(true);
       }
     }
@@ -878,6 +890,7 @@ export const Home = (props: HomeProps) => {
   const canvasSize = Math.min(window.innerHeight * 0.7, window.innerWidth * 0.4);
   const ratio = canvasSize / 1000;
 
+  let now = Date.now() / 1000;
   return (
     //<div id="home" style={{display: "flex", flexDirection: "row", position: "absolute", top: "10%", bottom: 0, left: 0, right: 0, overflow: "auto"}}>
     <div id="home" style={{display: "flex", height: 0.9 * window.innerHeight, overflow: "auto"}}>
@@ -955,7 +968,7 @@ export const Home = (props: HomeProps) => {
             <div>
               
               
-              {wallet && !MINT_NOT_READY_NBDS.has(`(${neighborhoodX},${neighborhoodY})`) ? (
+              {wallet && voucherLiveDate <= now ? (
               <div>
               <h3 style={{color: "#B687D8", display: "inline-block"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>
               <Tooltip title="Enter the number of Space vouchers (max 100) you want and solve the captcha to receive them! Receiving more vouchers at a time will cost more SOL." placement="right">
@@ -970,7 +983,7 @@ export const Home = (props: HomeProps) => {
               }
               <MintContainer>
                 <div>
-                  {wallet && !MINT_NOT_READY_NBDS.has(`(${neighborhoodX},${neighborhoodY})`)  ? (
+                  {wallet && voucherLiveDate <= now ? (
                     <div>
                       <TextField
                         required

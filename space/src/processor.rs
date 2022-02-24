@@ -8,8 +8,7 @@ use crate::{
     instruction::{
         AcceptOfferArgs, ChangeOfferArgs, SpaceInstruction, InitBaseArgs,
         InitSpaceMetadataArgs, InitNeighborhoodMetadataArgs, RevokeAuthorityPrivilegesArgs,
-        InitVoucherSystemArgs, UpdateAuthorityArgs,
-        TempAddxyArgs, ChangeNeighborhoodNameArgs // elim
+        InitVoucherSystemArgs, UpdateAuthorityArgs, ChangeNeighborhoodNameArgs, GetVouchersArgs
     },
 };
 
@@ -21,8 +20,9 @@ pub mod accept_offer;
 pub mod init_voucher_system;
 pub mod revoke_authority_privileges;
 pub mod update_authority;
-pub mod temp_add_xy; // elim
 pub mod change_nbdhoodname; // elim
+pub mod get_vouchers;
+// pub mod temp_add_xy; // elim
 
 pub mod processor_utils;
 
@@ -78,20 +78,21 @@ impl Processor {
                 msg!("Instruction: update authority");
                 update_authority::process(program_id, accounts, &args)
             }
-
-            
-            SpaceInstruction::ChangeNeighborhoodName => { // elim
-                let args = ChangeNeighborhoodNameArgs::try_from_slice(rest)?; // elim
-                msg!("TEMP INSTRUCTION: ADD DAT NEIGHBORHOOD NAME"); // elim
-                change_nbdhoodname::process(program_id, accounts, &args) // elim
+            SpaceInstruction::ChangeNeighborhoodName => {
+                let args = ChangeNeighborhoodNameArgs::try_from_slice(rest)?;
+                msg!("Instruction: change neighborhood name");
+                change_nbdhoodname::process(program_id, accounts, &args)
             }
-            SpaceInstruction::TempAddxy => { // elim
-                let args = TempAddxyArgs::try_from_slice(rest)?; // elim
-                msg!("TEMP INSTRUCTION: ADD THEM XYs"); // elim
-                temp_add_xy::process(program_id, accounts, &args) // elim
+            SpaceInstruction::GetVouchers => {
+                let args = GetVouchersArgs::try_from_slice(rest)?;
+                msg!("Instruction: change get vouchers");
+                get_vouchers::process(program_id, accounts, &args)
             }
-
-            
+            // SpaceInstruction::TempAddxy => { // elim
+            //     let args = TempAddxyArgs::try_from_slice(rest)?; // elim
+            //     msg!("TEMP INSTRUCTION: ADD THEM XYs"); // elim
+            //     temp_add_xy::process(program_id, accounts, &args) // elim
+            // }
         }
     }
 }

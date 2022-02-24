@@ -28,21 +28,25 @@ import { CopyOutlined } from "@ant-design/icons";
 import CancelIcon from "@mui/icons-material/Cancel";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import VisibilityIcon from "@mui/icons-material/Visibility"
-import { twoscomplement_i2u } from "../../utils/borsh";
+import { signedIntToBytes } from "../../utils/borsh";
 
 import { LoadingScreen } from './loading_screen.js';
 import { Board } from './canvas.js';
 import { FocusSidebar } from './focus_sidebar.js';
 import { SelectingSidebar } from './selecting_sidebar.js';
 import { NeighborhoodSidebar } from './neighborhood_sidebar.js';
-import { solToLamports, lamportsToSol, xor, priceToColor, sleep} from "../../utils";
+import { solToLamports, lamportsToSol, intersection, xor, priceToColor, sleep} from "../../utils";
 import {loading} from '../../utils/loading';
+import { ReloadOutlined } from "@ant-design/icons";
+
 import Search from "antd/es/input/Search";
 
 const SIDE_NAV_WIDTH = 400;
 const FETCH_COLORS_INTERVAL = 10 * 1000;
+const FETCH_TIMES_INTERVAL = 30 * 1000;
 const FETCH_NAMES_INTERVAL = 60 * 1000;
 const FETCH_PRICES_INTERVAL = 20 * 1000;
+const FETCH_EDITABLE_INTERVAL = 10 * 1000;
 const ANIMATION_INTERVAL = 300;
 
 export const getBounds = (spaces) => {
@@ -76,10 +80,11 @@ export class Game extends React.Component {
         super(props);
         this.intervalFetchColors = 0;
         this.intervalFetchNeighborhoodNames = 0;
-        this.intervalFetchPrices = 0;
+        this.intervalFetchPriceView = 0;
         this.intervalChangeFrame = 0;
+        this.intervalFetchEditableTimes = 0;
         this.state = {
-            neighborhood_colors: {},
+            neighborhoodColors: {},
             showNav: false,
             focus: {
                 focus: false,
@@ -115,6 +120,9 @@ export class Game extends React.Component {
                 purchasableInfo: [],
                 purchasable: new Set(),
                 owners: {},
+                mints: {},
+                editable: new Set(),
+                totalEditable: new Set(),
                 totalPrice: null,
                 // rentPrice: null,
                 // loadingRentStatus: 0,
@@ -137,8 +145,8 @@ export class Game extends React.Component {
             findingSpaces: false,
             refreshingUserSpaces: false,
             colorApplyAll: false,
-            anims: false,
-            animsInfoLoaded: true,
+            animations: false,
+            animationsInfoLoaded: true,
             floor: false,
             frame: 0,
             maxFrame: 1,
@@ -152,17 +160,19 @@ export class Game extends React.Component {
             messageMenuAnchorEl: null,
             inputMessage: false,
             outputMessage: false,
+            view: 0,
         };
 
         this.viewport = {
-            neighborhood_start: [-1, -1], // inclusive
-            neighborhood_end: [2, 2], // exclusive
-            neighborhood_colors: {},
-            neighborhood_colors_all_frames: {},
-            neighborhood_censors: {},
-            neighborhood_names: {},
-            neighborhood_prices: {},
-            view: 0,
+            neighborhoodsStart: [-1, -1], // inclusive
+            neighborhoodsEnd: [2, 2], // exclusive
+            neighborhoodColors: {},
+            neighborhoodColorsAllFrames: {},
+            neighborhoodCensors: {},
+            neighborhoodNames: {},
+            neighborhoodPriceView: {},
+            neighborhoodEditableView: {},
+            neighborhoodEditableTimes: {},
         };
         this.censors = {};
         this.board = React.createRef();
@@ -170,10 +180,11 @@ export class Game extends React.Component {
         this.mobile = window.innerWidth < 500;
     }
 
+
     // gets neighborhoods in viewport with neighborhood metadata created
     getViewportNeighborhoods = async() => {
-        const start = this.viewport.neighborhood_start;
-        const end = this.viewport.neighborhood_end;
+        const start = this.viewport.neighborhoodsStart;
+        const end = this.viewport.neighborhoodsEnd;
         let neighborhoods = [];
 
         for (let n_x = start[0]; n_x < end[0]; n_x++) {
@@ -181,21 +192,11 @@ export class Game extends React.Component {
                 neighborhoods.push({ n_x, n_y });
             }
         }
-        return this.props.server.filterExistingNeighborhoods(this.props.connection, neighborhoods);
-    }
-
-    fetch_censors = (frame, {n_x, n_y}) => {
-        const key = `${n_x}, ${n_y}`;
-        if (key in this.censors) {
-            if (frame in this.censors[key]) {
-                return this.censors[key][frame];
-            }
-        }
-        return [];
+        return await this.props.server.filterExistingNeighborhoods(this.props.connection, neighborhoods);
     }
 
     // pull color data for a specific frame into viewport
-    fetch_colors = async (frame) => {
+    fetchColors = async (frame) => {
         const connection = this.props.connection;
         const neighborhoods = await this.getViewportNeighborhoods();
 
@@ -211,13 +212,13 @@ export class Game extends React.Component {
             this.props.connection,
             frameKeys
         );
-        const tmp_neighborhood_colors = {};
+        const tmpNeighborhoodColors = {};
         let newMax = this.state.maxFrame;
         await Promise.all(
             frameInfos.map(async (value, i) => {
                 let { n_x, n_y } = value;
                 let key = JSON.stringify({ n_x, n_y });
-                tmp_neighborhood_colors[key] = await this.props.server.getFrameData(
+                tmpNeighborhoodColors[key] = await this.props.server.getFrameData(
                     frameDatas[i]
                 );
                 const newNumFrames = await this.props.server.getNumFrames(
@@ -228,19 +229,18 @@ export class Game extends React.Component {
                 newMax = newNumFrames > newMax ? newNumFrames : newMax;
             })
         );
-        this.viewport.neighborhood_colors = tmp_neighborhood_colors;
-        const tmp_neighborhood_censors = {};
+        this.viewport.neighborhoodColors = tmpNeighborhoodColors;
+        const tmpNeighborhoodCensors = {};
         neighborhoods.forEach(value => {
-            tmp_neighborhood_censors[JSON.stringify(value)] = this.fetch_censors(frame, value);
+            tmpNeighborhoodCensors[JSON.stringify(value)] = this.fetchCensors(frame, value);
         })
-        this.viewport.neighborhood_censors = tmp_neighborhood_censors;
+        this.viewport.neighborhoodCensors = tmpNeighborhoodCensors;
         
         this.setState({ maxFrame: newMax });
-        return frameKeys;
     }
 
     // pull all color data into viewport
-    fetch_colors_all_frames = async () => {
+    fetchColorsAllFrames = async () => {
         const connection = this.props.connection;
 
         const neighborhoods = await this.getViewportNeighborhoods();
@@ -258,17 +258,17 @@ export class Game extends React.Component {
         );
 
         let newMax = this.state.maxFrame;
-        this.viewport.neighborhood_colors_all_frames = {};
+        let tmpNeighborhoodColorsAllFrames = {}
         for (let i = 0; i < frameDatas.length; i++) {
             let { n_x, n_y, frame } = frameInfos[i];
             let key = JSON.stringify({ n_x, n_y });
             let n_frames = numFramesMap[key];
             newMax = n_frames > newMax ? n_frames : newMax;
 
-            if (!(key in this.viewport.neighborhood_colors_all_frames)) {
-                this.viewport.neighborhood_colors_all_frames[key] = [];
+            if (!(key in tmpNeighborhoodColorsAllFrames)) {
+                tmpNeighborhoodColorsAllFrames[key] = [];
                 for (let k = 0; k < n_frames; k++) {
-                    this.viewport.neighborhood_colors_all_frames[key].push(
+                    tmpNeighborhoodColorsAllFrames[key].push(
                         Array.from({ length: NEIGHBORHOOD_SIZE }, () =>
                             new Array(NEIGHBORHOOD_SIZE).fill(null)
                         )
@@ -276,15 +276,17 @@ export class Game extends React.Component {
                 }
             }
 
-            this.viewport.neighborhood_colors_all_frames[key][frame] =
+            tmpNeighborhoodColorsAllFrames[key][frame] =
                 await this.props.server.getFrameData(frameDatas[i]);
         }
+        this.viewport.neighborhoodColorsAllFrames = tmpNeighborhoodColorsAllFrames;
 
         this.setState({ maxFrame: newMax });
-        return frameKeys;
     }
 
-    fetch_neighborhood_names = async() => {
+    fetchNeighborhoodNames = async() => {
+        const connection = this.props.connection;
+
         const neighborhoods = await this.getViewportNeighborhoods();
         
         const neighborhood_accounts = await Promise.all(
@@ -293,8 +295,8 @@ export class Game extends React.Component {
                 const n_meta = await PublicKey.findProgramAddress([
                     BASE.toBuffer(),
                     Buffer.from(NEIGHBORHOOD_METADATA_SEED),
-                    Buffer.from(twoscomplement_i2u(n_x)),
-                    Buffer.from(twoscomplement_i2u(n_y)),
+                    Buffer.from(signedIntToBytes(n_x)),
+                    Buffer.from(signedIntToBytes(n_y)),
                 ], SPACE_PROGRAM_ID
                 );
                 return n_meta[0];
@@ -307,12 +309,12 @@ export class Game extends React.Component {
             let key = JSON.stringify({ n_x, n_y });
             if (account) {
                 const name = Buffer.from(account.data.slice(97, 97 + 64)).toString('utf-8');
-                this.viewport.neighborhood_names[key] = name.replaceAll("\x00", " ").trim();
+                this.viewport.neighborhoodNames[key] = name.replaceAll("\x00", " ").trim();
             }
         }
     }
 
-    fetch_neighborhood_prices = async() => {
+    fetchPriceView = async() => {
         const neighborhoods = await this.getViewportNeighborhoods();
         let poses = new Set();
         for(let {n_x, n_y} of neighborhoods){ // loop through all spaces
@@ -334,32 +336,105 @@ export class Game extends React.Component {
             let color = `#${priceToColor(price)}`;
             colorMap[JSON.stringify({x, y})] = color;
         }
-        this.viewport.neighborhood_prices = {};
-        for(let {n_x, n_y} of neighborhoods){ // loop through all spaces
-            let data = Array.from({ length: NEIGHBORHOOD_SIZE }, () => new Array(NEIGHBORHOOD_SIZE).fill(null));
-            for(let x = n_x * NEIGHBORHOOD_SIZE; x < (n_x + 1) * NEIGHBORHOOD_SIZE; x++){
-                for(let y = n_y * NEIGHBORHOOD_SIZE; y < (n_y + 1) * NEIGHBORHOOD_SIZE; y++){
-                    let key = JSON.stringify({x, y});
-                    let x_relative = x - n_x * NEIGHBORHOOD_SIZE;
-                    let y_relative = y - n_y * NEIGHBORHOOD_SIZE;
-                    if (key in colorMap){
-                        data[y_relative][x_relative] = colorMap[key];
+        let tmpNeighborhoodPriceView = {};
+        await Promise.all(
+            neighborhoods.map(async (value) => {
+                let {n_x, n_y} = value;
+                for(let {n_x, n_y} of neighborhoods){ // loop through all spaces
+                    let colors = Array.from({ length: NEIGHBORHOOD_SIZE }, () => new Array(NEIGHBORHOOD_SIZE).fill(null));
+                    for(let x = n_x * NEIGHBORHOOD_SIZE; x < (n_x + 1) * NEIGHBORHOOD_SIZE; x++){
+                        for(let y = n_y * NEIGHBORHOOD_SIZE; y < (n_y + 1) * NEIGHBORHOOD_SIZE; y++){
+                            let key = JSON.stringify({x, y});
+                            let x_relative = x - n_x * NEIGHBORHOOD_SIZE;
+                            let y_relative = y - n_y * NEIGHBORHOOD_SIZE;
+                            if (key in colorMap){
+                                colors[y_relative][x_relative] = colorMap[key];
+                            }
+                            else{
+                                colors[y_relative][x_relative] = "#000000" // black
+                            }
+                        }
                     }
-                    else{
-                        data[y_relative][x_relative] = "#000000" // black
-                    }
+                    let key = JSON.stringify({n_x, n_y});
+                    tmpNeighborhoodPriceView[key] = colors;
                 }
-            }
-            let key = JSON.stringify({n_x, n_y});
-            this.viewport.neighborhood_prices[key] = data;
-        }
+            })
+        )
+        
+        this.viewport.neighborhoodPriceView = tmpNeighborhoodPriceView;
+    }
+  
+    fetchEditableTimes = async() => {
+        const connection = this.props.connection;
+
+        let neighborhoods = Object.keys(this.viewport.neighborhoodColors).map(x => JSON.parse(x));
+
+        const keyMap = await this.props.server.getEditableTimeClusterKeys(
+            connection,
+            neighborhoods,
+        );
+        neighborhoods = Object.keys(keyMap).map(x => JSON.parse(x));
+        const editableClusterKeys = Object.values(keyMap);
+
+        const editableClusterDatas = await this.props.server.batchGetMultipleAccountsInfo(
+            this.props.connection,
+            editableClusterKeys
+        );
+        // let tmpNeighborhoodEditableView = {};
+        this.viewport.neighborhoodEditableTimes = {};
+        let newMax = this.state.maxFrame;
+        let now = Date.now() / 1000;
+        const neighborhood_accounts = await Promise.all(
+            neighborhoods.map(async (value, i) => {
+                let { n_x, n_y } = value;
+                let nhash = JSON.stringify({n_x, n_y});
+                let editableTimes = await this.props.server.getEditableTimeData(
+                    editableClusterDatas[i]
+                );
+                this.viewport.neighborhoodEditableTimes[nhash] = editableTimes;
+                // let editableColors = Array.from({ length: NEIGHBORHOOD_SIZE }, () => new Array(NEIGHBORHOOD_SIZE).fill(null));
+                // for(let x = n_x * NEIGHBORHOOD_SIZE; x < (n_x + 1) * NEIGHBORHOOD_SIZE; x++){
+                //     for(let y = n_y * NEIGHBORHOOD_SIZE; y < (n_y + 1) * NEIGHBORHOOD_SIZE; y++){
+                //         let x_relative = x - n_x * NEIGHBORHOOD_SIZE;
+                //         let y_relative = y - n_y * NEIGHBORHOOD_SIZE;
+                //         let color = this.viewport.neighborhoodColors[nhash][y_relative][x_relative];
+                //         editableColors[y_relative][x_relative] = (now > editableTimes[nhash][y_relative][x_relative] ? color : "gray");
+                //     }
+                // }
+                // tmpNeighborhoodEditableView[nhash] = editableColors;
+            })
+        );
+        // console.log(this.viewport.neighborhoodEditableTimes);
+        // this.viewport.neighborhoodEditableView = tmpNeighborhoodEditableView;
     }
 
-    fetch_censors_all_frames = async() => {
+    fetchCensors = (frame, {n_x, n_y}) => {
+        const key = `${n_x}, ${n_y}`;
+        if (key in this.censors) {
+            if (frame in this.censors[key]) {
+                return this.censors[key][frame];
+            }
+        }
+        return [];
+    }
+
+    fetchCensorsAllFrames = async() => {
         const censor_url = "https://extendxyz.github.io/extend-censorship/censor_" + 
             (RPC?.includes("mainnet") ? "mainnet" : "devnet") + ".json";
         const response = await fetch(censor_url);
         this.censors = await response.json();
+    }
+
+    reloadViews = async() => {
+        loading(null, "refreshing", null);
+        await Promise.all([
+            this.state.animations ? this.fetchColorsAllFrames() : this.fetchColors(this.state.frame),
+            this.fetchNeighborhoodNames(),
+            this.fetchPriceView(),
+            this.fetchCensorsAllFrames(),
+        ]);
+        await this.fetchEditableTimes(); // not parallel because depends on colors
+        loading(null, "refreshing", "success");
     }
 
     // updateAccount = async (account) => {
@@ -379,39 +454,35 @@ export class Game extends React.Component {
 
     //         let key = JSON.stringify({ n_x: nx_int, n_y: ny_int });
 
-    //         this.viewport.neighborhood_colors[key] = await this.props.server.getFrameData(
+    //         this.viewport.neighborhoodColors[key] = await this.props.server.getFrameData(
     //             account
     //         );
-    //     }t
+    //     }
     // }
 
     async componentDidMount() {
-        await Promise.all([
-            this.fetch_colors(this.state.frame),
-            this.fetch_neighborhood_names(this.state.frame),
-            this.fetch_neighborhood_prices(),
-            this.fetch_censors_all_frames()
-        ]);
+        await this.reloadViews();
+
         this.setState({
             initialFetchStatus: 1,
         });
 
-        // setInterval for requerying from chain regularly
-        this.intervalFetchColors = setInterval(async () => {
-            if (!document.hidden){
-                await this.fetch_colors(this.state.frame);
-            }
-        }, FETCH_COLORS_INTERVAL);
         this.intervalFetchNeighborhoodNames = setInterval(async () => {
             if (!document.hidden){
-                await this.fetch_neighborhood_names();
+                await this.fetchNeighborhoodNames();
             }
         }, FETCH_NAMES_INTERVAL);
-        this.intervalFetchPrices = setInterval(async () => {
+        this.intervalFetchColors = setInterval(async () => {
             if (!document.hidden){
-                await this.fetch_neighborhood_prices();
+                await this.fetchColors(this.state.frame);
             }
-        }, FETCH_PRICES_INTERVAL);
+        }, FETCH_COLORS_INTERVAL);
+        this.intervalFetchEditableTimes = setInterval(async () => {
+            if (!document.hidden){
+                await this.fetchEditableTimes();
+            }
+        }, FETCH_EDITABLE_INTERVAL);
+        this.setColorView();
         
         if ("address" in this.props.locator) {
             try {
@@ -489,7 +560,8 @@ export class Game extends React.Component {
         clearInterval(this.intervalFetchColors);
         clearInterval(this.intervalFetchNeighborhoodNames);
         clearInterval(this.intervalChangeFrame);
-        clearInterval(this.intervalFetchPrices);
+        clearInterval(this.intervalFetchPriceView);
+        clearInterval(this.intervalFetchEditableTimes);
     }
 
     closeSideNav = () => {
@@ -505,9 +577,6 @@ export class Game extends React.Component {
             mint: this.state.focus.mint,
             owner: this.state.focus.owner,
         });
-        notify({
-            message: "Changing color...",
-        });
     }
 
     changeColors = () => {
@@ -515,11 +584,55 @@ export class Game extends React.Component {
             color: this.state.selecting.color,
             spaces: this.state.selecting.poses,
             frame: this.state.colorApplyAll ? -1 : this.state.frame,
+            mints: this.state.selecting.mints,
+            editable: this.state.selecting.totalEditable,
             owners: this.state.selecting.owners,
         });
-        notify({
-            message: "Changing colors...",
-        });
+    }
+
+    makeEditableColor = (e) => {
+        let checked = e.target.checked;
+
+        if (checked) {
+            this.props.setMakeEditableColorTrigger({
+                x: this.state.focus.x,
+                y: this.state.focus.y,
+                mint: this.state.focus.mint,
+                editable: true,
+            });
+            notify({
+                message: "Making editable...",
+            });
+        } // nothing for uncheck case for now
+    }
+
+    makeEditableColors = (e) => {
+        let checked = e.target.checked;
+
+        if (checked) {
+            const poses = this.state.selecting.poses;
+            const editable = this.state.selecting.editable;
+            const spaces = new Set();
+            for(let pose of poses) {
+                if(this.props.ownedSpaces.has(pose) && !editable.has(pose)) { // if you own the space and it is not editable
+                    spaces.add(pose);
+                }
+            }
+            this.props.setMakeEditableColorsTrigger({
+                spaces: spaces,
+                mints: this.state.selecting.mints,
+                editable: true,
+            });
+            notify({
+                message: "Making editable...",
+            });
+        } // nothing for uncheck case for now
+    }
+
+    selectOwnedSpaces = () => {
+        const ownedSelection = intersection(this.props.ownedSpaces, this.state.selecting.poses)
+        this.resetSelecting();
+        this.setSelecting(ownedSelection);
     }
 
     uploadImage = () => {
@@ -578,10 +691,9 @@ export class Game extends React.Component {
                         init_x: bounds.left,
                         init_y: bounds.top,
                         frame: this.state.colorApplyAll === "true" ? -1 : this.state.frame,
+                        mints: this.state.selecting.mints,
+                        editable: this.state.selecting.totalEditable,
                         owners: this.state.selecting.owners,
-                    });
-                    notify({
-                        message: "Uploading image...",
                     });
                 }.bind(this);
 
@@ -643,6 +755,8 @@ export class Game extends React.Component {
                         spaces: this.state.selecting.poses,
                         init_x: bounds.left,
                         init_y: bounds.top,
+                        mints: this.state.selecting.mints,
+                        editable: this.state.selecting.totalEditable,
                         owners: this.state.selecting.owners,
                     });
                     notify({
@@ -1278,7 +1392,7 @@ export class Game extends React.Component {
         loading(null, "Getting your listings", "success");
     }
 
-    addNewFrame = async () => {
+    handleAddNewFrame = async () => {
         const n_x = this.state.neighborhood.n_x;
         const n_y = this.state.neighborhood.n_y;
         this.props.setNewFrameTrigger({ n_x: n_x, n_y: n_y });
@@ -1287,8 +1401,8 @@ export class Game extends React.Component {
         });
     }
 
-    expand = (neighborhood) => {
-        this.props.setNewNeighborhoodTrigger(neighborhood);
+    expand = (trigger) => {
+        this.props.setNewNeighborhoodTrigger(trigger);
         notify({
             message: "Initializing new Neighborhood...",
         });
@@ -1418,20 +1532,28 @@ export class Game extends React.Component {
         );
     }
 
+    resetViews = () => { // call when switching between views
+        this.setState({
+            animations: false
+        });
+        clearInterval(this.intervalChangeFrame);
+        clearInterval(this.intervalFetchPrices);
+    }
+
     handleChangeAnims = async (e) => {
-        let anims = e.target.checked;
+        let animations = e.target.checked;
 
         this.setState({
-            anims: anims,
-            animsInfoLoaded: false
+            animations: animations,
+            animationsInfoLoaded: false
         });
 
         let k = this.state.frame;
 
-        if (anims) {
+        if (animations) {
             clearInterval(this.intervalFetchColors);
             loading(null, "Loading frames", null);
-            await this.fetch_colors_all_frames();
+            await this.fetchColorsAllFrames();
             loading(null, "Loading frames", "success");
             const neighborhoods = await this.getViewportNeighborhoods();
             this.intervalChangeFrame = setInterval(() => {
@@ -1440,12 +1562,12 @@ export class Game extends React.Component {
                 }
                 neighborhoods.forEach((value) => {
                     const key = JSON.stringify(value);
-                    if (key in this.viewport.neighborhood_colors_all_frames) {
-                        const datalen = this.viewport.neighborhood_colors_all_frames[key].length;
+                    if (key in this.viewport.neighborhoodColorsAllFrames) {
+                        const datalen = this.viewport.neighborhoodColorsAllFrames[key].length;
                         const frame = k % datalen;
-                        this.viewport.neighborhood_colors[key] =
-                            this.viewport.neighborhood_colors_all_frames[key][frame];
-                        this.viewport.neighborhood_censors[key] = this.fetch_censors(frame, value);
+                        this.viewport.neighborhoodColors[key] =
+                            this.viewport.neighborhoodColorsAllFrames[key][frame];
+                        this.viewport.neighborhoodCensors[key] = this.fetchCensors(frame, value);
                     }
                 });
                 requestAnimationFrame(() => {
@@ -1455,7 +1577,7 @@ export class Game extends React.Component {
             }, ANIMATION_INTERVAL);
         } else {
             clearInterval(this.intervalChangeFrame);
-            await this.fetch_colors(this.state.frame);
+            await this.fetchColors(this.state.frame);
             requestAnimationFrame(() => {
                 this.board.current.resetCanvas();
                 this.board.current.drawCanvas();
@@ -1464,12 +1586,12 @@ export class Game extends React.Component {
                 if (document.hidden){
                     return;
                 }
-                await this.fetch_colors(this.state.frame);
+                await this.fetchColors(this.state.frame);
             }, FETCH_COLORS_INTERVAL);
         }
         this.setState({
-            anims: anims,
-            animsInfoLoaded: true
+            animations: animations,
+            animationsInfoLoaded: true
         });
     }
 
@@ -1484,7 +1606,7 @@ export class Game extends React.Component {
 
     handleChangeFrame = async (e) => {
         loading(null, "Loading frame", null);
-        await this.fetch_colors(e.target.value);
+        await this.fetchColors(e.target.value);
         loading(null, "Loading frame", "success");
         const x = this.state.focus.x;
         const y = this.state.focus.y;
@@ -1500,8 +1622,8 @@ export class Game extends React.Component {
             focus: {
                 ...this.state.focus,
                 color:
-                    key in this.viewport.neighborhood_colors
-                        ? this.viewport.neighborhood_colors[key][p_y][p_x]
+                    key in this.viewport.neighborhoodColors
+                        ? this.viewport.neighborhoodColors[key][p_y][p_x]
                         : 0,
             },
         });
@@ -1621,6 +1743,9 @@ export class Game extends React.Component {
                 purchasableInfo: [],
                 purchasable: new Set(),
                 owners: {},
+                mints: {},
+                editable: new Set(),
+                totalEditable: new Set(),
                 totalPrice: null,
                 rentPrice: null,
                 // loadingRentStatus: 0,
@@ -1690,8 +1815,8 @@ export class Game extends React.Component {
         let p_x = ((x % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
         let neighborhood_name = "";
         let key = JSON.stringify({ n_x, n_y });
-        if (key in this.viewport.neighborhood_names) {
-            neighborhood_name = this.viewport.neighborhood_names[key];
+        if (key in this.viewport.neighborhoodNames) {
+            neighborhood_name = this.viewport.neighborhoodNames[key];
         }
 
         if (!this.state.focus.focus || this.state.focus.x !== x || this.state.focus.y !== y) { // sidebar changed
@@ -1703,9 +1828,13 @@ export class Game extends React.Component {
             focus: {
                 ...this.state.focus,
                 color:
-                    key in this.viewport.neighborhood_colors
-                        ? this.viewport.neighborhood_colors[key][p_y][p_x]
+                    key in this.viewport.neighborhoodColors
+                        ? this.viewport.neighborhoodColors[key][p_y][p_x]
                         : "#000000",
+                time:
+                    key in this.viewport.neighborhoodEditableTimes
+                        ? this.viewport.neighborhoodEditableTimes[key][p_y][p_x]
+                        : Infinity,
                 owned: owned,
                 infoLoaded: true,
                 neighborhood_name: neighborhood_name,
@@ -1762,6 +1891,25 @@ export class Game extends React.Component {
             this.setState({showNav: false});
         } else {
 
+            const newPoses = [...poses]; // get editable spaces
+            const editable = new Set();
+            const totalEditable = new Set();
+            for(let pose of newPoses) {
+                let pos = JSON.parse(pose);
+                let n_x = Math.floor(pos.x / NEIGHBORHOOD_SIZE);
+                let n_y = Math.floor(pos.y / NEIGHBORHOOD_SIZE);
+                let key = JSON.stringify({n_x, n_y});
+                let p_x = ((pos.x % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                let p_y = ((pos.y % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                if (key in this.viewport.neighborhoodEditableTimes && this.viewport.neighborhoodEditableTimes[key][p_y][p_x] < (Date.now() / 1000)) {
+                    totalEditable.add(pose);
+                    editable.add(pose);
+                }
+                if(this.props.ownedSpaces.has(pose)) {
+                    totalEditable.add(pose);
+                }
+            }
+
             this.setState({
                 showNav: true,
                 selecting: {
@@ -1775,6 +1923,9 @@ export class Game extends React.Component {
                     purchasableInfo: [],
                     purchasable: new Set(),
                     owners: {},
+                    mints: {},
+                    editable: editable,
+                    totalEditable: totalEditable,
                     totalPrice: null,
                     floorM: 1,
                     floorN: 1,
@@ -1783,15 +1934,32 @@ export class Game extends React.Component {
 
             let purchasableInfoAll;
             let owners;
+            let mints;
             try{
                 const selectedInfo = await this.props.database.getSelectedInfo(this.props.user, poses);
                 purchasableInfoAll = selectedInfo.purchasableInfo;
                 owners = selectedInfo.owners;
+                mints = selectedInfo.mints;
             } catch(e){
                 console.error(e);
                 purchasableInfoAll = [];
                 owners = {};
+                mints = {};
             }
+
+            // take out the spaces without owners (unregistered)
+            // const newEditable = new Set();
+            // for (let pose of editable) {
+            //     if(pose in owners) {
+            //         newEditable.add(pose);
+            //     }
+            // }
+            // const newTotalEditable = new Set();
+            // for (let pose of totalEditable) {
+            //     if(pose in owners) {
+            //         newTotalEditable.add(pose);
+            //     }
+            // }
 
             // TODO: use better check to tell if selection changed
             if (this.state.selecting.poses.size !== poses.size){
@@ -1808,6 +1976,9 @@ export class Game extends React.Component {
                     targetStatus: 0,
                     purchasableInfoAll,
                     owners,
+                    editable: editable,
+                    totalEditable: totalEditable,
+                    mints,
                 },
             });
         }
@@ -1908,7 +2079,7 @@ export class Game extends React.Component {
         loading(null, 'Refreshing', error ? "error" : "success");
     }
 
-    handleFocusRefresh = async () => {
+    refreshFocus = async () => {
         this.setState({ // trigger loading icon
             showNav: true,
             focus: { 
@@ -1921,41 +2092,46 @@ export class Game extends React.Component {
         let space_metadata_data = await this.props.server.getSpaceMetadata(this.props.connection, x, y);
         let owner = space_metadata_data.owner;
         let mint = space_metadata_data.mint;
-        let key = JSON.stringify({x, y});
-        let owners = {[key]: owner};
-        let mints = {[key]: mint};
-        try{
-            await this.props.database.updateSpaceInfo(owners, mints);
-        } catch (e){
-            console.error(e);
-        }
+        if (owner && mint){
+            let key = JSON.stringify({x, y});
+            let owners = {[key]: owner};
+            let mints = {[key]: mint};
+            try{
+                await this.props.database.updateSpaceInfo(owners, mints);
+            } catch (e){
+                console.error(e);
+            }
 
-        // refresh info client side
-        try{
-            const data = await this.props.database.getSpacesByOwner(this.props.user);
-            this.props.setOwnedSpaces(data.spaces); // set spaces and mints on hooks side
-            this.props.setOwnedMints(data.mints);
+            // refresh info client side
+            try{
+                const data = await this.props.database.getSpacesByOwner(this.props.user);
+                this.props.setOwnedSpaces(data.spaces); // set spaces and mints on hooks side
+                this.props.setOwnedMints(data.mints);
+            }
+            catch(e){
+                console.error(e);
+            }
         }
-        catch(e){
-            console.error(e);
-        }
-
+        
         // set focus, if focus hasn't changed
         this.refreshSidebar();
     }
 
-    handleSelectingRefresh = async () => {
+    refreshSelecting = async () => {
         let infos = await this.props.server.getSpaceInfos(this.props.connection, this.state.selecting.poses);
 
+        loading(null, "refreshing", null);
         let owners = {};
         let mints = {};
         for (let info of infos){
             let key = JSON.stringify({x: info.x, y: info.y})
+            if (!info.owner || !info.mint){
+                continue;
+            }
             owners[key] = info.owner;
             mints[key] = info.mint;
         }
 
-        loading(null, "refreshing", null);
         let error = false;
         try{
             await this.props.database.updateSpaceInfo(owners, mints);
@@ -1990,31 +2166,7 @@ export class Game extends React.Component {
         loading(null, "refreshing", "success");
     }
 
-    setColorView = () => {
-        this.viewport.view = 0;
-        this.board.current.resetCanvas();
-        this.setState({
-            viewMenuOpen: false,
-            viewMenuAnchorEl: null,
-        });
-    }
-    setPriceView = () => {
-        clearInterval(this.intervalChangeFrame);
-        this.intervalFetchColors = setInterval(async () => {
-            if (document.hidden){
-                return;
-            }
-            await this.fetch_colors(this.state.frame);
-        }, FETCH_COLORS_INTERVAL);
-        this.viewport.view = 1;
-        this.board.current.resetCanvas();
-        this.setState({
-            anims: false,
-            animsInfoLoaded: true,
-            viewMenuOpen: false,
-            viewMenuAnchorEl: null,
-        });
-    }
+
 
     copyCurrentView = (e) => {
         const width = this.board.current.width;
@@ -2075,6 +2227,54 @@ export class Game extends React.Component {
         });
     }
 
+    resetViews = (newView) => { // call when switching between views
+        if (newView !== 0 && newView !== 1){
+            this.setState({
+                animations: false
+            });
+            clearInterval(this.intervalChangeFrame);
+        }
+        clearInterval(this.intervalFetchPriceView);
+    }
+
+    setColorView = () => {
+        this.resetViews(0);
+        this.state.view = 0;
+        this.board.current.resetCanvas();
+        this.setState({
+            viewMenuOpen: false,
+            viewMenuAnchorEl: null,
+        });
+    }
+    setEditableView = () => {
+        this.resetViews(1);
+        this.state.view = 1;
+        this.board.current.resetCanvas();
+        this.setState({
+            viewMenuOpen: false,
+            viewMenuAnchorEl: null,
+        });
+    }
+    setPriceView = () => {
+        this.resetViews(2);
+        // this.setState({
+        //     animations: false
+        // });
+        // clearInterval(this.intervalChangeFrame);
+        this.state.view = 2;
+        this.board.current.resetCanvas();
+        this.fetchPriceView();
+        this.intervalFetchPriceView = setInterval(async () => {
+            if (!document.hidden){
+                await this.fetchPriceView();
+            }
+        }, FETCH_PRICES_INTERVAL);
+        this.setState({
+            viewMenuOpen: false,
+            viewMenuAnchorEl: null,
+        });
+    }
+
     handleViewMenuOpen = (e) => {
         this.setState({
             viewMenuOpen: true,
@@ -2132,6 +2332,37 @@ export class Game extends React.Component {
         });
     }
 
+    getMap = () => {
+        if (this.state.view === 0){
+            return this.viewport.neighborhoodColors;
+        }
+        else if (this.state.view === 1){
+            let view = {};
+            for (let nhash in this.viewport.neighborhoodEditableTimes){
+                if (!(nhash in this.viewport.neighborhoodColors)){
+                    continue;
+                }
+                let now = Date.now() / 1000;
+                let { n_x, n_y } = JSON.parse(nhash);
+                let editableColors = Array.from({ length: NEIGHBORHOOD_SIZE }, () => new Array(NEIGHBORHOOD_SIZE).fill(null));
+                for(let x = n_x * NEIGHBORHOOD_SIZE; x < (n_x + 1) * NEIGHBORHOOD_SIZE; x++){
+                    for(let y = n_y * NEIGHBORHOOD_SIZE; y < (n_y + 1) * NEIGHBORHOOD_SIZE; y++){
+                        let x_relative = x - n_x * NEIGHBORHOOD_SIZE;
+                        let y_relative = y - n_y * NEIGHBORHOOD_SIZE;
+                        let color = this.viewport.neighborhoodColors[nhash][y_relative][x_relative];
+                        editableColors[y_relative][x_relative] = (now > this.viewport.neighborhoodEditableTimes[nhash][y_relative][x_relative] ? color : "transparent");
+                    }
+                }
+                view[nhash] = editableColors;
+            }
+            // console.log(view);
+            return view;
+        }
+        else if (this.state.view === 2){
+            return this.viewport.neighborhoodPriceView;
+        }
+    }
+
     render() {
         if (this.state.initialFetchStatus === 0){
             return (
@@ -2148,11 +2379,12 @@ export class Game extends React.Component {
             handleChangeColorApplyAll={this.handleChangeColorApplyAll}
             handleChangeColor={this.handleChangeColor}
             changeColor={this.changeColor}
+            makeEditableColor={this.makeEditableColor}
             purchaseSpace={this.purchaseSpace}
             handleChangeFocusPrice={this.handleChangeFocusPrice}
             changePrice={this.changePrice}
             delistSpace={this.delistSpace}
-            handleFocusRefresh={this.handleFocusRefresh}
+            refreshFocus={this.refreshFocus}
             handleChangeFocusRentPrice={this.handleChangeFocusRentPrice}
             changeRent={this.changeRent}
             delistRent={this.delistRent}
@@ -2180,7 +2412,9 @@ export class Game extends React.Component {
                 handleTargetAll={this.handleTargetAll}
                 handleTargetFloor={this.handleTargetFloor}
                 purchaseSpaces={this.purchaseSpaces}
-                handleSelectingRefresh={this.handleSelectingRefresh}
+                makeEditableColors={this.makeEditableColors}
+                selectOwnedSpaces={this.selectOwnedSpaces}
+                refreshSelecting={this.refreshSelecting}
                 handleChangeSelectingRentPrice={this.handleChangeSelectingRentPrice}
                 changeRents={this.changeRents}
                 delistRents={this.delistRents}
@@ -2200,10 +2434,10 @@ export class Game extends React.Component {
             const n_y = this.state.neighborhood.n_y;
             info = <NeighborhoodSidebar
                 neighborhood={this.state.neighborhood}
-                name = { this.viewport.neighborhood_names[JSON.stringify({ n_x:  this.state.neighborhood.n_x, n_y : this.state.neighborhood.n_y })]} 
+                name = { this.viewport.neighborhoodNames[JSON.stringify({ n_x:  this.state.neighborhood.n_x, n_y : this.state.neighborhood.n_y })]} 
                 canvas = {this.board.current.canvasCache[JSON.stringify({ n_x, n_y })]}
                 canvasSize = {Math.min(SIDE_NAV_WIDTH, window.innerWidth - 48)}
-                addNewFrame={this.addNewFrame}
+                handleAddNewFrame={this.handleAddNewFrame}
                 setSelecting={this.setSelecting}
             />;
         }
@@ -2212,15 +2446,15 @@ export class Game extends React.Component {
                 <Board
                     ownedSpaces={this.props.ownedSpaces}
                     ref={this.board}
-                    getMap={() => this.viewport.view === 0 ? this.viewport.neighborhood_colors : this.viewport.neighborhood_prices}
-                    getCensors={() => this.viewport.view === 0 ? this.viewport.neighborhood_censors : {}}
-                    getNeighborhoodNames={() => this.viewport.neighborhood_names}
+                    getMap={this.getMap}
+                    getCensors={() => this.state.view === 0 ? this.viewport.neighborhoodCensors : {}}
+                    getNeighborhoodNames={() => this.viewport.neighborhoodNames}
                     user={this.props.user}
                     onViewportChange={(startx, starty, endx, endy) => {
-                        this.viewport.neighborhood_start = [startx, starty];
-                        this.viewport.neighborhood_end = [endx, endy];
+                        this.viewport.neighborhoodsStart = [startx, starty];
+                        this.viewport.neighborhoodsEnd = [endx, endy];
                     }}
-                    prepare={async () => await this.fetch_colors(0)}
+                    prepare={async () => await this.fetchColors(0)}
                     click={this.setFocus}
                     clickNeighborhood={this.setNeighborhood}
                     selecting={this.state.selecting}
@@ -2269,6 +2503,23 @@ export class Game extends React.Component {
                             marginLeft: "20px", // TODO
                         }}
                     >
+                        <Tooltip title="Number of viewers">
+                            <Box sx={{marginLeft: "10px"}}>
+                                <VisibilityIcon/> {this.props.viewer}
+                            </Box>
+                        </Tooltip>
+                        <Tooltip title="Refresh canvas">
+                            <Button
+                                variant="contained"
+                                className={"defaultButton"}
+                                id="reload-button"
+                                onClick={(e) => this.reloadViews(e)}
+                                // disabled={!this.state.animationsInfoLoaded}
+                                sx={{marginRight: "10px"}}
+                            >
+                                <ReloadOutlined />
+                            </Button>
+                        </Tooltip>
                         <Tooltip title="Change view">
                             <Button
                                 variant="contained"
@@ -2279,9 +2530,10 @@ export class Game extends React.Component {
                                 aria-expanded={this.state.viewMenuOpen ? 'true' : undefined}
                                 onClick={(e) => this.handleViewMenuOpen(e)}
                                 endIcon={<KeyboardArrowDownIcon />}
-                                sx={{marginRight: "5px"}}
+                                disabled={!this.state.animationsInfoLoaded}
+                                sx={{marginRight: "10px"}}
                             >
-                                {this.viewport.view === 0 ? "Colors" : "Prices"}
+                                {["Colors", "Editable", "Prices"][this.state.view]}
                             </Button>
                         </Tooltip>
                         <Menu
@@ -2291,44 +2543,53 @@ export class Game extends React.Component {
                             open={this.state.viewMenuOpen}
                             onClose={() => this.handleViewMenuClose()}
                         >
-                            <MenuItem onClick={(e) => this.setColorView()}>Colors</MenuItem>
-                            <MenuItem onClick={(e) => this.setPriceView()}>Prices</MenuItem>
+                            <Tooltip title="View colors" placement="right">
+                                <MenuItem onClick={(e) => this.setColorView()}>Colors</MenuItem>
+                            </Tooltip>
+                            <Tooltip title="Only show spaces you can change" placement="right">
+                                <MenuItem onClick={(e) => this.setEditableView()}>Editable</MenuItem>
+                            </Tooltip>
+                            <Tooltip title="View prices heatmap" placement="right">
+                                <MenuItem onClick={(e) => this.setPriceView()}>Prices</MenuItem>
+                            </Tooltip>
                         </Menu>
-                        <Tooltip title="Toggle animations">
+                        {this.state.view === 0 || this.state.view === 1 ?
+                            <>
                             <FormControl>
                                 <FormControlLabel
-                                    disabled={!this.state.animsInfoLoaded || this.viewport.view !== 0}
+                                    disabled={!this.state.animationsInfoLoaded || (this.state.view !== 0 && this.state.view !== 1)}
                                     control={
                                         <Switch
                                             onChange={(e) => this.handleChangeAnims(e)}
-                                            checked={this.state.anims}
-                                            sx={{marginRight: "10px"}}
+                                            checked={this.state.animations}
                                         />
                                     }
                                     label="Animations"
-                                    labelPlacement="start"
                                 />
                             </FormControl>
-                        </Tooltip>
-                        <Tooltip title="Select frame to view" placement="top">
-                            <Select
-                                variant="standard"
-                                value={this.state.frame}
-                                disabled={this.state.anims || this.viewport.view !== 0}
-                                onChange={(e) => {
-                                    this.handleChangeFrame(e);
-                                }}
-                                label="Frame"
-                                sx={{ marginRight: "10px", borderRadius: "40px" }}
-                            >
-                                {Array.from({ length: this.state.maxFrame }, (x, i) => (
-                                    <MenuItem value={i} key={"frame" + i}>
-                                        {" "}
-                                        {`${i}`}{" "}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </Tooltip>
+                            <Tooltip title="Select frame to view" placement="top">
+                                <Select
+                                    variant="standard"
+                                    value={this.state.frame}
+                                    disabled={this.state.animations || (this.state.view !== 0 && this.state.view !== 1)}
+                                    onChange={(e) => {
+                                        this.handleChangeFrame(e);
+                                    }}
+                                    label="Frame"
+                                    sx={{ marginRight: "10px", borderRadius: "40px" }}
+                                >
+                                    {Array.from({ length: this.state.maxFrame }, (x, i) => (
+                                        <MenuItem value={i} key={"frame" + i}>
+                                            {" "}
+                                            {`${i}`}{" "}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </Tooltip>
+                            </> 
+                            : 
+                            null
+                        }
                         {!this.mobile &&
                         <>
                             <div className={"animationsSeparator"}></div>
@@ -2362,11 +2623,6 @@ export class Game extends React.Component {
                             </Button>
                         </Tooltip> */}
                         </>}
-                        <Tooltip title="Number of viewers">
-                            <Box sx={{marginLeft: "10px"}}>
-                                <VisibilityIcon/> {this.props.viewer}
-                            </Box>
-                        </Tooltip>
                     </Box>
                     
 

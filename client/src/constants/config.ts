@@ -11,7 +11,7 @@ export const UPPER = 125;
 export const MAX_ACCOUNTS = 100;
 export const MAX_REGISTER_ACCS = 5000;
 export const RPC_mainnet = `https://extend.mainnet.rpcpool.com`;
-export const RPC_devnet = `https://extend.devnet.rpcpool.com`;
+export const RPC_devnet = `https://extend.devnet.rpcpool.com/e1191d211d23a5c4b380f175e242`;
 export const RPC = process.env.REACT_APP_RPC;
 export const NEIGHBORHOOD_LIST_SEED = "neighborhood_list";
 export const NEIGHBORHOOD_FRAME_BASE_SEED = "neighborhood_frame_base";
@@ -30,6 +30,10 @@ export const BASE_TRANSACTION_SIZE = 3 + 32 + 65;
 export const VOUCHER_PRICE_CONSTANT = 0.01059;
 export const VOUCHER_MAX_PRICE = 1000000;
 export const MINT_PRICE = 0.014;
+export const CHANGE_COLOR_BATCH_SIZE = 6;
+export const BUY_BATCH_SIZE = 4;
+export const TX_COST = 0.000005;
+export const EDIT_PRICE = 0.00001;
 
 export const MINT_NOT_READY_NBDS = new Set();
 export const MINT_TIME = 1645106400;
@@ -72,6 +76,10 @@ export const CANDY_MACHINE_PROGRAM_ID = new PublicKey(
 );
 export const CANDY_MACHINE_PROGRAM_OLD = new PublicKey(
   "cndyAnrLdpjq1Ssp1z8xxDsB8dxe7u4HL5Nxi2K5WXZ"
+);
+
+export const DEFAULT_MINT = new PublicKey(
+  "EUgcSb7s1zjbyjtMsrWh4KyWo91EWSRh4LgsfcaGFLTx"
 );
 
 export const CANDY_START_DATE = "1634841157";

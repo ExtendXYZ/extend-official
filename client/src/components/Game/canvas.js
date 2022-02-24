@@ -17,11 +17,13 @@ import {
 const CLICK_THRESHOLD = 5;
 const TOUCH_THRESHOLD = 10;
 const LEFT = 500;
+const EXPAND_DISABLED = false;
 
 // these must be #RRGGBB
 const SELECTED_COLOR = "#CC0000";
 const OWNED_COLOR = "#00CC00";
 const PURCHASABLE_COLOR = "#0000CC";
+
 
 export class Board extends React.Component {
     constructor(props) {
@@ -532,16 +534,16 @@ export class Board extends React.Component {
         currentMouse.style.width = neighborhood_scale + "px";
         currentMouse.style.height = neighborhood_scale + "px";
         let key = JSON.stringify({ n_x, n_y });
-        let neighborhood_names = this.props.getNeighborhoodNames();
+        let neighborhoodNames = this.props.getNeighborhoodNames();
         const currentNeighborhood = document.getElementById("neighborhood");
         currentNeighborhood.style.bottom = neighborhood_scale + "px";
-        if (neighborhood_names && (key in neighborhood_names)) {
-            this.neighborhood_name = neighborhood_names[key];
+        if (neighborhoodNames && (key in neighborhoodNames)) {
+            this.neighborhood_name = neighborhoodNames[key];
             currentNeighborhood.style.display = "block";
             currentNeighborhood.innerHTML = "<h1>" + this.neighborhood_name + "</h1>";
         } else {
             this.neighborhood_name = null;
-            currentNeighborhood.style.display = "none";
+            currentNeighborhood.style.display = EXPAND_DISABLED ? "none" : "block";
             currentNeighborhood.innerHTML = "<h1> Expand </h1>";
         }
     }
@@ -1000,7 +1002,7 @@ export class Board extends React.Component {
                 <div className="nTracker" id="nTracker">
                     <div id="neighborhood" className="name" href="#" style={{
                         marginBottom: "-20px", 
-                        display: this.neighborhood_name? "block": "none"
+                        display: this.neighborhood_name && !EXPAND_DISABLED ? "block" : "none",
                     }} onClick={() => {
                             if (this.neighborhood_name) {
                                 this.examine();
@@ -1040,6 +1042,14 @@ export class Board extends React.Component {
                             fullWidth
                             variant="standard"
                         />
+                        <TextField
+                            autoFocus
+                            id="voucherLiveDate"
+                            margin="dense"
+                            label="Go Live Date (unix timestamp)"
+                            fullWidth
+                            variant="standard"
+                        />
                         <Captcha
                             onVerify={(response) => {
                                 this.captchaResponse = response;
@@ -1057,6 +1067,7 @@ export class Board extends React.Component {
                                     n_y: Math.floor(this.focus.y / NEIGHBORHOOD_SIZE),
                                     address: new PublicKey(document.getElementById("candyMachineAddress").value),
                                     name: document.getElementById("neighborhoodName").value,
+                                    voucherLiveDate: document.getElementById("voucherLiveDate").value,
                                     captcha: this.captchaResponse,
                                 });
                                 this.setState({ inputConfig: false });
