@@ -45,8 +45,8 @@ pub fn get_neighborhood_creation_price(n_x: i64, n_y: i64) -> u64 {
     return price;
 }
 
-pub fn get_voucher_price(count: u64) -> u64{
-    let base = VOUCHER_PRICE_CONSTANT * (count - 1) as f64;
+pub fn get_voucher_price(exp: f64, count: u64) -> u64{
+    let base = exp * (count - 1) as f64;
     let price = (base.exp() - 1.0) * 1000000000.0;
     return price.max(0.0) as u64;
 }

@@ -958,6 +958,8 @@ export function Screen(props) {
                         candyMachineAddress,
                         newNeighborhoodTrigger["name"],
                         newNeighborhoodTrigger["voucherLiveDate"],
+                        newNeighborhoodTrigger["voucherReceiveLimit"],
+                        newNeighborhoodTrigger["voucherPriceCoefficient"],
                     ))[0];
 
                     const initVoucherSystemIx = (await initVoucherSystemInstruction(
