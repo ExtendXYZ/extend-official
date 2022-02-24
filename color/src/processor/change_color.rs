@@ -171,8 +171,9 @@ pub fn process(
         thresh_add = INACTIVITY_THRESHOLD_ARBITRARY as u64;
         // transfer fees
         let fee = EDIT_FEE;
-        let creator_cut: u64 = (fee as f64 * CREATOR_CUT) as u64;
+        let creator_cut: u64;
         if space_registered{ // pay owner if Space is registered
+            creator_cut = (fee as f64 * CREATOR_CUT) as u64;
             invoke(
                 &system_instruction::transfer(
                     fee_payer.key,
@@ -185,6 +186,8 @@ pub fn process(
                     system_program.clone(),
                 ],
             )?;
+        } else { // if Space is unregistered
+            creator_cut = fee;
         }
         invoke( // pay portion of fee to neighborhood creator
             &system_instruction::transfer(

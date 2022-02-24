@@ -44,6 +44,14 @@ pub struct MakeEditableBriefArgs {
     pub space_y: i16,
 }
 
+#[repr(C)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+pub struct TmpChangeEditableTimestampArgs {
+    pub space_x: i64,
+    pub space_y: i64,
+    pub frame: u64,
+}
+
 pub enum ColorInstruction {
 
 
@@ -90,6 +98,17 @@ pub enum ColorInstruction {
     */
     MakeEditable,
     MakeEditableBrief,
+
+    /*
+    Tmp instruction to change editable timestamps
+    0. Base account
+    1. frame
+    2. neighborhood frame base
+    3. neighborhood frame pointer
+    4. [Writable] time cluster account
+    5. [Signer] feepayer 
+    */
+    TmpChangeEditableTimestamp,
 }
 
 impl ColorInstruction {
@@ -98,8 +117,9 @@ impl ColorInstruction {
             0 => Self::InitFrame,
             1 => Self::ChangeColor,
             2 => Self::ChangeColorBrief,
-            // 3 => Self::MakeEditable,
-            // 4 => Self::MakeEditableBrief,
+            3 => Self::MakeEditable,
+            4 => Self::MakeEditableBrief,
+            5 => Self::TmpChangeEditableTimestamp,
             _ => return Err(ProgramError::InvalidInstructionData),
         })
     }
