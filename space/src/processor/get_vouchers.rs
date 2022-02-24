@@ -111,11 +111,11 @@ pub fn process(
     assert_keys_equal(neighborhood_metadata_data.creator, *neighborhood_creator.key)?;
 
     // other checks
-    if args.count > VOUCHER_RECEIVE_LIMIT{
+    if args.count > neighborhood_metadata_data.voucher_receive_limit{
         msg!("Error: too many vouchers requested");
         return Err(ProgramError::InvalidInstructionData);
     }
-    let fee = get_voucher_price(args.count);
+    let fee = get_voucher_price(neighborhood_metadata_data.voucher_price_coefficient, args.count);
     if (args.fee as i64 - fee as i64).abs() as u64 > VOUCHER_PRICE_TOLERANCE{
         msg!("Error: invalid voucher price. True price is {}, {} posted", fee, args.fee);
         return Err(ProgramError::InvalidInstructionData);

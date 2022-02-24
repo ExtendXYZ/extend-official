@@ -15,6 +15,8 @@ pub struct InitNeighborhoodMetadataArgs {
     pub price: u64,
     pub neighborhood_name: [u8; 64],
     pub voucher_live_date: u64,
+    pub voucher_receive_limit: u64,
+    pub voucher_price_coefficient: f64,
 }
 
 #[repr(C)]

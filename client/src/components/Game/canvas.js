@@ -1049,6 +1049,27 @@ export class Board extends React.Component {
                             label="Go Live Date (unix timestamp)"
                             fullWidth
                             variant="standard"
+                            type='number'
+                        />
+                        <TextField
+                            autoFocus
+                            id="voucherReceiveLimit"
+                            margin="dense"
+                            label="Max vouchers per captcha solve"
+                            fullWidth
+                            variant="standard"
+                            defaultValue="100"
+                            type='number'
+                        />
+                        <TextField
+                            autoFocus
+                            id="voucherPriceCoefficient"
+                            margin="dense"
+                            label="Voucher Price Coefficient"
+                            fullWidth
+                            variant="standard"
+                            type='number'
+                            defaultValue="0.01059"
                         />
                         <Captcha
                             onVerify={(response) => {
@@ -1067,7 +1088,9 @@ export class Board extends React.Component {
                                     n_y: Math.floor(this.focus.y / NEIGHBORHOOD_SIZE),
                                     address: new PublicKey(document.getElementById("candyMachineAddress").value),
                                     name: document.getElementById("neighborhoodName").value,
-                                    voucherLiveDate: document.getElementById("voucherLiveDate").value,
+                                    voucherLiveDate: Number(document.getElementById("voucherLiveDate").value),
+                                    voucherReceiveLimit: Number(document.getElementById("voucherReceiveLimit").value),
+                                    voucherPriceCoefficient: Number(document.getElementById("voucherPriceCoefficient").value),
                                     captcha: this.captchaResponse,
                                 });
                                 this.setState({ inputConfig: false });

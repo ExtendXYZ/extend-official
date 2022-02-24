@@ -12,6 +12,9 @@ export class InitNeighborhoodMetadataInstructionData {
   n_y: number;
   price: number;
   // name: not here because don't know how to serialize with schema
+  voucherLiveDate: number;
+  voucherReceiveLimit: number;
+  voucherPriceCoefficient: number;
 
   static schema: Schema = new Map([
     [
@@ -23,15 +26,28 @@ export class InitNeighborhoodMetadataInstructionData {
           ["n_x", "u64"],
           ["n_y", "u64"],
           ["price", "u64"],
+          ["voucherLiveDate", "u64"],
+          ["voucherReceiveLimit", "u64"],
+          ["voucherPriceCoefficient", "f64"],
         ],
       },
     ],
   ]);
 
-  constructor(args: { n_x: number; n_y: number; price: number; }) {
+  constructor(args: {
+    n_x: number;
+    n_y: number;
+    price: number;
+    voucherLiveDate: number,
+    voucherReceiveLimit: number,
+    voucherPriceCoefficient: number,
+  }) {
     this.n_x = args.n_x;
     this.n_y = args.n_y;
     this.price = args.price;
+    this.voucherLiveDate = args.voucherLiveDate;
+    this.voucherReceiveLimit = args.voucherReceiveLimit;
+    this.voucherPriceCoefficient = args.voucherPriceCoefficient;
   }
 }
 
@@ -45,6 +61,8 @@ export const initNeighborhoodMetadataInstruction = async (
   candyMachineAddress: PublicKey,
   name: string = "",
   voucherLiveDate: number,
+  voucherReceiveLimit: number,
+  voucherPriceCoefficient: number,
 ) => {
   const n_x_bytes = signedIntToBytes(n_x); 
   const n_y_bytes = signedIntToBytes(n_y);
@@ -135,6 +153,9 @@ export const initNeighborhoodMetadataInstruction = async (
     n_x,
     n_y,
     price,
+    voucherLiveDate,
+    voucherReceiveLimit,
+    voucherPriceCoefficient,
   });
 
 
@@ -142,19 +163,15 @@ export const initNeighborhoodMetadataInstruction = async (
   // borsh JS sucks, need to be able to serialize negative numbers
   data = correct_negative_serialization(data, 1, 9, n_x_bytes);
   data = correct_negative_serialization(data, 9, 17, n_y_bytes);
+  let data1 = data.slice(0, 17);;
+  let data2 = data.slice(17, data.length);
 
-  // construct name buffer
+  // construct and insert name buffer
   let name_buffer = Buffer.from(name, "utf-8");
   let zeros = Buffer.from(new Array(64 - name_buffer.length).fill(0));
   name_buffer = Buffer.concat([name_buffer, zeros]);
   
-  data = Buffer.concat([data, name_buffer]);
-
-  //add go live date to instruction data
-
-  // date is small enough that signed and unsigned have the same representation
-  let ts_buffer = Buffer.from(UIntToBytes(voucherLiveDate));
-  data = Buffer.concat([data, ts_buffer]);
+  data = Buffer.concat([data1, name_buffer, data2]);
 
   let Ix = 
     [new TransactionInstruction({

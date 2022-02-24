@@ -42,7 +42,8 @@ if (Date.now()/1000 < MINT_TIME) {
 }
 
 export const BASE = new PublicKey(
-  "XBSEZzB7ojaKgXqfCSpNbPLnuMGk3JVtSKYjXYqg7Pn"
+  // "XBSEZzB7ojaKgXqfCSpNbPLnuMGk3JVtSKYjXYqg7Pn"
+  "bLkcDhsnfcj81jP8pehGsQ2kesLiULkPt7HVUZmBusN"
 );
 
 export const EXTEND_TOKEN_MINT = new PublicKey(
