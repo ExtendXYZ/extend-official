@@ -17,11 +17,13 @@ import {
 const CLICK_THRESHOLD = 5;
 const TOUCH_THRESHOLD = 10;
 const LEFT = 500;
+const EXPAND_DISABLED = false;
 
 // these must be #RRGGBB
 const SELECTED_COLOR = "#CC0000";
 const OWNED_COLOR = "#00CC00";
 const PURCHASABLE_COLOR = "#0000CC";
+
 
 export class Board extends React.Component {
     constructor(props) {
@@ -522,7 +524,7 @@ export class Board extends React.Component {
             currentNeighborhood.innerHTML = "<h1>" + this.neighborhood_name + "</h1>";
         } else {
             this.neighborhood_name = null;
-            currentNeighborhood.style.display = "none";
+            currentNeighborhood.style.display = EXPAND_DISABLED ? "none" : "block";
             currentNeighborhood.innerHTML = "<h1> Expand </h1>";
         }
     }
@@ -981,7 +983,7 @@ export class Board extends React.Component {
                 <div className="nTracker" id="nTracker">
                     <div id="neighborhood" className="name" href="#" style={{
                         marginBottom: "-20px", 
-                        display: this.neighborhood_name? "block": "none"
+                        display: this.neighborhood_name && !EXPAND_DISABLED ? "block" : "none",
                     }} onClick={() => {
                             if (this.neighborhood_name) {
                                 this.examine();

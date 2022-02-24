@@ -43,7 +43,7 @@ import {
   SPACE_METADATA_SEED,
   MAX_REGISTER_ACCS
 } from "../../client/src/constants";
-import { twoscomplement_i2u } from "../../client/src/utils/borsh";
+import { signedIntToBytes } from "../../client/src/utils/borsh";
 
 programCommand("send-all-nfts")
   .option("-r, --destination-address <string>", "Destination address")
@@ -146,8 +146,8 @@ programCommand("mint-tokens")
 
     for (const p of ownedSpacesArray) {
       const pos = JSON.parse(p);
-      const space_x = twoscomplement_i2u(pos.x);
-      const space_y = twoscomplement_i2u(pos.y);
+      const space_x = signedIntToBytes(pos.x);
+      const space_y = signedIntToBytes(pos.y);
       const spaceAcc = (await PublicKey.findProgramAddress(
         [
           BASE.toBuffer(),
@@ -279,189 +279,189 @@ programCommand("initialize-base")
     console.log("SUCCESSFULLY UPDATED AUTHORITY");
   });
 
-programCommand("register-candy-machine")
-  .option("-nx, --neighborhood-row <number>", `Neighborhood x`, undefined)
-  .option("-ny, --neighborhood-col <number>", `Neighborhood y`, undefined)
-  .action(async (directory, cmd) => {
-    const { keypair, env, cacheName, neighborhoodRow, neighborhoodCol, base } =
-      cmd.opts();
+// programCommand("register-candy-machine")
+//   .option("-nx, --neighborhood-row <number>", `Neighborhood x`, undefined)
+//   .option("-ny, --neighborhood-col <number>", `Neighborhood y`, undefined)
+//   .action(async (directory, cmd) => {
+//     const { keypair, env, cacheName, neighborhoodRow, neighborhoodCol, base } =
+//       cmd.opts();
 
-    console.log("REGISTERING CANDY MACHINE");
-    const cacheContent = loadCache(
-      neighborhoodRow,
-      neighborhoodCol,
-      cacheName,
-      env
-    );
+//     console.log("REGISTERING CANDY MACHINE");
+//     const cacheContent = loadCache(
+//       neighborhoodRow,
+//       neighborhoodCol,
+//       cacheName,
+//       env
+//     );
 
-    const base_address = BASE;
+//     const base_address = BASE;
 
-    const walletKeyPair = await loadWalletKeyOrLedger(keypair);
+//     const walletKeyPair = await loadWalletKeyOrLedger(keypair);
 
-    const solConnection = new anchor.web3.Connection(clusterApiUrl(env));
+//     const solConnection = new anchor.web3.Connection(clusterApiUrl(env));
 
-    const candyMachineConfig = new PublicKey(cacheContent.program.config);
-    const candyMachineAddress = new PublicKey(cacheContent.candyMachineAddress);
+//     const candyMachineConfig = new PublicKey(cacheContent.program.config);
+//     const candyMachineAddress = new PublicKey(cacheContent.candyMachineAddress);
 
-    const nrow = Number(neighborhoodRow);
-    const ncol = Number(neighborhoodCol);
-    if (isNaN(nrow) || isNaN(ncol)) {
-      throw new Error(
-        `Invalid neighboorhood row (${neighborhoodRow}) or col (${neighborhoodCol})`
-      );
-    }
+//     const nrow = Number(neighborhoodRow);
+//     const ncol = Number(neighborhoodCol);
+//     if (isNaN(nrow) || isNaN(ncol)) {
+//       throw new Error(
+//         `Invalid neighboorhood row (${neighborhoodRow}) or col (${neighborhoodCol})`
+//       );
+//     }
 
-    console.log(walletKeyPair.publicKey.toBase58());
+//     console.log(walletKeyPair.publicKey.toBase58());
 
-    await sendTransactionWithRetryWithKeypair(
-      solConnection,
-      walletKeyPair,
-      await initNeighborhoodMetadataInstruction(
-        walletKeyPair,
-        base_address,
-        neighborhoodRow,
-        neighborhoodCol,
-        1,
-        candyMachineConfig,
-        candyMachineAddress
-      ),
-      []
-    );
+//     await sendTransactionWithRetryWithKeypair(
+//       solConnection,
+//       walletKeyPair,
+//       await initNeighborhoodMetadataInstruction(
+//         walletKeyPair,
+//         base_address,
+//         neighborhoodRow,
+//         neighborhoodCol,
+//         1,
+//         candyMachineConfig,
+//         candyMachineAddress
+//       ),
+//       []
+//     );
 
-    console.log("REGISTERED CANDY MACHINE");
-  });
+//     console.log("REGISTERED CANDY MACHINE");
+//   });
 
-programCommand("init-voucher-system")
-  .option(
-    "-a, --captcha-auth <path>",
-    `voucher mint auth location`,
-    "--keypair not provided"
-  )
-  .option("-nx, --neighborhood-row <number>", `Neighborhood x`, undefined)
-  .option("-ny, --neighborhood-col <number>", `Neighborhood y`, undefined)
-  .action(async (directory, cmd) => {
-    const {
-      keypair,
-      env,
-      cacheName,
-      captchaAuth,
-      neighborhoodRow,
-      neighborhoodCol,
-      base,
-    } = cmd.opts();
+// programCommand("init-voucher-system")
+//   .option(
+//     "-a, --captcha-auth <path>",
+//     `voucher mint auth location`,
+//     "--keypair not provided"
+//   )
+//   .option("-nx, --neighborhood-row <number>", `Neighborhood x`, undefined)
+//   .option("-ny, --neighborhood-col <number>", `Neighborhood y`, undefined)
+//   .action(async (directory, cmd) => {
+//     const {
+//       keypair,
+//       env,
+//       cacheName,
+//       captchaAuth,
+//       neighborhoodRow,
+//       neighborhoodCol,
+//       base,
+//     } = cmd.opts();
 
-    console.log("INITIALIZING VOUCHER SYSTEM");
-    const cacheContent = loadCache(
-      neighborhoodRow,
-      neighborhoodCol,
-      cacheName,
-      env
-    );
-    const auth = captchaAuth
+//     console.log("INITIALIZING VOUCHER SYSTEM");
+//     const cacheContent = loadCache(
+//       neighborhoodRow,
+//       neighborhoodCol,
+//       cacheName,
+//       env
+//     );
+//     const auth = captchaAuth
 
-    const base_address = BASE;
+//     const base_address = BASE;
 
-    const walletKeyPair = await loadWalletKeyOrLedger(keypair);
-    const voucherMintAuth = loadWalletKey(auth);
+//     const walletKeyPair = await loadWalletKeyOrLedger(keypair);
+//     const voucherMintAuth = loadWalletKey(auth);
 
-    const solConnection = new anchor.web3.Connection(clusterApiUrl(env));
+//     const solConnection = new anchor.web3.Connection(clusterApiUrl(env));
 
-    const candyMachineConfig = new PublicKey(cacheContent.program.config);
-    const candyMachineAddress = new PublicKey(cacheContent.candyMachineAddress);
+//     const candyMachineConfig = new PublicKey(cacheContent.program.config);
+//     const candyMachineAddress = new PublicKey(cacheContent.candyMachineAddress);
 
-    const nrow = Number(neighborhoodRow);
-    const ncol = Number(neighborhoodCol);
-    if (isNaN(nrow) || isNaN(ncol)) {
-      throw new Error(
-        `Invalid neighboorhood row (${neighborhoodRow}) or col (${neighborhoodCol})`
-      );
-    }
+//     const nrow = Number(neighborhoodRow);
+//     const ncol = Number(neighborhoodCol);
+//     if (isNaN(nrow) || isNaN(ncol)) {
+//       throw new Error(
+//         `Invalid neighboorhood row (${neighborhoodRow}) or col (${neighborhoodCol})`
+//       );
+//     }
 
-    console.log("wallet",walletKeyPair.publicKey.toBase58());
+//     console.log("wallet",walletKeyPair.publicKey.toBase58());
 
-    await sendTransactionWithRetryWithKeypair(
-      solConnection,
-      walletKeyPair,
-      await initVoucherSystemInstruction(
-        walletKeyPair,
-        base_address,
-        neighborhoodRow,
-        neighborhoodCol,
-        voucherMintAuth.publicKey,
-      ),
-      [voucherMintAuth]
-    );
+//     await sendTransactionWithRetryWithKeypair(
+//       solConnection,
+//       walletKeyPair,
+//       await initVoucherSystemInstruction(
+//         walletKeyPair,
+//         base_address,
+//         neighborhoodRow,
+//         neighborhoodCol,
+//         voucherMintAuth.publicKey,
+//       ),
+//       [voucherMintAuth]
+//     );
 
-    console.log("VOUCHERS SYSTEM COMPLETE");
-  });
+//     console.log("VOUCHERS SYSTEM COMPLETE");
+//   });
 
-programCommand("initialize-cluster")
-  .option("-nx, --neighborhood-row <number>", `Neighborhood x`, undefined)
-  .option("-ny, --neighborhood-col <number>", `Neighborhood y`, undefined)
-  .option("-f, --frame <number>", `Frame`, undefined)
-  .action(async (directory, cmd) => {
-    console.log("INITIALIZING FRAME");
+// programCommand("initialize-cluster")
+//   .option("-nx, --neighborhood-row <number>", `Neighborhood x`, undefined)
+//   .option("-ny, --neighborhood-col <number>", `Neighborhood y`, undefined)
+//   .option("-f, --frame <number>", `Frame`, undefined)
+//   .action(async (directory, cmd) => {
+//     console.log("INITIALIZING FRAME");
 
-    const {
-      keypair,
-      env,
-      cacheName,
-      neighborhoodRow,
-      neighborhoodCol,
-      frame,
-      base,
-    } = cmd.opts();
-    const cacheContent = loadCache(
-      neighborhoodRow,
-      neighborhoodCol,
-      cacheName,
-      env
-    );
+//     const {
+//       keypair,
+//       env,
+//       cacheName,
+//       neighborhoodRow,
+//       neighborhoodCol,
+//       frame,
+//       base,
+//     } = cmd.opts();
+//     const cacheContent = loadCache(
+//       neighborhoodRow,
+//       neighborhoodCol,
+//       cacheName,
+//       env
+//     );
 
-    const base_address = BASE;
+//     const base_address = BASE;
 
-    const walletKeyPair = await loadWalletKeyOrLedger(keypair);
+//     const walletKeyPair = await loadWalletKeyOrLedger(keypair);
 
-    const solConnection = new anchor.web3.Connection(clusterApiUrl(env));
+//     const solConnection = new anchor.web3.Connection(clusterApiUrl(env));
 
-    const nrow = Number(neighborhoodRow);
-    const ncol = Number(neighborhoodCol);
-    if (isNaN(nrow) || isNaN(ncol)) {
-      throw new Error(
-        `Invalid neighboorhood row (${neighborhoodRow}) or col (${neighborhoodCol})`
-      );
-    }
+//     const nrow = Number(neighborhoodRow);
+//     const ncol = Number(neighborhoodCol);
+//     if (isNaN(nrow) || isNaN(ncol)) {
+//       throw new Error(
+//         `Invalid neighboorhood row (${neighborhoodRow}) or col (${neighborhoodCol})`
+//       );
+//     }
 
-    const colorRes = await createColorClusterInstruction(
-      solConnection,
-      walletKeyPair
-    );
-    const timeRes = await createTimeClusterInstruction(
-      solConnection,
-      walletKeyPair
-    );
+//     const colorRes = await createColorClusterInstruction(
+//       solConnection,
+//       walletKeyPair
+//     );
+//     const timeRes = await createTimeClusterInstruction(
+//       solConnection,
+//       walletKeyPair
+//     );
 
-    log.debug("Parsed arguments!");
-    const ixs = await initFrameInstruction(
-      solConnection,
-      walletKeyPair,
-      base_address,
-      neighborhoodRow,
-      neighborhoodCol,
-      colorRes["keypair"].publicKey,
-      timeRes["keypair"].publicKey,
-    );
+//     log.debug("Parsed arguments!");
+//     const ixs = await initFrameInstruction(
+//       solConnection,
+//       walletKeyPair,
+//       base_address,
+//       neighborhoodRow,
+//       neighborhoodCol,
+//       colorRes["keypair"].publicKey,
+//       timeRes["keypair"].publicKey,
+//     );
 
-    log.debug("Instructions complete");
-    await sendTransactionWithRetryWithKeypair(
-      solConnection,
-      walletKeyPair,
-      [...colorRes["ix"], ...timeRes["ix"], ...ixs],
-      [colorRes["keypair"], timeRes["keypair"]],
-    );
+//     log.debug("Instructions complete");
+//     await sendTransactionWithRetryWithKeypair(
+//       solConnection,
+//       walletKeyPair,
+//       [...colorRes["ix"], ...timeRes["ix"], ...ixs],
+//       [colorRes["keypair"], timeRes["keypair"]],
+//     );
 
-    console.log("FRAME INITIALIZED");
-  });
+//     console.log("FRAME INITIALIZED");
+//   });
 
 programCommand("create-candy-machine")
   .option(
@@ -515,8 +515,8 @@ programCommand("create-candy-machine")
     let wallet = walletKeyPair.publicKey;
     const remainingAccounts = [];
 
-    const n_x = twoscomplement_i2u(Number(neighborhoodRow));
-    const n_y = twoscomplement_i2u(Number(neighborhoodCol));
+    const n_x = signedIntToBytes(Number(neighborhoodRow));
+    const n_y = signedIntToBytes(Number(neighborhoodCol));
     const voucherMint = (
       await anchor.web3.PublicKey.findProgramAddress(
         [

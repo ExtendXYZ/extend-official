@@ -4,7 +4,7 @@ use solana_program::{
 use std::{cmp, f64};
 use crate::{
     state::{
-        NEIGHBORHOOD_SIZE, VOUCHER_PRICE_CONSTANT, VOUCHER_MAX_PRICE
+        NEIGHBORHOOD_SIZE, VOUCHER_PRICE_CONSTANT
     },
 };
 
@@ -47,5 +47,6 @@ pub fn get_neighborhood_creation_price(n_x: i64, n_y: i64) -> u64 {
 
 pub fn get_voucher_price(count: u64) -> u64{
     let base = VOUCHER_PRICE_CONSTANT * (count - 1) as f64;
-    return base.exp().max(0.0).min(VOUCHER_MAX_PRICE) as u64;
+    let price = (base.exp() - 1.0) * 1000000000.0;
+    return price.max(0.0) as u64;
 }

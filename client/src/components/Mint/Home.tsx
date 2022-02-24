@@ -88,6 +88,7 @@ export const Home = (props: HomeProps) => {
   });
 
 
+  // UI state
   const [balance, setBalance] = useState<number>();
   const [isActive, setIsActive] = useState(false); // true when countdown completes
   const [isSoldOut, setIsSoldOut] = useState(true); // true when items remaining is zero
@@ -109,8 +110,6 @@ export const Home = (props: HomeProps) => {
 
   const wallet = useAnchorWallet();
   const [candyMachine, setCandyMachine] = useState<CandyMachine>();
-  const [candyConfig, setCandyConfig] = useState<anchor.web3.PublicKey>();
-  const [candyId, setCandyId] = useState<anchor.web3.PublicKey>();
   const [tokenTransaction, setTokenTransaction] = useState<Transaction>();
   const [isReceivingToken, setIsReceivingToken] = useState(false); // for get tokens button
   const [numTokens, setNumTokens] = useState(1); // num tokens user wants
@@ -118,20 +117,27 @@ export const Home = (props: HomeProps) => {
   const [totalTokens, setTotalTokens] = useState(0);
   const [clicked, setClicked] = useState(false); // if getTokens button is clicked
   const [verified, setVerified] = useState(false);
-
-  const [neighborhoodX, setNeighborhoodX] = useState<number>(0); // for switching neighborhoods
-  const [neighborhoodY, setNeighborhoodY] = useState<number>(0);
-  const [currNeighborhood, setCurrNeighborhood] = useState<string>("0,0");
-  const [neighborhoods, setNeighborhoods] = useState<string[]>();
-  const [neighborhoodsToColor, setNeighborhoodsToColor] = useState({});
-  const [nhoodNames, setNhoodNames] = useState<string[]>();
-  const [doneFetching, setDoneFetching] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false); // for register
   const [noMint, setNoMint] = useState(false);
   const [disableMint, setDisableMint] = useState(false); // disable buttons while changing neighborhoods
   const [disableToken, setDisableToken] = useState(false);
-  const [statuses, setStatuses] = useState<string[]>();
 
-  const [isRegistering, setIsRegistering] = useState(false); // for register
+  // neighborhood selection state
+  const [statuses, setStatuses] = useState<string[]>();
+  const [neighborhoods, setNeighborhoods] = useState<string[]>();
+  const [neighborhoodsToColor, setNeighborhoodsToColor] = useState({});
+  const [nhoodNames, setNhoodNames] = useState<string[]>();
+  const [neighborhoodX, setNeighborhoodX] = useState<number>(0); // for switching neighborhoods
+  const [neighborhoodY, setNeighborhoodY] = useState<number>(0);
+  const [doneFetching, setDoneFetching] = useState(false);
+  const [currNeighborhood, setCurrNeighborhood] = useState<string>("0,0"); // for dropdown state
+
+  // current neighborhood state
+  const [candyConfig, setCandyConfig] = useState<anchor.web3.PublicKey>();
+  const [candyId, setCandyId] = useState<anchor.web3.PublicKey>();
+  const [voucherLiveDate, setVoucherLiveDate] = useState<number>(Infinity);
+
+
   const server = new Server();
   const database = new Database();
 
@@ -796,11 +802,14 @@ export const Home = (props: HomeProps) => {
       setClicked(false);
       if (neighborhoodX !== null && neighborhoodY !== null) {
         const nhoodAcc = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
-        const account = await props.connection.getAccountInfo(nhoodAcc);
+        const account = await server.getNeighborhoodMetadata(props.connection, neighborhoodX, neighborhoodY);
         if (account) {
-          setCandyConfig(new anchor.web3.PublicKey(account.data.slice(33, 65)));
-          setCandyId(new anchor.web3.PublicKey(account.data.slice(65, 97)));
+          setCandyConfig(account.candymachineConfig);
+          setCandyId(account.candymachineID);
+          setVoucherLiveDate(account.voucherLiveDate);
+          console.log(account.candymachineID);
         }
+
         setDoneFetching(true);
       }
     }
@@ -881,6 +890,7 @@ export const Home = (props: HomeProps) => {
   const canvasSize = Math.min(window.innerHeight * 0.7, window.innerWidth * 0.4);
   const ratio = canvasSize / 1000;
 
+  let now = Date.now() / 1000;
   return (
     //<div id="home" style={{display: "flex", flexDirection: "row", position: "absolute", top: "10%", bottom: 0, left: 0, right: 0, overflow: "auto"}}>
     <div id="home" style={{display: "flex", height: 0.9 * window.innerHeight, overflow: "auto"}}>
@@ -958,7 +968,7 @@ export const Home = (props: HomeProps) => {
             <div>
               
               
-              {wallet && !MINT_NOT_READY_NBDS.has(`(${neighborhoodX},${neighborhoodY})`) ? (
+              {wallet && voucherLiveDate <= now ? (
               <div>
               <h3 style={{color: "#B687D8", display: "inline-block"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>
               <Tooltip title="Enter the number of Space vouchers (max 100) you want and solve the captcha to receive them! Receiving more vouchers at a time will cost more SOL." placement="right">
@@ -973,7 +983,7 @@ export const Home = (props: HomeProps) => {
               }
               <MintContainer>
                 <div>
-                  {wallet && !MINT_NOT_READY_NBDS.has(`(${neighborhoodX},${neighborhoodY})`)  ? (
+                  {wallet && voucherLiveDate <= now ? (
                     <div>
                       <TextField
                         required

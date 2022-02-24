@@ -117,7 +117,7 @@ pub fn process(
     }
     let fee = get_voucher_price(args.count);
     if (args.fee as i64 - fee as i64).abs() as u64 > VOUCHER_PRICE_TOLERANCE{
-        msg!("Error: invalid voucher price");
+        msg!("Error: invalid voucher price. True price is {}, {} posted", fee, args.fee);
         return Err(ProgramError::InvalidInstructionData);
     }
     let now_ts = Clock::get().unwrap().unix_timestamp as u64;

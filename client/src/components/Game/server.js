@@ -141,7 +141,7 @@ export class Server {
         return window.neighborhoodCandyMachineCache[hash];
     }
 
-    async getNeighborhoodMetadata(connection, n_x, n_y) {
+    async getNeighborhoodMetadata(connection, n_x, n_y){
         const n_meta = await PublicKey.findProgramAddress([
             BASE.toBuffer(),
             Buffer.from(NEIGHBORHOOD_METADATA_SEED),
@@ -152,8 +152,18 @@ export class Server {
         if (account === null) {
             return null;
         }
-        const name = account.data.slice(97, 161);
-        return name;
+        let creator = new PublicKey(account.data.slice(1, 33));
+        let candymachineConfig = new PublicKey(account.data.slice(33, 65));
+        let candymachineID = new PublicKey(account.data.slice(65, 97));
+        let neighborhoodName = Buffer.from(account.data.slice(97, 97 + 64)).toString('utf-8').replaceAll("\x00", " ").trim();
+        let voucherLiveDate = bytesToUInt(account.data.slice(161, 169));
+        return {
+            creator,
+            candymachineConfig,
+            candymachineID,
+            neighborhoodName,
+            voucherLiveDate
+        }
     }
 
     rgbatoString(rgb) {
