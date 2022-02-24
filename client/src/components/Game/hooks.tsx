@@ -222,7 +222,9 @@ export function Screen(props) {
                         const parsedMsg = Buffer.from(msg.slice(23, msg.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
                         const msgNonce: any = tx["meta"]["logMessages"][7];
                         const parsedNonce = Buffer.from(msgNonce.slice(21, msgNonce.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                        const decipheredText: any = box.open(parsedMsg, parsedNonce, inboxKeypair.publicKey, inboxKeypair.secretKey);
+                        const msgPubkey: any = tx["meta"]["logMessages"][8];
+                        const parsedPubkey = Buffer.from(msgPubkey.slice(22, msgPubkey.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
+                        const decipheredText: any = box.open(parsedMsg, parsedNonce, parsedPubkey, inboxKeypair.secretKey);
                         const decryptedText = Buffer.from(decipheredText).toString();
                         myInboxMessage = [...myInboxMessage, {
                             from: parsedFromAddress,
@@ -332,6 +334,7 @@ export function Screen(props) {
                         const instruction = await program.instruction.sendMessage({
                             message: cipherText,
                             nonce: nonce,
+                            pubkey: inboxKeypair.publicKey,
                         }, {
                             accounts: {
                                 from: user,
