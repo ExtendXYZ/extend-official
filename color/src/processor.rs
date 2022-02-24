@@ -6,13 +6,14 @@ use solana_program::{
 
 use crate::{
     instruction::{
-        ColorInstruction, InitFrameArgs, ChangeColorArgs, ChangeColorBriefArgs, MakeEditableArgs, MakeEditableBriefArgs
+        ColorInstruction, InitFrameArgs, ChangeColorArgs, ChangeColorBriefArgs, MakeEditableArgs, MakeEditableBriefArgs, TmpChangeEditableTimestampArgs,
     },
 };
 
 pub mod init_frame;
 pub mod change_color;
 pub mod make_editable;
+pub mod tmp_change_editable_timestamp;
 
 pub mod processor_utils;
 
@@ -52,6 +53,11 @@ impl Processor {
                 let args = MakeEditableBriefArgs::try_from_slice(rest)?;
                 msg!("Instruction: making editable");
                 make_editable::process_brief(program_id, accounts, &args)
+            }
+            ColorInstruction::TmpChangeEditableTimestamp => {
+                let args = TmpChangeEditableTimestampArgs::try_from_slice(rest)?;
+                msg!("Instruction: tmp change editable timestamps");
+                tmp_change_editable_timestamp::process(program_id, accounts, &args)
             }
         }
     }
