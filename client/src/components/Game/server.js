@@ -18,7 +18,7 @@ import {
 } from "../../constants";
 import {TOKEN_PROGRAM_ID} from '@solana/spl-token';
 import {decodeMetadata} from "../../actions/metadata";
-import {signedIntToBytes, bytesToUInt} from "../../utils/borsh";
+import {signedIntToBytes, bytesToUInt, bytesToFloat} from "../../utils/borsh";
 import { sleep } from "../../utils/utils";
 import {loading} from '../../utils/loading';
 
@@ -157,12 +157,16 @@ export class Server {
         let candymachineID = new PublicKey(account.data.slice(65, 97));
         let neighborhoodName = Buffer.from(account.data.slice(97, 97 + 64)).toString('utf-8').replaceAll("\x00", " ").trim();
         let voucherLiveDate = bytesToUInt(account.data.slice(161, 169));
+        let voucherReceiveLimit = bytesToUInt(account.data.slice(169, 177));
+        let voucherPriceCoefficient = bytesToUInt(account.data.slice(177, 185)) / 1000000000
         return {
             creator,
             candymachineConfig,
             candymachineID,
             neighborhoodName,
-            voucherLiveDate
+            voucherLiveDate,
+            voucherReceiveLimit,
+            voucherPriceCoefficient
         }
     }
 

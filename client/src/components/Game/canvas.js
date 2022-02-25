@@ -2,7 +2,7 @@ import React from "react";
 import { PublicKey } from "@solana/web3.js";
 import "./index.css";
 import { Captcha } from "./captcha.js";
-import { colorHighlight, complementaryColor } from "../../utils";
+import { colorHighlight, complementaryColor, notify} from "../../utils";
 import { NEIGHBORHOOD_SIZE, UPPER } from "../../constants";
 import {
     Button,
@@ -1083,16 +1083,21 @@ export class Board extends React.Component {
                         </Button>
                         <Button
                             onClick={() => {
-                                this.props.expand({
-                                    n_x: Math.floor(this.focus.x / NEIGHBORHOOD_SIZE),
-                                    n_y: Math.floor(this.focus.y / NEIGHBORHOOD_SIZE),
-                                    address: new PublicKey(document.getElementById("candyMachineAddress").value),
-                                    name: document.getElementById("neighborhoodName").value,
-                                    voucherLiveDate: Number(document.getElementById("voucherLiveDate").value),
-                                    voucherReceiveLimit: Number(document.getElementById("voucherReceiveLimit").value),
-                                    voucherPriceCoefficient: Number(document.getElementById("voucherPriceCoefficient").value),
-                                    captcha: this.captchaResponse,
-                                });
+                                try{
+                                    this.props.expand({
+                                        n_x: Math.floor(this.focus.x / NEIGHBORHOOD_SIZE),
+                                        n_y: Math.floor(this.focus.y / NEIGHBORHOOD_SIZE),
+                                        address: new PublicKey(document.getElementById("candyMachineAddress").value),
+                                        name: document.getElementById("neighborhoodName").value,
+                                        voucherLiveDate: Number(document.getElementById("voucherLiveDate").value),
+                                        voucherReceiveLimit: Number(document.getElementById("voucherReceiveLimit").value),
+                                        voucherPriceCoefficient: Number(document.getElementById("voucherPriceCoefficient").value),
+                                        captcha: this.captchaResponse,
+                                    });
+                                } catch(e){
+                                    console.error(e);
+                                    notify({message: "Invalid input"});
+                                }
                                 this.setState({ inputConfig: false });
                             }}
                         >

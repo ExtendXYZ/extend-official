@@ -67,6 +67,14 @@ export function UIntToBytes(long) {
   return new BN(long).toArray('le', 8);
 }
 
+export function bytesToFloat(arr) {
+
+  let buffer = Buffer.from(arr);
+  var result = buffer.readFloatLE(0);
+
+  return result;
+}
+
 
 
 export const correct_negative_serialization = function(data, i_start, i_end, correct) {

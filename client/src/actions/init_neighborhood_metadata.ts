@@ -28,7 +28,7 @@ export class InitNeighborhoodMetadataInstructionData {
           ["price", "u64"],
           ["voucherLiveDate", "u64"],
           ["voucherReceiveLimit", "u64"],
-          ["voucherPriceCoefficient", "f64"],
+          ["voucherPriceCoefficient", "u64"],
         ],
       },
     ],

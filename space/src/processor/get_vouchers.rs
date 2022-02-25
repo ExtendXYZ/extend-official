@@ -115,7 +115,7 @@ pub fn process(
         msg!("Error: too many vouchers requested");
         return Err(ProgramError::InvalidInstructionData);
     }
-    let fee = get_voucher_price(neighborhood_metadata_data.voucher_price_coefficient, args.count);
+    let fee = get_voucher_price(neighborhood_metadata_data.voucher_price_coefficient as f64 / 1000000000.0, args.count);
     if (args.fee as i64 - fee as i64).abs() as u64 > VOUCHER_PRICE_TOLERANCE{
         msg!("Error: invalid voucher price. True price is {}, {} posted", fee, args.fee);
         return Err(ProgramError::InvalidInstructionData);

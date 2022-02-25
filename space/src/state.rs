@@ -48,7 +48,7 @@ pub struct NeighborhoodMetadata {
     pub neighborhood_name: [u8; 64],
     pub voucher_live_date: u64,
     pub voucher_receive_limit: u64,
-    pub voucher_price_coefficient: f64,
+    pub voucher_price_coefficient: u64, // coef * 1e9
 }
 
 impl NeighborhoodMetadata {

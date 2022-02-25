@@ -1198,7 +1198,7 @@ export function Screen(props) {
                         newNeighborhoodTrigger["name"],
                         newNeighborhoodTrigger["voucherLiveDate"],
                         newNeighborhoodTrigger["voucherReceiveLimit"],
-                        newNeighborhoodTrigger["voucherPriceCoefficient"],
+                        newNeighborhoodTrigger["voucherPriceCoefficient"] * 1000000000, // stored onchain as u64 preserving 9 decimal places
                     ))[0];
 
                     const initVoucherSystemIx = (await initVoucherSystemInstruction(
