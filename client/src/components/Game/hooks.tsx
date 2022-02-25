@@ -339,7 +339,7 @@ export function Screen(props) {
                             accounts: {
                                 from: user,
                                 to: toAddress,
-                                inbox: myInbox,
+                                inbox: toInbox,
                             }
                         });
                         const response = await sendTransaction(connection, wallet, [instruction], "Sent Message");
