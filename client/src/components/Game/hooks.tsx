@@ -362,7 +362,7 @@ export function Screen(props) {
 
     useEffect(() => {
         const checkInbox = async () => {
-            if (wallet.signMessage && user && anchorWallet) {
+            if (wallet.signMessage && user && anchorWallet && !inboxKeypair) {
                 const inboxSignature = await wallet.signMessage(Buffer.from("inbox"));
                 const inboxSeed = inboxSignature.slice(0, 32);
                 const myInboxKeypair = box.keyPair.fromSecretKey(inboxSeed);
