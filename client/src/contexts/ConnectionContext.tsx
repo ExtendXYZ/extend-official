@@ -393,7 +393,6 @@ export const sendTransactions = async (
         ))
         
         let responses = await Promise.all(promises);
-        console.log("Num transactions that failed confirmation", counter);
         for (let j = 0; j < responses.length; j++) { // populate finalResponses with whether each tx succeed
           finalResponses[idxMap[j]] = (responses[j] === 2);
         }
