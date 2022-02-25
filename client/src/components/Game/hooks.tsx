@@ -760,7 +760,7 @@ export function Screen(props) {
     useEffect(() => {
         const asyncMakeEditableColor = async() => {
             const editable = makeEditableColorTrigger["editable"];
-            if (editable !== null && wallet.publicKey) {
+            if (editable && wallet.publicKey) {
                 const x = makeEditableColorTrigger["x"];
                 const y = makeEditableColorTrigger["y"];
                 const position = JSON.stringify({x, y});
@@ -827,7 +827,7 @@ export function Screen(props) {
         const asyncSetPrice = async() => {
             const price = changePriceTrigger["price"];
             const create = changePriceTrigger["create"];
-            if ((price || !create) && wallet.publicKey) {
+            if (price !== undefined && (price || !create) && wallet.publicKey) {
                 const x = changePriceTrigger["x"];
                 const y = changePriceTrigger["y"];
                 const mint = changePriceTrigger["mint"];
@@ -1428,7 +1428,7 @@ export function Screen(props) {
         const asyncChangeRent = async() => {
             const price = changeRentTrigger["price"];
             const create = changeRentTrigger["create"];
-            if ((price || !create) && wallet.publicKey) {
+            if (price !== undefined && (price || !create) && wallet.publicKey) {
                 const x = changeRentTrigger["x"];
                 const y = changeRentTrigger["y"];
                 const min_duration = changeRentTrigger["min_duration"];
@@ -1462,7 +1462,7 @@ export function Screen(props) {
             const price = changeRentsTrigger["price"];
             const create = changeRentsTrigger["create"];
             const spaces = changeRentsTrigger["spaces"];
-            if ((price || !create) && wallet.publicKey && spaces) {
+            if (price !== undefined && (price || !create) && wallet.publicKey && spaces) {
 
                 const min_duration = changeRentsTrigger["min_duration"];
                 const max_duration = changeRentsTrigger["max_duration"];

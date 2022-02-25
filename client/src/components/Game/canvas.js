@@ -1100,6 +1100,7 @@ export class Board extends React.Component {
                                 }
                                 this.setState({ inputConfig: false });
                             }}
+                            disabled={!this.props.user}
                         >
                             Register
                         </Button>

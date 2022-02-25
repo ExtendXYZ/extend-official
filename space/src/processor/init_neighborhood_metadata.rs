@@ -113,7 +113,7 @@ pub fn process(
             return Err(ProgramError::MissingRequiredSignature); 
         }
 
-        // burn the extend token
+        // burn the extend token 
         invoke(
             &spl_token::instruction::burn(
                 token_program.key,
