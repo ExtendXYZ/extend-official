@@ -393,9 +393,9 @@ export const sendTransactions = async (
                 return 0;
               })
         ))
-        console.log("Num transactions that failed confirmation", counter);
-
+        
         let responses = await Promise.all(promises);
+        console.log("Num transactions that failed confirmation", counter);
         for (let j = 0; j < responses.length; j++) { // populate finalResponses with whether each tx succeed
           finalResponses[idxMap[j]] = (responses[j] === 2);
         }
@@ -650,7 +650,7 @@ export async function sendSignedTransaction({
         true
       );
       if (!confirmation) {
-        console.log("Not confirmed, max retry hit")
+        // console.log("Not confirmed, max retry hit")
         throw new Error("Max signature retries hit")
       }
       if (confirmation && confirmation.err) {
@@ -794,7 +794,7 @@ async function awaitTransactionSignatureConfirmation(
           }
         }
       })();
-      await sleep(5000);
+      await sleep(10000);
     }
     
     if (numTries === maxTries && !done) { // met max retries
