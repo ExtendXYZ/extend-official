@@ -374,6 +374,7 @@ export const sendTransactions = async (
 
         const signedTx = await wallet.signAllTransactions(currArr);
 
+        let counter = 0;
         let promises = signedTx.map((item) => (sendSignedTransaction({
           connection,
           signedTransaction: item,
@@ -385,12 +386,14 @@ export const sendTransactions = async (
               })
               .catch((reason) => {
                 if (reason.toString().includes("retries")) { // for retries
-                  return 1;
+                  counter += 1;
+                  return 2;
                 }
                 failCallback(reason, -1);
                 return 0;
               })
         ))
+        console.log("Num transactions that failed confirmation", counter);
 
         let responses = await Promise.all(promises);
         for (let j = 0; j < responses.length; j++) { // populate finalResponses with whether each tx succeed
@@ -646,10 +649,10 @@ export async function sendSignedTransaction({
         "recent",
         true
       );
-      // if (!confirmation) {
-      //   // // console.log("Not confirmed, max retry hit")
-      //   throw new Error("Max signature retries hit")
-      // }
+      if (!confirmation) {
+        console.log("Not confirmed, max retry hit")
+        throw new Error("Max signature retries hit")
+      }
       if (confirmation && confirmation.err) {
         console.error(confirmation.err);
         throw new Error("Transaction failed: Custom instruction error");
@@ -753,7 +756,7 @@ async function awaitTransactionSignatureConfirmation(
     }, timeout);
 
     let numTries = 0;
-    let maxTries = 2;
+    let maxTries = 3;
     while (!done && numTries < maxTries && queryStatus) {
       // eslint-disable-next-line no-loop-func
       await (async () => {
