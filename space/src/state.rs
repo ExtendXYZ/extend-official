@@ -4,8 +4,6 @@ use std::mem::size_of;
 
 pub const NEIGHBORHOOD_SIZE: usize = 200;
 pub const MARKETPLACE_FEE: f64 = 0.01;
-pub const VOUCHER_RECEIVE_LIMIT: u64 = 100;
-pub const VOUCHER_PRICE_CONSTANT: f64 = 0.01059;
 pub const VOUCHER_PRICE_TOLERANCE: u64 = 100;
 
 pub const EXTEND_TOKEN_MINT: &str = "PLACEHOLDER";

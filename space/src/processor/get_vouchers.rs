@@ -17,7 +17,6 @@ use crate::{
     instruction::GetVouchersArgs,
     processor::processor_utils::{get_voucher_price},
     state::{
-        VOUCHER_RECEIVE_LIMIT,
         NEIGHBORHOOD_METADATA_SEED,
         VOUCHER_MINT_SEED,
         VOUCHER_PRICE_TOLERANCE,

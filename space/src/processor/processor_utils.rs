@@ -4,7 +4,7 @@ use solana_program::{
 use std::{cmp, f64};
 use crate::{
     state::{
-        NEIGHBORHOOD_SIZE, VOUCHER_PRICE_CONSTANT
+        NEIGHBORHOOD_SIZE
     },
 };
 
