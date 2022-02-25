@@ -374,7 +374,6 @@ export const sendTransactions = async (
 
         const signedTx = await wallet.signAllTransactions(currArr);
 
-        let counter = 0;
         let promises = signedTx.map((item) => (sendSignedTransaction({
           connection,
           signedTransaction: item,
@@ -386,16 +385,14 @@ export const sendTransactions = async (
               })
               .catch((reason) => {
                 if (reason.toString().includes("retries")) { // for retries
-                  counter += 1;
-                  return 2;
+                  return 1;
                 }
                 failCallback(reason, -1);
                 return 0;
               })
         ))
-        
+
         let responses = await Promise.all(promises);
-        console.log("Num transactions that failed confirmation", counter);
         for (let j = 0; j < responses.length; j++) { // populate finalResponses with whether each tx succeed
           finalResponses[idxMap[j]] = (responses[j] === 2);
         }
@@ -649,10 +646,10 @@ export async function sendSignedTransaction({
         "recent",
         true
       );
-      if (!confirmation) {
-        // console.log("Not confirmed, max retry hit")
-        throw new Error("Max signature retries hit")
-      }
+      // if (!confirmation) {
+      //   // console.log("Not confirmed, max retry hit")
+      //   throw new Error("Max signature retries hit")
+      // }
       if (confirmation && confirmation.err) {
         console.error(confirmation.err);
         throw new Error("Transaction failed: Custom instruction error");
@@ -794,7 +791,7 @@ async function awaitTransactionSignatureConfirmation(
           }
         }
       })();
-      await sleep(10000);
+      await sleep(8000);
     }
     
     if (numTries === maxTries && !done) { // met max retries
