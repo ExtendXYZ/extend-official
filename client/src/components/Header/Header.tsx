@@ -32,6 +32,8 @@ export const Header = (props: { setNotificationsBar?: (type: string) => void }) 
       return 1;
     } else if (tail === "mint") {
       return 2;
+    } else if (tail === "message") {
+      return 3;
     }
     return 0;
   };
@@ -76,6 +78,9 @@ export const Header = (props: { setNotificationsBar?: (type: string) => void }) 
               </Link>
               <Link to={"/mint"} style={{ color: '#FFFFFF' }}>
                 <Tab value={2} label="Mint" sx={{ fontWeight: "bold", fontFamily: "Attila Sans Sharp" }} />
+              </Link>
+              <Link to={"/message"} style={{ color: '#FFFFFF' }}>
+                <Tab value={3} label="Message" sx={{ fontWeight: "bold", fontFamily: "Attila Sans Sharp" }} />
               </Link>
               <a href={HELP_URL} target="_blank" rel="noopener noreferrer" style={{ color: '#FFFFFF' }}>
                 <Tab value={2} label="Help" sx={{ fontWeight: "bold", fontFamily: "Attila Sans Sharp" }} />
