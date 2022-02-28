@@ -1,11 +1,26 @@
 import React from "react";
-import { Box, Button } from "@mui/material";
+import { 
+  Box,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  TextField
+} from "@mui/material";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import { Tooltip, Spin } from "antd";
-import {formatPrice} from "../../utils"; 
+import {formatPrice, notify} from "../../utils"; 
 
 export class NeighborhoodSidebar extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      showUpdateNeighborhoodMetadataDialogue: false
+    }
+  }
   componentDidMount() {
     if (!this.props.neighborhood.infoLoaded){
       return;
@@ -183,7 +198,104 @@ export class NeighborhoodSidebar extends React.Component {
                 </Button>
               </Tooltip>
             </ListItem>
+            {
+              this.props.user && this.props.neighborhood.creator && 
+              this.props.user.toBase58() === this.props.neighborhood.creator.toBase58() ? 
+              <ListItem className="info" style={{ display: "block" }}>
+                <Tooltip placement={'right'} title="Update neighborhood metadata">
+                  <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => {this.setState({showUpdateNeighborhoodMetadataDialogue: true})}}
+                  style={{
+                      width: "100%",
+                      marginTop: "20px",
+                      color: "#FFFFFF",
+                      background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                  }}
+                  >
+                  Update Metadata
+                  </Button>
+                </Tooltip>
+              </ListItem> : null
+            }
           </List>
+          <Dialog
+                    open={this.state.showUpdateNeighborhoodMetadataDialogue}
+                    onClose={() => this.setState({ showUpdateNeighborhoodMetadataDialogue: false })}
+                >
+                    <DialogTitle>Update neighborhood metadata
+                    </DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>
+                            To expand to this Neighborhood, first initialize the candy machine
+                            config and paste its address here, and we'll handle the rest. Make
+                            sure the config corresponds to the selected Neighborhood, and that the connected
+                            wallet is the authority of the config!
+                        </DialogContentText>
+                        <TextField
+                            autoFocus
+                            id="name"
+                            margin="dense"
+                            label="Neighborhood Name"
+                            fullWidth
+                            variant="standard"
+                            defaultValue={this.props.neighborhood.name}
+                        />
+                        <TextField
+                            autoFocus
+                            id="voucherLiveDate"
+                            margin="dense"
+                            label="Voucher Live Date (unix timestamp)"
+                            fullWidth
+                            variant="standard"
+                            defaultValue={this.props.neighborhood.voucherLiveDate}
+                        />
+                        <TextField
+                            autoFocus
+                            id="voucherReceiveLimit"
+                            margin="dense"
+                            label="Voucher Receive Limit"
+                            fullWidth
+                            variant="standard"
+                            defaultValue={this.props.neighborhood.voucherReceiveLimit}
+                        />
+                        <TextField
+                            autoFocus
+                            id="voucherPriceCoefficient"
+                            margin="dense"
+                            label="Voucher Price Coefficient"
+                            fullWidth
+                            variant="standard"
+                            defaultValue={this.props.neighborhood.voucherPriceCoefficient}
+                        />
+                        
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => this.setState({ showUpdateNeighborhoodMetadataDialogue: false })}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={() => {
+                              try{
+                                this.props.updateNeighborhoodMetadata({
+                                    name: document.getElementById("neighborhoodName").value,
+                                    voucherLiveDate: Number(document.getElementById("voucherLiveDate").value),
+                                    voucherReceiveLimit: Number(document.getElementById("voucherReceiveLimit").value),
+                                    voucherPriceCoefficient: Number(document.getElementById("voucherPriceCoefficient").value)
+                                });
+                              } catch(e){
+                                  console.error(e);
+                                  notify({message: "Invalid input"});
+                              }
+                              this.setState({ showUpdateNeighborhoodMetadataDialogue: false });
+                            }}
+                            disabled={!this.props.user}
+                        >
+                            Save
+                        </Button>
+                    </DialogActions>
+                </Dialog>
         </div>
       )
     );

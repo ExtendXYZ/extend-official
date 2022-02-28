@@ -13,7 +13,7 @@ pub struct InitNeighborhoodMetadataArgs {
     pub neighborhood_x: i64,
     pub neighborhood_y: i64,
     pub price: u64,
-    pub neighborhood_name: [u8; 64],
+    pub name: [u8; 64],
     pub voucher_live_date: u64,
     pub voucher_receive_limit: u64,
     pub voucher_price_coefficient: u64,
@@ -62,12 +62,15 @@ pub struct UpdateAuthorityArgs {
 
 }
 
-#[repr(C)] // elim
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)] // elim
-pub struct ChangeNeighborhoodNameArgs { // elim
-    pub neighborhood_x: i64, // elim
-    pub neighborhood_y: i64, // elim
-    pub neighborhood_name: [u8; 64], // elim
+#[repr(C)]
+#[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+pub struct UpdateNeighborhoodMetadataArgs {
+    pub neighborhood_x: i64,
+    pub neighborhood_y: i64,
+    pub name: [u8; 64],
+    pub voucher_live_date: u64,
+    pub voucher_receive_limit: u64,
+    pub voucher_price_coefficient: u64,
 } // elim
 
 #[repr(C)]
@@ -185,26 +188,6 @@ pub enum SpaceInstruction {
     InitVoucherSystem,
 
     /*
-    Revoke the price exempt status for initializing new neighborhoods for creator of base
-    Accounts expected:
-    0. [Writable] Base account
-    1. [Signer] Revoker
-    */
-    RevokeAuthorityPrivileges,
-
-    /*
-    Change creator
-    Accounts expected:
-    0. [Writable] Base account
-    1. [Signer] Current creator
-    2. New creator
-    */
-    UpdateAuthority,
-
-
-    ChangeNeighborhoodName,
-
-    /*
     obtain voucher tokens
     Accounts expected:
     0. Base account
@@ -222,6 +205,32 @@ pub enum SpaceInstruction {
     */
     GetVouchers,
 
+    /*
+    Change creator
+    Accounts expected:
+    0. [Writable] Base account
+    1. [Signer] Current creator
+    2. New creator
+    */
+    UpdateAuthority,
+
+    /*
+    Revoke the price exempt status for initializing new neighborhoods for creator of base
+    Accounts expected:
+    0. [Writable] Base account
+    1. [Signer] Revoker
+    */
+    RevokeAuthorityPrivileges,
+
+    /*
+    Update neighborhood metadata
+    Accounts expected:
+    0. Base account
+    1. [Writable] neighborhood metadata
+    2. [signer] neighborhood creator
+    */
+    UpdateNeighborhoodMetadata,
+
     // TempAddxy, // elim
 }
 
@@ -234,10 +243,10 @@ impl SpaceInstruction {
             3 => Self::ChangeOffer,
             4 => Self::AcceptOffer,
             5 => Self::InitVoucherSystem,
-            6 => Self::RevokeAuthorityPrivileges,
+            6 => Self::GetVouchers,
             7 => Self::UpdateAuthority,
-            8 => Self::ChangeNeighborhoodName,
-            9 => Self::GetVouchers,
+            8 => Self::RevokeAuthorityPrivileges,
+            9 => Self::UpdateNeighborhoodMetadata,
             // 9 => Self::TempAddxy, // elim
             _ => return Err(ProgramError::InvalidInstructionData),
         })

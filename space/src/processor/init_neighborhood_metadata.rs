@@ -169,7 +169,7 @@ pub fn process(
     neighborhood_metadata_data.creator = *creator.key;
     neighborhood_metadata_data.candymachine_config= *candymachine_config.key;
     neighborhood_metadata_data.candymachine_account = *candymachine_account.key;
-    neighborhood_metadata_data.neighborhood_name = args.neighborhood_name;
+    neighborhood_metadata_data.name = args.name;
     neighborhood_metadata_data.voucher_live_date = args.voucher_live_date;
     neighborhood_metadata_data.voucher_receive_limit = args.voucher_receive_limit;
     neighborhood_metadata_data.voucher_price_coefficient = args.voucher_price_coefficient;

@@ -10,3 +10,4 @@ export * from "./make_editable";
 export * from "./set_rent";
 export * from "./accept_rent";
 export * from "./get_vouchers";
+export * from "./update_neighborhood_metadata";

@@ -5,7 +5,7 @@ import {SPACE_PROGRAM_ID, NEIGHBORHOOD_METADATA_SEED, VOUCHER_MINT_SEED, VOUCHER
 import {correct_negative_serialization, signedIntToBytes} from "../utils/borsh";
 
 export class GetVouchersInstructionData {
-  instruction: number = 9;
+  instruction: number = 6;
   n_x: number;
   n_y: number;
   count: number;

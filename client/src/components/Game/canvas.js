@@ -1024,7 +1024,7 @@ export class Board extends React.Component {
                         <DialogContentText>
                             To expand to this Neighborhood, first initialize the candy machine
                             config and paste its address here, and we'll handle the rest. Make
-                            sure the config corresponds to the selected Neighborhood, and that the current
+                            sure the config corresponds to the selected Neighborhood, and that the connected
                             wallet is the authority of the config!
                         </DialogContentText>
                         <TextField

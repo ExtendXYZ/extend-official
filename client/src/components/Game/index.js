@@ -138,7 +138,13 @@ export class Game extends React.Component {
                 n_x: 0,
                 n_y: 0,
                 infoLoaded: false,
-                num_frames: 0,
+                creator: null,
+                candymachineConfig: null,
+                candymachineID: null,
+                neighborhoodName: "",
+                voucherLiveDate: 0,
+                voucherReceiveLimit: 0,
+                voucherPriceCoefficient: 0,
                 trades: {},
             },
             initialFetchStatus: 0,
@@ -1016,6 +1022,55 @@ export class Game extends React.Component {
         });
     }
 
+    expand = ({n_x, n_y, address, name, voucherLiveDate, voucherReceiveLimit, voucherPriceCoefficient, captcha}) => {
+        this.props.setNewNeighborhoodTrigger({
+            n_x,
+            n_y,
+            address,
+            name,
+            voucherLiveDate,
+            voucherReceiveLimit,
+            voucherPriceCoefficient,
+            captcha
+        });
+        notify({
+            message: "Initializing new Neighborhood...",
+        });
+
+        // const n_x = Math.floor(this.focus.x / NEIGHBORHOOD_SIZE);
+        // const n_y = Math.floor(this.focus.y / NEIGHBORHOOD_SIZE);
+        // requestAnimationFrame(() => {
+        //     this.drawCanvasCache({x: n_x * NEIGHBORHOOD_SIZE, y: n_y * NEIGHBORHOOD_SIZE, width: NEIGHBORHOOD_SIZE, height: NEIGHBORHOOD_SIZE});
+        //     this.drawNTracker();
+        //     this.drawSelected();
+        // })
+    }
+
+    register = () => {
+        this.setState({
+            mySpacesMenuOpen: false,
+            mySpacesMenuAnchorEl: null,
+        });
+        this.props.setRegisterTrigger(true);
+        notify({
+            message: "Registering all Spaces...",
+        });
+    }
+
+    updateNeighborhoodMetadata = ({n_x, n_y, name, voucherLiveDate, voucherReceiveLimit, voucherPriceCoefficient}) => {
+        this.props.setUpdateNeighborhoodMetadataTrigger({
+            n_x,
+            n_y,
+            name,
+            voucherLiveDate,
+            voucherReceiveLimit,
+            voucherPriceCoefficient,
+        });
+        notify({
+            message: "Updating Neighborhood metadata...",
+        });
+    }
+
     rentSpaces = () => {
         this.props.setAcceptRentsTrigger({
             rentableInfo: this.state.selecting.rentableInfo,
@@ -1401,32 +1456,6 @@ export class Game extends React.Component {
         });
     }
 
-    expand = (trigger) => {
-        this.props.setNewNeighborhoodTrigger(trigger);
-        notify({
-            message: "Initializing new Neighborhood...",
-        });
-
-        // const n_x = Math.floor(this.focus.x / NEIGHBORHOOD_SIZE);
-        // const n_y = Math.floor(this.focus.y / NEIGHBORHOOD_SIZE);
-        // requestAnimationFrame(() => {
-        //     this.drawCanvasCache({x: n_x * NEIGHBORHOOD_SIZE, y: n_y * NEIGHBORHOOD_SIZE, width: NEIGHBORHOOD_SIZE, height: NEIGHBORHOOD_SIZE});
-        //     this.drawNTracker();
-        //     this.drawSelected();
-        // })
-    }
-
-    register = () => {
-        this.setState({
-            mySpacesMenuOpen: false,
-            mySpacesMenuAnchorEl: null,
-        });
-        this.props.setRegisterTrigger(true);
-        notify({
-            message: "Registering all Spaces...",
-        });
-    }
-
     handleFindSpaces = async () => {
         this.setState({ findingSpaces: true });
         const text = document.getElementById("address-textfield").value;
@@ -1724,6 +1753,10 @@ export class Game extends React.Component {
                 n_x: 0,
                 n_y: 0,
                 infoLoaded: false,
+                name: null,
+                voucherLiveDate: 0,
+                voucherReceiveLimit: 0,
+                voucherPriceCoefficient: 0,
                 numFrames: 0,
                 trades: {},
             }
@@ -1856,27 +1889,30 @@ export class Game extends React.Component {
               infoLoaded: false
             },
           });
-        let numFrames, trades;
+        let numFrames, trades, metadata;
         try{
-            [numFrames, trades] = await Promise.all([
+            [numFrames, trades, metadata] = await Promise.all([
                 this.props.server.getNumFrames(this.props.connection, n_x, n_y),
                 this.props.database.getNeighborhoodStats(n_x, n_y),
+                this.props.server.getNeighborhoodMetadata(this.props.connection, n_x, n_y)
             ]);
         } catch(e){
             console.error(e);
-            numFrames = 0;
-            trades = {};
+            numFrames = 0
         }
+        console.log(metadata)
         if (!this.state.neighborhood.focused){ // sidebar changed
             return;
         }
         this.setState({
           showNav: true,
           neighborhood: {
+            ...this.state.neighborhood,
             focused: true,
             n_x,
             n_y,
             infoLoaded: true,
+            ...metadata,
             numFrames,
             trades,
           },
@@ -2433,11 +2469,13 @@ export class Game extends React.Component {
             const n_x = this.state.neighborhood.n_x;
             const n_y = this.state.neighborhood.n_y;
             info = <NeighborhoodSidebar
+                user={this.props.user}
                 neighborhood={this.state.neighborhood}
                 name = { this.viewport.neighborhoodNames[JSON.stringify({ n_x:  this.state.neighborhood.n_x, n_y : this.state.neighborhood.n_y })]} 
                 canvas = {this.board.current.canvasCache[JSON.stringify({ n_x, n_y })]}
                 canvasSize = {Math.min(SIDE_NAV_WIDTH, window.innerWidth - 48)}
                 handleAddNewFrame={this.handleAddNewFrame}
+                updateNeighborhoodMetadata={this.updateNeighborhoodMetadata}
                 setSelecting={this.setSelecting}
             />;
         }

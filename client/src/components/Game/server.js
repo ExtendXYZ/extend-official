@@ -155,7 +155,7 @@ export class Server {
         let creator = new PublicKey(account.data.slice(1, 33));
         let candymachineConfig = new PublicKey(account.data.slice(33, 65));
         let candymachineID = new PublicKey(account.data.slice(65, 97));
-        let neighborhoodName = Buffer.from(account.data.slice(97, 97 + 64)).toString('utf-8').replaceAll("\x00", " ").trim();
+        let name = Buffer.from(account.data.slice(97, 97 + 64)).toString('utf-8').replaceAll("\x00", " ").trim();
         let voucherLiveDate = bytesToUInt(account.data.slice(161, 169));
         let voucherReceiveLimit = bytesToUInt(account.data.slice(169, 177));
         let voucherPriceCoefficient = bytesToUInt(account.data.slice(177, 185)) / 1000000000
@@ -163,7 +163,7 @@ export class Server {
             creator,
             candymachineConfig,
             candymachineID,
-            neighborhoodName,
+            name,
             voucherLiveDate,
             voucherReceiveLimit,
             voucherPriceCoefficient
