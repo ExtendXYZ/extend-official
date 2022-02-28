@@ -374,7 +374,6 @@ export const sendTransactions = async (
 
         const signedTx = await wallet.signAllTransactions(currArr);
 
-        let counter = 0;
         let promises = signedTx.map((item) => (sendSignedTransaction({
           connection,
           signedTransaction: item,
@@ -386,7 +385,6 @@ export const sendTransactions = async (
               })
               .catch((reason) => {
                 if (reason.toString().includes("retries")) { // for retries
-                  counter += 1;
                   return 1;
                 }
                 failCallback(reason, -1);
@@ -395,7 +393,6 @@ export const sendTransactions = async (
         ))
         
         let responses = await Promise.all(promises);
-        console.log("Num transactions to retry on blockhash", counter)
         for (let j = 0; j < responses.length; j++) { // populate finalResponses with whether each tx succeed
           finalResponses[idxMap[j]] = (responses[j] === 2);
         }
