@@ -374,7 +374,6 @@ export const sendTransactions = async (
 
         const signedTx = await wallet.signAllTransactions(currArr);
 
-        let counter = 0;
         let promises = signedTx.map((item) => (sendSignedTransaction({
           connection,
           signedTransaction: item,
@@ -386,7 +385,6 @@ export const sendTransactions = async (
               })
               .catch((reason) => {
                 if (reason.toString().includes("retries")) { // for retries
-                  counter += 1;
                   return 1;
                 }
                 failCallback(reason, -1);
@@ -395,7 +393,6 @@ export const sendTransactions = async (
         ))
         
         let responses = await Promise.all(promises);
-        console.log("Num transactions to retry on blockhash", counter)
         for (let j = 0; j < responses.length; j++) { // populate finalResponses with whether each tx succeed
           finalResponses[idxMap[j]] = (responses[j] === 2);
         }
@@ -409,7 +406,7 @@ export const sendTransactions = async (
             newIdxMap.push(idxMap[k]);
           }
         }
-        // console.log("Need to retry", nextArr.length);
+        console.log("Need to retry on blockhash", nextArr.length);
 
         // shuffling nextArr
         let outp = shuffle(nextArr, newIdxMap);
@@ -756,7 +753,7 @@ async function awaitTransactionSignatureConfirmation(
     }, timeout);
 
     let numTries = 0;
-    let maxTries = 3;
+    let maxTries = 12;
     while (!done && numTries < maxTries && queryStatus) {
       // eslint-disable-next-line no-loop-func
       await (async () => {
@@ -779,7 +776,7 @@ async function awaitTransactionSignatureConfirmation(
               done = true;
               reject(status.err);
             } else if (!status.confirmations) {
-              // // console.log("REST no confirmations for", txid, status);
+              console.log("REST no confirmations for", txid, status);
             } else {
               // // console.log("REST confirmation for", txid, status);
               done = true;
@@ -794,7 +791,7 @@ async function awaitTransactionSignatureConfirmation(
           }
         }
       })();
-      await sleep(10000);
+      await sleep(5000);
     }
     
     if (numTries === maxTries && !done) { // met max retries
