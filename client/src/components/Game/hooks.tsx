@@ -930,14 +930,20 @@ export function Screen(props) {
                         let newOwnedMints = {};
                         finalOwnedSpaces.add(position);
                         newOwnedMints[position] = mint;
-                        game.current?.refreshSidebar();
+                        loading(null, "updating owned spaces", null);
+                        try{
+                            await database.register(wallet.publicKey, newOwnedMints);
+                        } catch(e){
+                            console.error(e);
+                        }
 
                         // if wallet is unchanged, update state
                         if (wallet.publicKey === currentUser){
                             setOwnedSpaces(finalOwnedSpaces);
                             setOwnedMints({...ownedMints, ...newOwnedMints});
                         }
-                        database.register(wallet.publicKey, newOwnedMints);
+                        game.current?.refreshSidebar();
+                        loading(null, "updating owned spaces", "success");
                     }
                 }
                 catch (e) {
@@ -983,14 +989,20 @@ export function Screen(props) {
                             }
                         }
                     }
-                    game.current?.refreshSidebar();
+                    loading(null, "updating owned spaces", null);
+                    try{
+                        await database.register(wallet.publicKey, newOwnedMints);
+                    } catch(e){
+                        console.error(e);
+                    }
 
                     // if wallet is unchanged, update state
                     if (wallet.publicKey === currentUser){
                         setOwnedSpaces(finalOwnedSpaces);
                         setOwnedMints({...ownedMints, ...newOwnedMints});
                     }
-                    await database.register(wallet.publicKey, newOwnedMints);
+                    game.current?.refreshSidebar();
+                    loading(null, "updating owned spaces", "success");
                 }
                 catch (e) {
                     notify({ message: `Unexpected error, please try again later` });
@@ -1454,8 +1466,8 @@ export function Screen(props) {
                         voucherPriceCoefficient * 1000000000,
                     );
                     await sendTransaction(connection, wallet, ix, "Update neighborhood metadata");
-                    sleep(5000);
-                    game.current?.fetchNeighborhoodNames();
+                    await sleep(3000);
+                    await game.current?.fetchNeighborhoodNames();
                     game.current?.refreshSidebar();
                 }
                 catch (e) {
