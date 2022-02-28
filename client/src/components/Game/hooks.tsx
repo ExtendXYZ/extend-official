@@ -1453,7 +1453,7 @@ export function Screen(props) {
                         name,
                         voucherLiveDate,
                         voucherReceiveLimit,
-                        voucherPriceCoefficient
+                        voucherPriceCoefficient * 1000000000,
                     );
                     sendTransaction(connection, wallet, ix, "Update neighborhood metadata");
                 }
@@ -1670,6 +1670,7 @@ export function Screen(props) {
             setImgUploadTrigger={setImgUploadTrigger}
             setGifUploadTrigger={setGifUploadTrigger}
             setNewNeighborhoodTrigger={setNewNeighborhoodTrigger}
+            setUpdateNeighborhoodMetadataTrigger={setUpdateNeighborhoodMetadataTrigger}
             setNewFrameTrigger={setNewFrameTrigger}
             setChangeRentTrigger={setChangeRentTrigger}
             setChangeRentsTrigger={setChangeRentsTrigger}

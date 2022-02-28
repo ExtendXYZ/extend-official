@@ -85,7 +85,7 @@ impl Processor {
             }
             SpaceInstruction::UpdateNeighborhoodMetadata => {
                 let args = UpdateNeighborhoodMetadataArgs::try_from_slice(rest)?;
-                msg!("Instruction: change neighborhood name");
+                msg!("Instruction: update neighborhood metadata");
                 update_neighborhood_metadata::process(program_id, accounts, &args)
             }
             // SpaceInstruction::TempAddxy => { // elim

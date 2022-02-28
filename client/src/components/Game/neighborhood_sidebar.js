@@ -235,7 +235,7 @@ export class NeighborhoodSidebar extends React.Component {
                         </DialogContentText>
                         <TextField
                             autoFocus
-                            id="name"
+                            id="name_text_field"
                             margin="dense"
                             label="Neighborhood Name"
                             fullWidth
@@ -244,29 +244,32 @@ export class NeighborhoodSidebar extends React.Component {
                         />
                         <TextField
                             autoFocus
-                            id="voucherLiveDate"
+                            id="voucher_live_date_text_field"
                             margin="dense"
                             label="Voucher Live Date (unix timestamp)"
                             fullWidth
                             variant="standard"
+                            type='number'
                             defaultValue={this.props.neighborhood.voucherLiveDate}
                         />
                         <TextField
                             autoFocus
-                            id="voucherReceiveLimit"
+                            id="voucher_receive_limit_text_field"
                             margin="dense"
                             label="Voucher Receive Limit"
                             fullWidth
                             variant="standard"
+                            type='number'
                             defaultValue={this.props.neighborhood.voucherReceiveLimit}
                         />
                         <TextField
                             autoFocus
-                            id="voucherPriceCoefficient"
+                            id="voucher_price_coefficient_text_field"
                             margin="dense"
                             label="Voucher Price Coefficient"
                             fullWidth
                             variant="standard"
+                            type='number'
                             defaultValue={this.props.neighborhood.voucherPriceCoefficient}
                         />
                         
@@ -279,10 +282,10 @@ export class NeighborhoodSidebar extends React.Component {
                             onClick={() => {
                               try{
                                 this.props.updateNeighborhoodMetadata({
-                                    name: document.getElementById("neighborhoodName").value,
-                                    voucherLiveDate: Number(document.getElementById("voucherLiveDate").value),
-                                    voucherReceiveLimit: Number(document.getElementById("voucherReceiveLimit").value),
-                                    voucherPriceCoefficient: Number(document.getElementById("voucherPriceCoefficient").value)
+                                    name: document.getElementById("name_text_field").value,
+                                    voucherLiveDate: Number(document.getElementById("voucher_live_date_text_field").value),
+                                    voucherReceiveLimit: Number(document.getElementById("voucher_receive_limit_text_field").value),
+                                    voucherPriceCoefficient: Number(document.getElementById("voucher_price_coefficient_text_field").value)
                                 });
                               } catch(e){
                                   console.error(e);
