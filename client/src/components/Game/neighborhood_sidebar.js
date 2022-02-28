@@ -185,7 +185,7 @@ export class NeighborhoodSidebar extends React.Component {
                 size="small"
                 variant="contained"
                 onClick={() => {
-                    this.props.handleAddNewFrame();
+                    this.props.addNewFrame();
                 }}
                 style={{
                     width: "100%",

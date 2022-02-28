@@ -990,7 +990,7 @@ export function Screen(props) {
                         setOwnedSpaces(finalOwnedSpaces);
                         setOwnedMints({...ownedMints, ...newOwnedMints});
                     }
-                    database.register(wallet.publicKey, newOwnedMints);
+                    await database.register(wallet.publicKey, newOwnedMints);
                 }
                 catch (e) {
                     notify({ message: `Unexpected error, please try again later` });
@@ -1330,8 +1330,6 @@ export function Screen(props) {
                         signedTransaction: createClustersTX,
                     });
 
-                    sleep(20000);
-
                     let colorClusterData = await connection.getAccountInfo(colorRes.keypair.publicKey);
                     let timeClusterData = await connection.getAccountInfo(timeRes.keypair.publicKey);
                     while(!colorClusterData || !timeClusterData){
@@ -1455,7 +1453,10 @@ export function Screen(props) {
                         voucherReceiveLimit,
                         voucherPriceCoefficient * 1000000000,
                     );
-                    sendTransaction(connection, wallet, ix, "Update neighborhood metadata");
+                    await sendTransaction(connection, wallet, ix, "Update neighborhood metadata");
+                    sleep(5000);
+                    game.current?.fetchNeighborhoodNames();
+                    game.current?.refreshSidebar();
                 }
                 catch (e) {
                     notify({ message: `Unexpected error, please try again later` });

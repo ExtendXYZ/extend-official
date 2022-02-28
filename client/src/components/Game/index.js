@@ -431,7 +431,7 @@ export class Game extends React.Component {
         this.censors = await response.json();
     }
 
-    reloadViews = async() => {
+    refreshViews = async() => {
         loading(null, "refreshing", null);
         await Promise.all([
             this.state.animations ? this.fetchColorsAllFrames() : this.fetchColors(this.state.frame),
@@ -467,7 +467,7 @@ export class Game extends React.Component {
     // }
 
     async componentDidMount() {
-        await this.reloadViews();
+        await this.refreshViews();
 
         this.setState({
             initialFetchStatus: 1,
@@ -1447,7 +1447,7 @@ export class Game extends React.Component {
         loading(null, "Getting your listings", "success");
     }
 
-    handleAddNewFrame = async () => {
+    addNewFrame = async () => {
         const n_x = this.state.neighborhood.n_x;
         const n_y = this.state.neighborhood.n_y;
         this.props.setNewFrameTrigger({ n_x: n_x, n_y: n_y });
@@ -2474,7 +2474,7 @@ export class Game extends React.Component {
                 name = { this.viewport.neighborhoodNames[JSON.stringify({ n_x:  this.state.neighborhood.n_x, n_y : this.state.neighborhood.n_y })]} 
                 canvas = {this.board.current.canvasCache[JSON.stringify({ n_x, n_y })]}
                 canvasSize = {Math.min(SIDE_NAV_WIDTH, window.innerWidth - 48)}
-                handleAddNewFrame={this.handleAddNewFrame}
+                addNewFrame={this.addNewFrame}
                 updateNeighborhoodMetadata={this.updateNeighborhoodMetadata}
                 setSelecting={this.setSelecting}
             />;
@@ -2551,7 +2551,7 @@ export class Game extends React.Component {
                                 variant="contained"
                                 className={"defaultButton"}
                                 id="reload-button"
-                                onClick={(e) => this.reloadViews(e)}
+                                onClick={(e) => this.refreshViews(e)}
                                 // disabled={!this.state.animationsInfoLoaded}
                                 sx={{marginRight: "10px"}}
                             >
