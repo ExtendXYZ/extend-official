@@ -3,13 +3,16 @@ use solana_program::pubkey::Pubkey;
 use std::mem::size_of;
 
 pub const NEIGHBORHOOD_SIZE: usize = 200;
+pub const MARKETPLACE_FEE: f64 = 0.01;
+pub const VOUCHER_PRICE_TOLERANCE: u64 = 100;
+
 pub const EXTEND_TOKEN_MINT: &str = "PLACEHOLDER";
 pub const NEIGHBORHOOD_METADATA_SEED: &[u8] = b"neighborhood_metadata";
+pub const NEIGHBORHOOD_LIST_SEED: &[u8] = b"neighborhood_list";
+pub const VOUCHER_MINT_SEED: &[u8] = b"voucher_mint";
+pub const VOUCHER_SINK_SEED: &[u8] = b"voucher_sink";
 pub const SPACE_METADATA_SEED: &[u8] = b"space_metadata";
-pub const INACTIVITY_THRESHOLD_OWNER: usize = 3600*24*14;
-pub const INACTIVITY_THRESHOLD_ARBITRARY: usize = 0;
-pub const EDIT_FEE: u64 = 10000; // edit fee in lamports
-pub const CREATOR_CUT: f64 = 0.00; // percentage of edit fee going to neighborhood creator
+pub const SELL_DELEGATE_SEED: &[u8] = b"sell_delegate";
 
 pub const BASE_RESERVE: usize = 2048;
 #[repr(C)]
@@ -41,6 +44,9 @@ pub struct NeighborhoodMetadata {
     pub candymachine_config: Pubkey,
     pub candymachine_account: Pubkey,
     pub neighborhood_name: [u8; 64],
+    pub voucher_live_date: u64,
+    pub voucher_receive_limit: u64,
+    pub voucher_price_coefficient: u64, // coef * 1e9
 }
 
 impl NeighborhoodMetadata {
@@ -68,6 +74,10 @@ pub const SPACE_PID: &str = "XSPCZghPXkWTWpvrfQ34Szpx3rwmUjsxebRFf5ckbMD";
 pub const NEIGHBORHOOD_FRAME_BASE_SEED: &[u8] = b"neighborhood_frame_base";
 pub const NEIGHBORHOOD_FRAME_POINTER_SEED: &[u8] = b"neighborhood_frame_pointer";
 pub const MAX_FRAMES: u64 = 6;
+pub const INACTIVITY_THRESHOLD_OWNER: usize = 3600*24*14;
+pub const INACTIVITY_THRESHOLD_ARBITRARY: usize = 0;
+pub const EDIT_FEE: u64 = 10000; // edit fee in lamports
+pub const CREATOR_CUT: f64 = 0.00; // percentage of edit fee going to neighborhood creator
 
 pub const NEIGHBORHOOD_FRAME_BASE_RESERVE: usize = 256;
 #[repr(C)]

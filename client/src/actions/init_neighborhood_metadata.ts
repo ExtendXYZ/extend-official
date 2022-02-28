@@ -28,7 +28,7 @@ export class InitNeighborhoodMetadataInstructionData {
           ["price", "u64"],
           ["voucherLiveDate", "u64"],
           ["voucherReceiveLimit", "u64"],
-          ["voucherPriceCoefficient", "f64"],
+          ["voucherPriceCoefficient", "u64"],
         ],
       },
     ],
@@ -163,10 +163,11 @@ export const initNeighborhoodMetadataInstruction = async (
   // borsh JS sucks, need to be able to serialize negative numbers
   data = correct_negative_serialization(data, 1, 9, n_x_bytes);
   data = correct_negative_serialization(data, 9, 17, n_y_bytes);
-  let data1 = data.slice(0, 17);;
-  let data2 = data.slice(17, data.length);
+  let data1 = data.slice(0, 25); // part before name
+  let data2 = data.slice(25, data.length); // part after name
 
   // construct and insert name buffer
+  console.log(name);
   let name_buffer = Buffer.from(name, "utf-8");
   let zeros = Buffer.from(new Array(64 - name_buffer.length).fill(0));
   name_buffer = Buffer.concat([name_buffer, zeros]);

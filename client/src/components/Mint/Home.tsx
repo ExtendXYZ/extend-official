@@ -32,7 +32,6 @@ import {
   CAPTCHA_VERIFY_URL,
   VOUCHER_MINT_SEED,
   VOUCHER_SINK_SEED,
-  VOUCHER_PRICE_CONSTANT,
   VOUCHER_MAX_PRICE,
   SPACE_PROGRAM_ID,
   BASE,
@@ -136,7 +135,8 @@ export const Home = (props: HomeProps) => {
   const [candyConfig, setCandyConfig] = useState<anchor.web3.PublicKey>();
   const [candyId, setCandyId] = useState<anchor.web3.PublicKey>();
   const [voucherLiveDate, setVoucherLiveDate] = useState<number>(Infinity);
-
+  const [voucherReceiveLimit, setVoucherReceiveLimit] = useState<number>(0);
+  const [voucherPriceCoefficient, setVoucherPriceCoefficient] = useState<number>(0);
 
   const server = new Server();
   const database = new Database();
@@ -444,7 +444,7 @@ export const Home = (props: HomeProps) => {
   };
 
   const getPrice = (n) => {
-    return Math.min(Math.max((Math.exp(VOUCHER_PRICE_CONSTANT * (n - 1))) - 1, 0), VOUCHER_MAX_PRICE);
+    return Math.min(Math.max((Math.exp(voucherPriceCoefficient * (n - 1))) - 1, 0), VOUCHER_MAX_PRICE);
   }
 
   async function onVerify(recaptchaResponse) {
@@ -648,7 +648,7 @@ export const Home = (props: HomeProps) => {
 
   const changeNum = (e) => {
     const tokens = parseInt(e.target.value);
-    setNumTokens(tokens > 100 ? 100 : (tokens < 0 ? 0 : tokens) );
+    setNumTokens(tokens > voucherReceiveLimit ? voucherReceiveLimit : (tokens < 0 ? 0 : tokens) );
     setClicked(false);
     setVerified(false);
   };
@@ -807,6 +807,8 @@ export const Home = (props: HomeProps) => {
           setCandyConfig(account.candymachineConfig);
           setCandyId(account.candymachineID);
           setVoucherLiveDate(account.voucherLiveDate);
+          setVoucherReceiveLimit(account.voucherReceiveLimit);
+          setVoucherPriceCoefficient(account.voucherPriceCoefficient);
           console.log(account.candymachineID);
         }
 
@@ -891,6 +893,7 @@ export const Home = (props: HomeProps) => {
   const ratio = canvasSize / 1000;
 
   let now = Date.now() / 1000;
+  let a = `123${5}`;
   return (
     //<div id="home" style={{display: "flex", flexDirection: "row", position: "absolute", top: "10%", bottom: 0, left: 0, right: 0, overflow: "auto"}}>
     <div id="home" style={{display: "flex", height: 0.9 * window.innerHeight, overflow: "auto"}}>
@@ -971,7 +974,7 @@ export const Home = (props: HomeProps) => {
               {wallet && voucherLiveDate <= now ? (
               <div>
               <h3 style={{color: "#B687D8", display: "inline-block"}}><b>1. Claim your Space Vouchers ({tokensRedeemed} / {itemsAvailable} claimed)</b></h3>
-              <Tooltip title="Enter the number of Space vouchers (max 100) you want and solve the captcha to receive them! Receiving more vouchers at a time will cost more SOL." placement="right">
+              <Tooltip title={`Enter the number of Space vouchers (max ${voucherReceiveLimit}) you want and solve the captcha to receive them! Receiving more vouchers at a time will cost more SOL.`} placement="right">
                 <InfoIcon sx={{marginLeft: "10px"}}/>
               </Tooltip>
               {wallet && <p>Get Space Vouchers to mint your Spaces. </p>}
@@ -988,7 +991,7 @@ export const Home = (props: HomeProps) => {
                       <TextField
                         required
                         id="outlined-required"
-                        label="Amount to buy (max 100)"
+                        label={`Amount to buy (max ${voucherReceiveLimit})`}
                         type="number"
                         defaultValue={1}
                         onChange={changeNum}
