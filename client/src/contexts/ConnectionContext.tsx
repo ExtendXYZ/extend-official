@@ -647,7 +647,7 @@ export async function sendSignedTransaction({
         true
       );
       if (!confirmation) {
-        console.log("Not confirmed, max retry hit")
+        // console.log("Not confirmed, max retry hit")
         throw new Error("Max signature retries hit")
       }
       if (confirmation && confirmation.err) {
@@ -776,7 +776,7 @@ async function awaitTransactionSignatureConfirmation(
               done = true;
               reject(status.err);
             } else if (!status.confirmations) {
-              console.log("REST no confirmations for", txid, status);
+              // console.log("REST no confirmations for", txid, status);
             } else {
               // // console.log("REST confirmation for", txid, status);
               done = true;

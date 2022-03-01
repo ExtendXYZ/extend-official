@@ -492,9 +492,6 @@ export class Game extends React.Component {
             mint: this.state.focus.mint,
             owner: this.state.focus.owner,
         });
-        notify({
-            message: "Changing color...",
-        });
     }
 
     changeColors = () => {
@@ -503,9 +500,6 @@ export class Game extends React.Component {
             spaces: this.state.selecting.poses,
             frame: this.state.colorApplyAll ? -1 : this.state.frame,
             owners: this.state.selecting.owners,
-        });
-        notify({
-            message: "Changing colors...",
         });
     }
 
@@ -566,9 +560,6 @@ export class Game extends React.Component {
                         init_y: bounds.top,
                         frame: this.state.colorApplyAll === "true" ? -1 : this.state.frame,
                         owners: this.state.selecting.owners,
-                    });
-                    notify({
-                        message: "Uploading image...",
                     });
                 }.bind(this);
 

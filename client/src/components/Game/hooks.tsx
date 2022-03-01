@@ -42,7 +42,7 @@ import {
 } from "../../constants";
 import {Server} from "./server.js";
 import {Database} from "./database.js";
-import {notify, loading} from "../../utils";
+import {notify, loading, rgbToHex} from "../../utils";
 import {twoscomplement_i2u} from "../../utils/borsh"
 import * as anchor from "@project-serum/anchor";
 import {sleep} from "../../utils";
@@ -297,6 +297,18 @@ export function Screen(props) {
                 const frame = changeColorTrigger["frame"];
                 const position = JSON.stringify({x, y});
 
+                const n_x = Math.floor(x / NEIGHBORHOOD_SIZE); // filter out same color
+                const n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
+                const p_y = ((y % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                const p_x = ((x % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                const nhood = JSON.stringify({n_x, n_y});
+                if (frame !== -1 && game.current?.viewport.neighborhood_colors[nhood][p_y][p_x] === color) {
+                    notify({
+                        message: "Space already has the selected color, try changing to a different color",
+                    });
+                    return;
+                }
+
                 const mint = changeColorTrigger["mint"];
                 const owner = changeColorTrigger["owner"];
                 let changes: ChangeColorArgs[] = [];
@@ -308,8 +320,6 @@ export function Screen(props) {
                 const timeClusterMap = await server.getEditableTimeClusterKeys(connection, neighborhoods);
                 if (frame === -1){
                     ({numFramesMap, frameKeysMap} = await server.getAllFrameKeys(connection, neighborhoods));
-                    let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
-                    let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
 
                     n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
                     for (let frame_i = 0; frame_i < n_frames; frame_i++){
@@ -321,6 +331,9 @@ export function Screen(props) {
                     changes.push(change);
                 }
                 try {
+                    notify({
+                        message: "Changing color...",
+                    });
                     let ixs = await changeColorInstructions(connection, wallet, BASE, changes, frameKeysMap, timeClusterMap);
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change color", true, n_frames);
                 }
@@ -367,6 +380,14 @@ export function Screen(props) {
                         let p = JSON.parse(s);
                         const x = p.x;
                         const y = p.y;
+                        const n_x = Math.floor(x / NEIGHBORHOOD_SIZE); // filter out same color
+                        const n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
+                        const p_y = ((y % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                        const p_x = ((x % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                        const nhood = JSON.stringify({n_x, n_y});
+                        if (frame !== -1 && game.current?.viewport.neighborhood_colors[nhood][p_y][p_x] === color) { // same color
+                            continue;
+                        }
                         const mint = ownedMints[s];
                         let owner;
                         if (Object.keys(owners).length > 0) {
@@ -376,9 +397,6 @@ export function Screen(props) {
                         }
 
                         if (frame === -1){
-                            let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
-                            let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
-                            
                             n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
                             for (let frame_i = 0; frame_i < n_frames; frame_i++){
                                 changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, mint, owner}));
@@ -390,7 +408,18 @@ export function Screen(props) {
                         }
                     }
                 }
+
+                if (changes.length === 0) { // if empty
+                    notify({
+                        message: "All spaces already have the selected color",
+                    });
+                    return;
+                }
+
                 try {
+                    notify({
+                        message: "Changing colors...",
+                    });
                     let ixs = await changeColorInstructions(connection, wallet, BASE, changes, frameKeysMap, timeClusterMap);
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change colors", true, n_frames);
                 }
@@ -604,6 +633,16 @@ export function Screen(props) {
                             const r = image[i][j][0];
                             const g = image[i][j][1];
                             const b = image[i][j][2];
+
+                            const n_x = Math.floor(x / NEIGHBORHOOD_SIZE); // filter out same color
+                            const n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
+                            const p_y = ((y % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                            const p_x = ((x % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
+                            const nhood = JSON.stringify({n_x, n_y});
+                            if (frame !== -1 && game.current?.viewport.neighborhood_colors[nhood][p_y][p_x] === rgbToHex(r, g, b)) { // same color
+                                continue;
+                            }
+
                             const mint = ownedMints[position];
                             let owner;
                             if (Object.keys(owners).length > 0) {
@@ -613,9 +652,6 @@ export function Screen(props) {
                             }
 
                             if (frame === -1){
-                                let n_x = Math.floor(x / NEIGHBORHOOD_SIZE);
-                                let n_y = Math.floor(y / NEIGHBORHOOD_SIZE);
-                                
                                 n_frames = numFramesMap[JSON.stringify({n_x, n_y})];
                                 for (let frame_i = 0; frame_i < n_frames; frame_i++){
                                     changes.push(new ChangeColorArgs({x, y, frame: frame_i, r, g, b, mint, owner}));
@@ -628,7 +664,18 @@ export function Screen(props) {
                         }
                     }
                 }
+
+                if (changes.length === 0) { // if empty
+                    notify({
+                        message: "All spaces already have the selected color",
+                    });
+                    return;
+                }
+
                 try {
+                    notify({
+                        message: "Uploading image...",
+                    });
                     let ixs = await changeColorInstructions(connection, wallet, BASE, changes, frameKeysMap, timeClusterMap);
                     sendInstructionsGreedyBatch(connection, wallet, ixs, "change color", true, n_frames);
                 }
