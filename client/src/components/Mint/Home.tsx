@@ -42,7 +42,6 @@ import {
   SPACE_METADATA_SEED,
   MAX_REGISTER_ACCS,
   NEIGHBORHOOD_SIZE,
-  MINT_NOT_READY_NBDS,
   CANDY_MACHINE_PROGRAM_ID,
   CANDY_MACHINE_PROGRAM_OLD,
 } from "../../constants";
@@ -453,7 +452,6 @@ export const Home = (props: HomeProps) => {
     }
 
     // create unsigned transaction
-    const voucherMint = await getVoucherMint(neighborhoodX, neighborhoodY);
     if (wallet) {
       const connection = props.connection;
       let commitment: Commitment = "singleGossip";
@@ -809,7 +807,6 @@ export const Home = (props: HomeProps) => {
       setNoMint(false);
       setClicked(false);
       if (neighborhoodX !== null && neighborhoodY !== null) {
-        const nhoodAcc = await getNeighborhoodMetadata(neighborhoodX, neighborhoodY);
         const account = await server.getNeighborhoodMetadata(props.connection, neighborhoodX, neighborhoodY);
         if (account) {
           setCandyConfig(account.candymachineConfig);
@@ -901,7 +898,6 @@ export const Home = (props: HomeProps) => {
   const ratio = canvasSize / 1000;
 
   let now = Date.now() / 1000;
-  let a = `123${5}`;
   return (
     //<div id="home" style={{display: "flex", flexDirection: "row", position: "absolute", top: "10%", bottom: 0, left: 0, right: 0, overflow: "auto"}}>
     <div id="home" style={{display: "flex", height: 0.9 * window.innerHeight, overflow: "auto"}}>

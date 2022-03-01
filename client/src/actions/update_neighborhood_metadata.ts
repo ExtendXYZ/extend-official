@@ -1,8 +1,7 @@
-import {PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction,} from "@solana/web3.js";
+import {PublicKey, TransactionInstruction,} from "@solana/web3.js";
 import {Schema, serialize} from "borsh";
-import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID,} from "@solana/spl-token";
-import {SPACE_PROGRAM_ID, NEIGHBORHOOD_LIST_SEED, NEIGHBORHOOD_METADATA_SEED, EXTEND_TOKEN_MINT} from "../constants";
-import {correct_negative_serialization, signedIntToBytes, UIntToBytes} from "../utils/borsh";
+import {SPACE_PROGRAM_ID, NEIGHBORHOOD_METADATA_SEED} from "../constants";
+import {correct_negative_serialization, signedIntToBytes} from "../utils/borsh";
 
 
 

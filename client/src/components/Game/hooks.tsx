@@ -3,7 +3,7 @@ import {box} from "tweetnacl";
 import {Game} from "./index"
 import {useAnchorWallet, useWallet} from "@solana/wallet-adapter-react";
 import {useConnection, useInbox} from "../../contexts";
-import {PublicKey, Transaction, Keypair, SystemProgram} from "@solana/web3.js";
+import {PublicKey, Transaction } from "@solana/web3.js";
 import {
     AcceptOfferArgs,
     acceptOfferInstruction,
@@ -54,7 +54,6 @@ import {notify, loading, rgbToHex} from "../../utils";
 import {signedIntToBytes} from "../../utils/borsh"
 import * as anchor from "@project-serum/anchor";
 import {sleep} from "../../utils";
-import base58 from "bs58";
 
 const axios = require('axios');
 

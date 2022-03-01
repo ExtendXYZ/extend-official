@@ -35,12 +35,6 @@ export const BUY_BATCH_SIZE = 4;
 export const TX_COST = 0.000005;
 export const EDIT_PRICE = 0.00001;
 
-export const MINT_NOT_READY_NBDS = new Set();
-export const MINT_TIME = 1645106400;
-if (Date.now()/1000 < MINT_TIME) {
-  MINT_NOT_READY_NBDS.add("(1,0)");
-}
-
 export const BASE = new PublicKey(
   "XBSEZzB7ojaKgXqfCSpNbPLnuMGk3JVtSKYjXYqg7Pn"
 );

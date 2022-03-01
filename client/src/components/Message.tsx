@@ -22,7 +22,6 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import ReplyIcon from '@mui/icons-material/Reply';
 import SendIcon from '@mui/icons-material/Send';
 import {box} from "tweetnacl";
-import base58 from "bs58";
 
 import {useAnchorWallet} from "@solana/wallet-adapter-react";
 import * as anchor from "@project-serum/anchor";
