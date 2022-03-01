@@ -73,8 +73,7 @@ export function Screen(props) {
     const wallet = useWallet();
     const anchorWallet = useAnchorWallet();
     const connection = useConnection();
-    const inboxKey = useInbox();
-    const inboxKeypair = box.keyPair.fromSecretKey(base58.decode(inboxKey));
+    const inboxKeypair = useInbox();
     const server = new Server();
     const database = new Database();
 

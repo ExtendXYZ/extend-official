@@ -45,8 +45,7 @@ const theme = createTheme({
 export const Message = () => {
     const anchorWallet = useAnchorWallet();
     const connection = useConnection();
-    const inboxKey = useInbox();
-    const inboxKeypair = box.keyPair.fromSecretKey(base58.decode(inboxKey));
+    const inboxKeypair = useInbox();
     const [selectedIndex, setSelectedIndex] = useState(1);
     const [drafting, setDrafting] = useState(false);
     const [inboxMessage, setInboxMessage] = useState<any>([]);

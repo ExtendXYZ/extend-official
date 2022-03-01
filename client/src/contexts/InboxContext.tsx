@@ -1,4 +1,4 @@
-import { useContext, createContext, useEffect } from "react"
+import { useContext, createContext, useEffect, useState } from "react"
 import {useAnchorWallet, useWallet} from "@solana/wallet-adapter-react";
 import * as anchor from "@project-serum/anchor";
 import {useConnection} from "../contexts";
@@ -20,6 +20,13 @@ export const InboxProvider = ({ children }) => {
     const connection = useConnection();
     const [inboxKey, setInboxKey] = useLocalStorageState("inbox");
     const [lastUser, setLastUser] = useLocalStorageState("lastUser");
+    const [inboxKeypair, setInboxKeypair] = useState<any>(null);
+
+    useEffect(() => {
+        if (inboxKey) {
+            setInboxKeypair(box.keyPair.fromSecretKey(base58.decode(inboxKey)));
+        }
+    }, [inboxKey]);
 
     useEffect(() => {
         const connectInbox = async () => {
@@ -85,7 +92,7 @@ export const InboxProvider = ({ children }) => {
 
     return (
         <InboxContext.Provider
-            value={inboxKey}
+            value={inboxKeypair}
         >
             {children}
         </InboxContext.Provider>
