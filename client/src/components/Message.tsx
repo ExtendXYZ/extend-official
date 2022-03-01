@@ -100,7 +100,7 @@ export const Message = () => {
         }
         checkInbox();
     },
-        [anchorWallet]
+        [anchorWallet, inboxKeypair]
     );
 
     useEffect(() => {
