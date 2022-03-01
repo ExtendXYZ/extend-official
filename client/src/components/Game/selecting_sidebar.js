@@ -2,7 +2,7 @@ import React from "react";
 import "./index.css";
 import {getBounds} from './index.js';
 import { notify } from "../../utils";
-import { NEIGHBORHOOD_SIZE } from "../../constants";
+import { NEIGHBORHOOD_SIZE, TX_COST, CHANGE_COLOR_BATCH_SIZE, BUY_BATCH_SIZE } from "../../constants";
 import {
   Box,
   Button,
@@ -150,11 +150,11 @@ export class SelectingSidebar extends React.Component {
         </ListItem>
         </List>;
 
-        let tooltipModifyColorTitle = `Estimated Cost to Change Colors:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
-        let tooltipSetPriceTitle = `Estimated Cost to List/Delist:  ${(this.state.ownedSelection.size * 0.000005).toFixed(6)} SOL`;
+        let tooltipModifyColorTitle = `Estimated Cost to Change Colors:  ${(this.state.ownedSelection.size * TX_COST / CHANGE_COLOR_BATCH_SIZE).toFixed(6)} SOL`;
+        let tooltipSetPriceTitle = `Estimated Cost to List/Delist:  ${(this.state.ownedSelection.size * TX_COST / CHANGE_COLOR_BATCH_SIZE).toFixed(6)} SOL`;
         let tooltipBuyTitle = `Batch buying is non-atomic and is available as a convenience feature. Successful purchase of every Space selected is not guaranteed.
         
-        Estimated Transaction Cost to Buy:  ${(this.props.selecting.purchasableInfo.length * 0.000005).toFixed(6)} SOL`;
+        Estimated Transaction Cost to Buy:  ${(this.props.selecting.purchasableInfo.length * TX_COST / BUY_BATCH_SIZE).toFixed(6)} SOL`;
         
         return (
 
