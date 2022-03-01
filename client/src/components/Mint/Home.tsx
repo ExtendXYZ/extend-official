@@ -489,13 +489,21 @@ export const Home = (props: HomeProps) => {
       }
       //// console.log(data);
 
-      let res = await axios.post(CAPTCHA_VERIFY_URL, data);
+      try{
+        let res = await axios.post(CAPTCHA_VERIFY_URL, data);
 
-      if (res.data.success) {
-        //setMint(mint);
-        //setMintTransaction(Transaction.from(res.data.transaction.data));
-        setTokenTransaction(Transaction.from(res.data.transaction.data));
-        setVerified(true);
+        if (res.data.success) {
+          //setMint(mint);
+          //setMintTransaction(Transaction.from(res.data.transaction.data));
+          setTokenTransaction(Transaction.from(res.data.transaction.data));
+          setVerified(true);
+        }
+        else{ // should never happen unless captcha is incorrectly disabled
+          notify({message: "Unexpected error: please try again!"});
+        }
+      } catch(e){
+        console.error(e);
+        notify({message: "Unexpected error: please try again!"});
       }
     }
   }
