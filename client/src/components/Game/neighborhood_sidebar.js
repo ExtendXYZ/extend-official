@@ -49,6 +49,28 @@ export class NeighborhoodSidebar extends React.Component {
     context.strokeStyle = 'white';
     context.strokeRect(this.props.canvasSize * 0.25, 0, this.props.canvasSize * 0.5, this.props.canvasSize * 0.5);
   }
+  handleSaveNeighborhoodMetadata = () => {
+    let name = document.getElementById("name_text_field").value;
+    let voucherLiveDate = Number(document.getElementById("voucher_live_date_text_field").value);
+    let voucherReceiveLimit = Number(document.getElementById("voucher_receive_limit_text_field").value);
+    let voucherPriceCoefficient = Number(document.getElementById("voucher_price_coefficient_text_field").value);
+    if (voucherLiveDate < 0 || voucherReceiveLimit < 0 || voucherPriceCoefficient < 0){
+      notify({message: "Negative values not allowed"});
+      return;
+    }
+    try{
+      this.props.updateNeighborhoodMetadata({
+        name,
+        voucherLiveDate,
+        voucherReceiveLimit,
+        voucherPriceCoefficient,
+      });
+    } catch(e){
+        console.error(e);
+        notify({message: "Invalid input"});
+    }
+    this.setState({ showUpdateNeighborhoodMetadataDialogue: false });
+  }
   render() {
     let coordName = `Neighborhood (${this.props.neighborhood.n_x}, ${this.props.neighborhood.n_y})`;
     return (
@@ -279,20 +301,7 @@ export class NeighborhoodSidebar extends React.Component {
                             Cancel
                         </Button>
                         <Button
-                            onClick={() => {
-                              try{
-                                this.props.updateNeighborhoodMetadata({
-                                    name: document.getElementById("name_text_field").value,
-                                    voucherLiveDate: Number(document.getElementById("voucher_live_date_text_field").value),
-                                    voucherReceiveLimit: Number(document.getElementById("voucher_receive_limit_text_field").value),
-                                    voucherPriceCoefficient: Number(document.getElementById("voucher_price_coefficient_text_field").value)
-                                });
-                              } catch(e){
-                                  console.error(e);
-                                  notify({message: "Invalid input"});
-                              }
-                              this.setState({ showUpdateNeighborhoodMetadataDialogue: false });
-                            }}
+                            onClick={this.handleSaveNeighborhoodMetadata}
                             disabled={!this.props.user}
                         >
                             Save
