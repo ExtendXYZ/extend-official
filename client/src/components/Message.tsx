@@ -45,7 +45,7 @@ const theme = createTheme({
 export const Message = () => {
     const anchorWallet = useAnchorWallet();
     const connection = useConnection();
-    const inboxKeypair = useInbox();
+    const {inboxKeypair, connect} = useInbox();
     const [selectedIndex, setSelectedIndex] = useState(1);
     const [drafting, setDrafting] = useState(false);
     const [inboxMessage, setInboxMessage] = useState<any>([]);
@@ -195,15 +195,27 @@ export const Message = () => {
                 <Header />
                 <div style={{display: "flex"}}>
                 <div style={{ width: "20%", backgroundColor: "background.paper"}}>
-                    <Button 
-                        variant="contained"
-                        className={"defaultButton"}
-                        id="send-message-button"
-                        sx={{marginTop: "10px"}}
-                        onClick={(event) => setDrafting(true)}
-                    >
-                        Send Message
-                    </Button>
+                    <div style={{display: "flex", alignItems: "center"}}>
+                        <Button 
+                            variant="contained"
+                            className={"defaultButton"}
+                            id="send-message-button"
+                            sx={{marginTop: "10px"}}
+                            onClick={(event) => setDrafting(true)}
+                        >
+                            Send Message
+                        </Button>
+                        {(!inboxKeypair && anchorWallet) && 
+                        <Button 
+                            variant="contained"
+                            className={"defaultButton"}
+                            id="connect-button"
+                            sx={{marginTop: "10px"}}
+                            onClick={(event) => connect()}
+                        >
+                            Connect
+                        </Button>}
+                    </div>
                     <Drawer anchor="bottom" open={drafting} variant="persistent">
                         <div style={{display: "flex", alignItems: "center"}}>
                         <div style={{marginLeft: "auto"}}>
