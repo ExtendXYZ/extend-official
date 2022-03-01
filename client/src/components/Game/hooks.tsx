@@ -402,9 +402,9 @@ export function Screen(props) {
                 const p_y = ((y % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
                 const p_x = ((x % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
                 const nhood = JSON.stringify({n_x, n_y});
-                if (frame !== -1 && game.current?.viewport.neighborhoodColors[nhood][p_y][p_x] === color) {
+                if (frame !== -1 && game.current?.viewport.neighborhood_colors[nhood][p_y][p_x] === color) {
                     notify({
-                        message: "Already the selected color, try changing to a different color",
+                        message: "Space already has the selected color, try changing to a different color",
                     });
                     return;
                 }
