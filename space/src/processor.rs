@@ -8,7 +8,7 @@ use crate::{
     instruction::{
         AcceptOfferArgs, ChangeOfferArgs, SpaceInstruction, InitBaseArgs,
         InitSpaceMetadataArgs, InitNeighborhoodMetadataArgs, RevokeAuthorityPrivilegesArgs,
-        InitVoucherSystemArgs, UpdateAuthorityArgs, ChangeNeighborhoodNameArgs, GetVouchersArgs
+        InitVoucherSystemArgs, UpdateAuthorityArgs, UpdateNeighborhoodMetadataArgs, GetVouchersArgs
     },
 };
 
@@ -18,10 +18,10 @@ pub mod init_space_metadata;
 pub mod change_offer;
 pub mod accept_offer;
 pub mod init_voucher_system;
-pub mod revoke_authority_privileges;
-pub mod update_authority;
-pub mod change_nbdhoodname; // elim
 pub mod get_vouchers;
+pub mod update_authority;
+pub mod revoke_authority_privileges;
+pub mod update_neighborhood_metadata;
 // pub mod temp_add_xy; // elim
 
 pub mod processor_utils;
@@ -68,25 +68,25 @@ impl Processor {
                 msg!("Instruction: initialize voucher system");
                 init_voucher_system::process(program_id, accounts, &args)
             }
-            SpaceInstruction::RevokeAuthorityPrivileges => {
-                let args = RevokeAuthorityPrivilegesArgs::try_from_slice(rest)?;
-                msg!("Instruction: revoke authority privileges");
-                revoke_authority_privileges::process(program_id, accounts, &args)
+            SpaceInstruction::GetVouchers => {
+                let args = GetVouchersArgs::try_from_slice(rest)?;
+                msg!("Instruction: change get vouchers");
+                get_vouchers::process(program_id, accounts, &args)
             }
             SpaceInstruction::UpdateAuthority => {
                 let args = UpdateAuthorityArgs::try_from_slice(rest)?;
                 msg!("Instruction: update authority");
                 update_authority::process(program_id, accounts, &args)
             }
-            SpaceInstruction::ChangeNeighborhoodName => {
-                let args = ChangeNeighborhoodNameArgs::try_from_slice(rest)?;
-                msg!("Instruction: change neighborhood name");
-                change_nbdhoodname::process(program_id, accounts, &args)
+            SpaceInstruction::RevokeAuthorityPrivileges => {
+                let args = RevokeAuthorityPrivilegesArgs::try_from_slice(rest)?;
+                msg!("Instruction: revoke authority privileges");
+                revoke_authority_privileges::process(program_id, accounts, &args)
             }
-            SpaceInstruction::GetVouchers => {
-                let args = GetVouchersArgs::try_from_slice(rest)?;
-                msg!("Instruction: change get vouchers");
-                get_vouchers::process(program_id, accounts, &args)
+            SpaceInstruction::UpdateNeighborhoodMetadata => {
+                let args = UpdateNeighborhoodMetadataArgs::try_from_slice(rest)?;
+                msg!("Instruction: update neighborhood metadata");
+                update_neighborhood_metadata::process(program_id, accounts, &args)
             }
             // SpaceInstruction::TempAddxy => { // elim
             //     let args = TempAddxyArgs::try_from_slice(rest)?; // elim

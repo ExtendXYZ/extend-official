@@ -1024,19 +1024,19 @@ export class Board extends React.Component {
                         <DialogContentText>
                             To expand to this Neighborhood, first initialize the candy machine
                             config and paste its address here, and we'll handle the rest. Make
-                            sure the config corresponds to the selected Neighborhood, and that the current
+                            sure the config corresponds to the selected Neighborhood, and that the connected
                             wallet is the authority of the config!
                         </DialogContentText>
                         <TextField
                             autoFocus
-                            id="candyMachineAddress"
+                            id="config_text_field"
                             margin="dense"
                             label="Candy Machine Config Address"
                             fullWidth
                             variant="standard"
                         />
                         <TextField
-                            id="neighborhoodName"
+                            id="name_text_field"
                             margin="dense"
                             label="Neighborhood Name"
                             fullWidth
@@ -1044,7 +1044,7 @@ export class Board extends React.Component {
                         />
                         <TextField
                             autoFocus
-                            id="voucherLiveDate"
+                            id="voucher_live_date_text_field"
                             margin="dense"
                             label="Go Live Date (unix timestamp)"
                             fullWidth
@@ -1053,7 +1053,7 @@ export class Board extends React.Component {
                         />
                         <TextField
                             autoFocus
-                            id="voucherReceiveLimit"
+                            id="voucher_receive_limit_text_field"
                             margin="dense"
                             label="Max vouchers per captcha solve"
                             fullWidth
@@ -1063,7 +1063,7 @@ export class Board extends React.Component {
                         />
                         <TextField
                             autoFocus
-                            id="voucherPriceCoefficient"
+                            id="voucher_price_coefficient_text_field"
                             margin="dense"
                             label="Voucher Price Coefficient"
                             fullWidth
@@ -1087,11 +1087,11 @@ export class Board extends React.Component {
                                     this.props.expand({
                                         n_x: Math.floor(this.focus.x / NEIGHBORHOOD_SIZE),
                                         n_y: Math.floor(this.focus.y / NEIGHBORHOOD_SIZE),
-                                        address: new PublicKey(document.getElementById("candyMachineAddress").value),
-                                        name: document.getElementById("neighborhoodName").value,
-                                        voucherLiveDate: Number(document.getElementById("voucherLiveDate").value),
-                                        voucherReceiveLimit: Number(document.getElementById("voucherReceiveLimit").value),
-                                        voucherPriceCoefficient: Number(document.getElementById("voucherPriceCoefficient").value),
+                                        address: new PublicKey(document.getElementById("config_text_field").value),
+                                        name: document.getElementById("name_text_field").value,
+                                        voucherLiveDate: Number(document.getElementById("voucher_live_date_text_field").value),
+                                        voucherReceiveLimit: Number(document.getElementById("voucher_receive_limit_text_field").value),
+                                        voucherPriceCoefficient: Number(document.getElementById("voucher_price_coefficient_text_field").value),
                                         captcha: this.captchaResponse,
                                     });
                                 } catch(e){

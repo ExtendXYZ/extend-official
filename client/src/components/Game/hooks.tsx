@@ -30,6 +30,7 @@ import {
     AcceptRentArgs,
     acceptRentInstruction,
     acceptRentInstructions,
+    updateNeighborhoodMetadataInstruction
 } from "../../actions";
 import { sendSignedTransaction } from '../../contexts/ConnectionContext'
 import {
@@ -57,6 +58,15 @@ import base58 from "bs58";
 
 const axios = require('axios');
 
+function checkKeys(obj, keys){
+    for(let key of keys){
+        if (!(key in obj)){
+            return false;
+        }
+    }
+    return true;
+}
+
 
 export function Screen(props) {
     const [user, setUser] = useState<PublicKey>();
@@ -83,9 +93,10 @@ export function Screen(props) {
     const [imgUploadTrigger, setImgUploadTrigger] = useState({});
     const [gifUploadTrigger, setGifUploadTrigger] = useState({});
     const [registerTrigger, setRegisterTrigger] = useState(false);
-    const [registerAccs, setRegisterAccs] = useState<{}>();
-    const [registerMints, setRegisterMints] = useState<{}>();
+    const [registerAccs, setRegisterAccs] = useState({});
+    const [registerMints, setRegisterMints] = useState({});
     const [newNeighborhoodTrigger, setNewNeighborhoodTrigger] = useState<any>({});
+    const [updateNeighborhoodMetadataTrigger, setUpdateNeighborhoodMetadataTrigger] = useState<any>({});
     const [newFrameTrigger, setNewFrameTrigger] = useState<any>({});
     const [changeRentTrigger, setChangeRentTrigger] = useState({});
     const [changeRentsTrigger, setChangeRentsTrigger] = useState({});
@@ -151,6 +162,8 @@ export function Screen(props) {
 
     useEffect(() => {
         const getTokens = async () => {
+            console.log("wallet hook");
+            console.log(wallet);
             setUser(wallet.publicKey ? wallet.publicKey : undefined);
             if (!wallet.publicKey) { // if wallet is disconnected, set address to null 
                 server.setAddress(null); 
@@ -374,8 +387,9 @@ export function Screen(props) {
 
     useEffect(() => {
         const asyncChangeColor = async() => {
-            const color = changeColorTrigger["color"];
-            if (color && wallet.publicKey) {
+            let keys = ["color", "x", "y", "frame"]
+            if (checkKeys(changeColorTrigger, keys) && wallet.publicKey) {
+                const color = changeColorTrigger["color"];
                 const r = parseInt(color.slice(1, 3), 16);
                 const g = parseInt(color.slice(3, 5), 16);
                 const b = parseInt(color.slice(5, 7), 16);
@@ -511,15 +525,16 @@ export function Screen(props) {
 
     useEffect(() => {
         const asyncChangeColors = async () => {
-            let changes: ChangeColorArgs[] = [];
-            const color = changeColorsTrigger["color"];
-            const spaces = changeColorsTrigger["spaces"];
-            const frame = changeColorsTrigger["frame"];
-            const owners = changeColorsTrigger["owners"];
-            const mints = changeColorsTrigger["mints"];
-            const editable = changeColorsTrigger["editable"];
+            let keys = ["color", "spaces", "frame", "owners", "mints", "editable"];
 
-            if (color && wallet.publicKey) {
+            if (checkKeys(changeColorsTrigger, keys) && wallet.publicKey) {
+                const color = changeColorsTrigger["color"];
+                const spaces = changeColorsTrigger["spaces"];
+                const frame = changeColorsTrigger["frame"];
+                const owners = changeColorsTrigger["owners"];
+                const mints = changeColorsTrigger["mints"];
+                const editable = changeColorsTrigger["editable"];
+                let changes: ChangeColorArgs[] = [];
                 const r = parseInt(color.slice(1, 3), 16);
                 const g = parseInt(color.slice(3, 5), 16);
                 const b = parseInt(color.slice(5, 7), 16);
@@ -601,8 +616,9 @@ export function Screen(props) {
 
     useEffect(() => {
         const asyncMakeEditableColor = async() => {
-            const editable = makeEditableColorTrigger["editable"];
-            if (editable && wallet.publicKey) {
+            let keys = ["editable", "x", "y", "mint"];
+            if (checkKeys(makeEditableColorTrigger, keys) && wallet.publicKey) {
+                const editable = makeEditableColorTrigger["editable"];
                 const x = makeEditableColorTrigger["x"];
                 const y = makeEditableColorTrigger["y"];
                 const position = JSON.stringify({x, y});
@@ -630,9 +646,10 @@ export function Screen(props) {
 
     useEffect(() => {
         const asyncMakeEditableColors = async() => {
-            const editable = makeEditableColorsTrigger["editable"];
-            const spaces = makeEditableColorsTrigger["spaces"];
-            if (editable !== null && wallet.publicKey && spaces) {
+            let keys = ["editable", "spaces"]
+            if (checkKeys(makeEditableColorsTrigger, keys) && wallet.publicKey) {
+                const editable = makeEditableColorsTrigger["editable"];
+                const spaces = makeEditableColorsTrigger["spaces"];
                 const mints = makeEditableColorsTrigger["mints"];
                 let changes: MakeEditableArgs[] = [];
                 const spaceGrid = ownedSpaces;
@@ -667,9 +684,10 @@ export function Screen(props) {
 
     useEffect(() => {
         const asyncSetPrice = async() => {
+            let keys = ["price", "create", "x", "y", "mint"];
             const price = changePriceTrigger["price"];
             const create = changePriceTrigger["create"];
-            if (price !== undefined && (price || !create) && wallet.publicKey) {
+            if (checkKeys(changePriceTrigger, keys) && (price || !create) && wallet.publicKey) {
                 const x = changePriceTrigger["x"];
                 const y = changePriceTrigger["y"];
                 const mint = changePriceTrigger["mint"];
@@ -696,10 +714,11 @@ export function Screen(props) {
 
     useEffect(() => {
         const asyncSetPrices = async() => {
+            let keys = ["price", "create", "spaces"];
             const price = changePricesTrigger["price"];
             const create = changePricesTrigger["create"];
             const spaces = changePricesTrigger["spaces"];
-            if ((price || !create) && wallet.publicKey && spaces) {
+            if (checkKeys(changePricesTrigger, keys) && (price || !create) && wallet.publicKey && spaces) {
 
                 let changes: ChangeOfferArgs[] = [];
                 const spaceGrid = ownedSpaces;
@@ -735,41 +754,44 @@ export function Screen(props) {
 
     useEffect(() => {
         const asyncPurchaseSpace = async() => {
+            let keys = ["price", "x", "y", "owner", "mint"];
             let price = purchaseSpaceTrigger["price"];
-            if (price) {
-                if (wallet.publicKey) {
-                    let currentUser = wallet.publicKey;
-                    const x = purchaseSpaceTrigger["x"];
-                    const y = purchaseSpaceTrigger["y"];
-                    const bob = purchaseSpaceTrigger["owner"];
-                    const position = JSON.stringify({x, y});
-                    const mint = purchaseSpaceTrigger["mint"];
-                    try {
-                        let change = new AcceptOfferArgs({x, y, mint: mint, price, seller: bob});
-                        let ix = await acceptOfferInstruction(connection, server, wallet, BASE, change);
-                        const response = await sendTransaction(connection, wallet, ix, "Buy space");
-                        if (response) {
-                            let finalOwnedSpaces = new Set(ownedSpaces);
-                            let newOwnedMints = {};
-                            finalOwnedSpaces.add(position);
-                            newOwnedMints[position] = mint;
-                            game.current?.refreshSidebar();
-
-                            // if wallet is unchanged, update state
-                            if (wallet.publicKey === currentUser){
-                                setOwnedSpaces(finalOwnedSpaces);
-                                setOwnedMints({...ownedMints, ...newOwnedMints});
-                            }
-                            database.register(wallet.publicKey, newOwnedMints);
+            if (checkKeys(purchaseSpaceTrigger, keys) && price && wallet.publicKey) {
+                let currentUser = wallet.publicKey;
+                const x = purchaseSpaceTrigger["x"];
+                const y = purchaseSpaceTrigger["y"];
+                const bob = purchaseSpaceTrigger["owner"];
+                const position = JSON.stringify({x, y});
+                const mint = purchaseSpaceTrigger["mint"];
+                try {
+                    let change = new AcceptOfferArgs({x, y, mint: mint, price, seller: bob});
+                    let ix = await acceptOfferInstruction(connection, server, wallet, BASE, change);
+                    const response = await sendTransaction(connection, wallet, ix, "Buy space");
+                    if (response) {
+                        let finalOwnedSpaces = new Set(ownedSpaces);
+                        let newOwnedMints = {};
+                        finalOwnedSpaces.add(position);
+                        newOwnedMints[position] = mint;
+                        loading(null, "updating owned spaces", null);
+                        try{
+                            await database.register(wallet.publicKey, newOwnedMints);
+                        } catch(e){
+                            console.error(e);
                         }
+
+                        // if wallet is unchanged, update state
+                        if (wallet.publicKey === currentUser){
+                            setOwnedSpaces(finalOwnedSpaces);
+                            setOwnedMints({...ownedMints, ...newOwnedMints});
+                        }
+                        game.current?.refreshSidebar();
+                        loading(null, "updating owned spaces", "success");
                     }
-                    catch (e) {
-                        notify({ message: `Unexpected error, please try again later` });
-                        console.error(e);
-                        return;
-                    }
-                } else { // user isn't logged in
-                    notify({ message: "Not logged in" });
+                }
+                catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
+                    return;
                 }
             }
         }
@@ -780,52 +802,54 @@ export function Screen(props) {
 
     useEffect(() => {
         const asyncPurchaseSpaces = async() => {
-            if (purchaseSpacesTrigger["purchasableInfo"]) {
-                if (wallet.publicKey) {
+            let keys = ["purchasableInfo"];
+            if (checkKeys(purchaseSpacesTrigger, keys) && wallet.publicKey) {
+                try {
                     let currentUser = wallet.publicKey;
                     let changes = purchaseSpacesTrigger["purchasableInfo"].map(x => new AcceptOfferArgs(x));
+                    let ixs = await acceptOfferInstructions(connection, server, wallet, BASE, changes);
+                    const inter = await sendInstructionsGreedyBatch(connection, wallet, ixs, "Buy spaces");
+                    let responses = inter.responses;
+                    let ixPerTx = inter.ixPerTx;
+                    let ind = 0;
+                    let finalOwnedSpaces = new Set(ownedSpaces);
+                    let newOwnedMints = {};
+                    for (let i = 0; i < responses.length; i++) {
+                        
+                        if (i !== 0) {
+                            ind += ixPerTx[i-1];
+                        }
 
-                    try {
-                        let ixs = await acceptOfferInstructions(connection, server, wallet, BASE, changes);
-                        const inter = await sendInstructionsGreedyBatch(connection, wallet, ixs, "Buy spaces");
-                        let responses = inter.responses;
-                        let ixPerTx = inter.ixPerTx;
-                        let ind = 0;
-                        let finalOwnedSpaces = new Set(ownedSpaces);
-                        let newOwnedMints = {};
-                        for (let i = 0; i < responses.length; i++) {
-                            
-                            if (i !== 0) {
-                                ind += ixPerTx[i-1];
-                            }
-
-                            if (responses[i]) {
-                                for (let j = 0; j < ixPerTx[i]; j++) {
-                                    let x = changes[ind+j].x;
-                                    let y = changes[ind+j].y;
-                                    let mint = changes[ind+j].mint;
-                                    let position = JSON.stringify({x, y});
-                                    finalOwnedSpaces.add(position);
-                                    newOwnedMints[position] = mint;
-                                }
+                        if (responses[i]) {
+                            for (let j = 0; j < ixPerTx[i]; j++) {
+                                let x = changes[ind+j].x;
+                                let y = changes[ind+j].y;
+                                let mint = changes[ind+j].mint;
+                                let position = JSON.stringify({x, y});
+                                finalOwnedSpaces.add(position);
+                                newOwnedMints[position] = mint;
                             }
                         }
-                        game.current?.refreshSidebar();
-
-                        // if wallet is unchanged, update state
-                        if (wallet.publicKey === currentUser){
-                            setOwnedSpaces(finalOwnedSpaces);
-                            setOwnedMints({...ownedMints, ...newOwnedMints});
-                        }
-                        database.register(wallet.publicKey, newOwnedMints);
                     }
-                    catch (e) {
-                        notify({ message: `Unexpected error, please try again later` });
+                    loading(null, "updating owned spaces", null);
+                    try{
+                        await database.register(wallet.publicKey, newOwnedMints);
+                    } catch(e){
                         console.error(e);
-                        return;
                     }
-                } else { // user isn't logged in
-                    notify({ message: "Not logged in" });
+
+                    // if wallet is unchanged, update state
+                    if (wallet.publicKey === currentUser){
+                        setOwnedSpaces(finalOwnedSpaces);
+                        setOwnedMints({...ownedMints, ...newOwnedMints});
+                    }
+                    game.current?.refreshSidebar();
+                    loading(null, "updating owned spaces", "success");
+                }
+                catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
+                    return;
                 }
             }
         }
@@ -836,15 +860,16 @@ export function Screen(props) {
     
     useEffect(() => {
         const asyncImageUpload = async () => {
-            let image = imgUploadTrigger["img"];
-            const spaces = imgUploadTrigger["spaces"];
-            const init_x = imgUploadTrigger["init_x"];
-            const init_y = imgUploadTrigger["init_y"];
-            const frame = imgUploadTrigger["frame"];
-            const owners = imgUploadTrigger["owners"];
-            const mints = imgUploadTrigger["mints"];
-            const editable = imgUploadTrigger["editable"];
-            if (image && wallet.publicKey) {
+            let keys = ["img", "spaces", "init_x", "init_y", "frame", "owners", "mints", "editable"];
+            if (checkKeys(imgUploadTrigger, keys) && wallet.publicKey) {
+                let image = imgUploadTrigger["img"];
+                const spaces = imgUploadTrigger["spaces"];
+                const init_x = imgUploadTrigger["init_x"];
+                const init_y = imgUploadTrigger["init_y"];
+                const frame = imgUploadTrigger["frame"];
+                const owners = imgUploadTrigger["owners"];
+                const mints = imgUploadTrigger["mints"];
+                const editable = imgUploadTrigger["editable"];
 
                 const spaceGrid = ownedSpaces;
 
@@ -935,6 +960,7 @@ export function Screen(props) {
 
     useEffect(() => {
         const asyncGifUpload = async () => {
+            let keys = ["gif", "spaces", "init_x", "init_y", "owners", "mints", "editable"]
             let gif = gifUploadTrigger["gif"];
             const spaces = gifUploadTrigger["spaces"];
             const init_x = gifUploadTrigger["init_x"];
@@ -942,7 +968,7 @@ export function Screen(props) {
             const owners = gifUploadTrigger["owners"];
             const mints = gifUploadTrigger["mints"];
             const editable = gifUploadTrigger["editable"];
-            if (gif && wallet.publicKey) {
+            if (checkKeys(gifUploadTrigger, keys) && wallet.publicKey) {
 
                 // console.log("GIF Length", gif.length)
 
@@ -1012,8 +1038,8 @@ export function Screen(props) {
 
     useEffect(() => {
         const asyncSetNewNeighborhood = async() => {
-            
-            if (wallet.publicKey && anchorWallet?.publicKey && ("captcha" in newNeighborhoodTrigger)) {
+            let keys = ["n_x", "n_y", "address", "name", "voucherLiveDate", "voucherReceiveLimit", "voucherPriceCoefficient", "captcha"];
+            if (checkKeys(newNeighborhoodTrigger, keys) && wallet.publicKey && anchorWallet?.publicKey) {
                 loading(null, "Expanding", null);
                 try {
                     
@@ -1158,8 +1184,6 @@ export function Screen(props) {
                         signedTransaction: createClustersTX,
                     });
 
-                    sleep(20000);
-
                     let colorClusterData = await connection.getAccountInfo(colorRes.keypair.publicKey);
                     let timeClusterData = await connection.getAccountInfo(timeRes.keypair.publicKey);
                     while(!colorClusterData || !timeClusterData){
@@ -1227,7 +1251,8 @@ export function Screen(props) {
 
     useEffect(() => {
         const asyncAddNewFrame = async () => {
-            if (wallet.publicKey && ("n_x" in newFrameTrigger)) {
+            let keys = ["n_x", "n_y"];
+            if (checkKeys(newFrameTrigger, keys) && wallet.publicKey) {
                 try {
                     const n_x = newFrameTrigger["n_x"];
                     const n_y = newFrameTrigger["n_y"];
@@ -1264,6 +1289,39 @@ export function Screen(props) {
         asyncAddNewFrame();
     },
         [newFrameTrigger]
+    );
+
+    useEffect(() => {
+        const asyncUpdateNeighborhoodMetadata = async() => {
+            let keys = ["n_x", "n_y", "name", "voucherLiveDate", "voucherReceiveLimit", "voucherPriceCoefficient"];
+            if (checkKeys(updateNeighborhoodMetadataTrigger, keys) && wallet.publicKey) {
+                const {n_x, n_y, name, voucherLiveDate, voucherReceiveLimit, voucherPriceCoefficient} = updateNeighborhoodMetadataTrigger;
+                try {
+                    let ix = await updateNeighborhoodMetadataInstruction(
+                        wallet,
+                        BASE,
+                        n_x,
+                        n_y,
+                        name,
+                        voucherLiveDate,
+                        voucherReceiveLimit,
+                        voucherPriceCoefficient * 1000000000,
+                    );
+                    await sendTransaction(connection, wallet, ix, "Update neighborhood metadata");
+                    await sleep(3000);
+                    await game.current?.fetchNeighborhoodNames();
+                    game.current?.refreshSidebar();
+                }
+                catch (e) {
+                    notify({ message: `Unexpected error, please try again later` });
+                    console.error(e);
+                    return;
+                }
+            }
+        }
+        asyncUpdateNeighborhoodMetadata();
+    },
+        [updateNeighborhoodMetadataTrigger]
     );
 
     useEffect(() => {
@@ -1467,6 +1525,7 @@ export function Screen(props) {
             setImgUploadTrigger={setImgUploadTrigger}
             setGifUploadTrigger={setGifUploadTrigger}
             setNewNeighborhoodTrigger={setNewNeighborhoodTrigger}
+            setUpdateNeighborhoodMetadataTrigger={setUpdateNeighborhoodMetadataTrigger}
             setNewFrameTrigger={setNewFrameTrigger}
             setChangeRentTrigger={setChangeRentTrigger}
             setChangeRentsTrigger={setChangeRentsTrigger}

@@ -1,6 +1,6 @@
 import { Keypair, TransactionInstruction, Transaction, Commitment} from "@solana/web3.js";
 import { Connection as Conn } from "../contexts";
-import { notify, compact_u16_len } from "../utils";
+import { notify, compact_u16_len, loading } from "../utils";
 import { MAX_TRANSACTION_SIZE, BASE_TRANSACTION_SIZE } from "../constants";
 
 export const sendTransaction = async (
@@ -10,6 +10,7 @@ export const sendTransaction = async (
     name: string,
     signers: Keypair[] = []
 ) => {
+    loading(null, "sending transaction", null);
 
     const response = await Conn.sendTransactionWithRetry(
         connection,
@@ -24,6 +25,7 @@ export const sendTransaction = async (
     } else {
         notify({ message: `${name} succeeded` });
     }
+    loading(null, "sending transaction", "success");
 
     return response;
 };

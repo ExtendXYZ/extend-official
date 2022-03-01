@@ -9,7 +9,7 @@ use solana_program::{
 };
 
 use crate::{
-    instruction::ChangeNeighborhoodNameArgs,
+    instruction::UpdateNeighborhoodMetadataArgs,
     state::{
         NEIGHBORHOOD_METADATA_SEED,
         NeighborhoodMetadata,
@@ -20,7 +20,7 @@ use crate::{
 pub fn process(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
-    args: &ChangeNeighborhoodNameArgs,
+    args: &UpdateNeighborhoodMetadataArgs,
 ) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
     let base = next_account_info(account_info_iter)?;
@@ -49,8 +49,11 @@ pub fn process(
     let key = Pubkey::create_program_address(seeds_neighborhood_metadata, program_id)?;
     assert_keys_equal(key, *neighborhood_metadata.key)?;
 
-    // Write new name
-    neighborhood_metadata_data.neighborhood_name = args.neighborhood_name;
+    // Write new info
+    neighborhood_metadata_data.name = args.name;
+    neighborhood_metadata_data.voucher_live_date = args.voucher_live_date;
+    neighborhood_metadata_data.voucher_receive_limit = args.voucher_receive_limit;
+    neighborhood_metadata_data.voucher_price_coefficient = args.voucher_price_coefficient;
     neighborhood_metadata_data.serialize(&mut *neighborhood_metadata.data.borrow_mut())?;
 
     Ok(())
