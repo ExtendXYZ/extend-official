@@ -50,13 +50,14 @@ export const Message = () => {
     const [drafting, setDrafting] = useState(false);
     const [inboxMessage, setInboxMessage] = useState<any>([]);
     const [globalMessage, setGlobalMessage] = useState<any>([]);
+    const [sentMessage, setSentMessage] = useState<any>([]);
     const [currentTo, setCurrentTo] = useState("");
     const [currentMessage, setCurrentMessage] = useState("");
     const crypto = require("crypto");
 
     useEffect(() => {
         const checkInbox = async () => {
-            if (anchorWallet) {
+            if (anchorWallet && inboxKeypair) {
                 const myInbox = (await anchor.web3.PublicKey.findProgramAddress(
                     [
                         BASE.toBuffer(),
@@ -71,16 +72,17 @@ export const Message = () => {
                     try {
                         const sigInfo = sig.signature;
                         const tx: any = await connection.getConfirmedTransaction(sigInfo, "confirmed");
-                        if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58()) {
+                        if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58() && 
+                            tx["meta"]["logMessages"].length === 10) {
                             const fromAddress = tx["meta"]["logMessages"][3];
                             const parsedFromAddress = fromAddress.slice(19);
-                            const timestamp = tx["meta"]["logMessages"][5];
+                            const timestamp = tx["meta"]["logMessages"][4];
                             const parsedTimestamp = new Date(parseInt(timestamp.slice(17)) * 1000);
-                            const msg = tx["meta"]["logMessages"][6];
+                            const msg = tx["meta"]["logMessages"][5];
                             const parsedMsg = Buffer.from(msg.slice(23, msg.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                            const msgNonce: any = tx["meta"]["logMessages"][7];
+                            const msgNonce: any = tx["meta"]["logMessages"][6];
                             const parsedNonce = Buffer.from(msgNonce.slice(21, msgNonce.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                            const msgPubkey: any = tx["meta"]["logMessages"][8];
+                            const msgPubkey: any = tx["meta"]["logMessages"][7];
                             const parsedPubkey = Buffer.from(msgPubkey.slice(22, msgPubkey.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
                             const decipheredText: any = box.open(parsedMsg, parsedNonce, parsedPubkey, inboxKeypair.secretKey);
                             const decryptedText = Buffer.from(decipheredText).toString();
@@ -111,7 +113,8 @@ export const Message = () => {
                 try {
                     const sigInfo = sig.signature;
                     const tx: any = await connection.getConfirmedTransaction(sigInfo, "confirmed");
-                    if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58()) {
+                    if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58() &&
+                        tx["meta"]["logMessages"].length === 8) {
                         const fromAddress = tx["meta"]["logMessages"][3];
                         const parsedFromAddress = fromAddress.slice(19);
                         const timestamp = tx["meta"]["logMessages"][4];
@@ -134,7 +137,65 @@ export const Message = () => {
         }
         checkInbox();
     },
-        [selectedIndex]
+        [anchorWallet]
+    );
+
+    useEffect(() => {
+        const checkInbox = async () => {
+            if (anchorWallet && inboxKeypair) {
+                const sigs = await connection.getConfirmedSignaturesForAddress2(anchorWallet.publicKey, {limit: 100}, "confirmed");
+                const mySentMessage: any = [];
+                for (let sig of sigs) {
+                    try {
+                        const sigInfo = sig.signature;
+                        const tx: any = await connection.getConfirmedTransaction(sigInfo, "confirmed");
+                        if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58()) {
+                            if (tx["meta"]["logMessages"].length === 10) {
+                                const fromAddress = tx["meta"]["logMessages"][3];
+                                const parsedFromAddress = fromAddress.slice(19);
+                                const timestamp = tx["meta"]["logMessages"][4];
+                                const parsedTimestamp = new Date(parseInt(timestamp.slice(17)) * 1000);
+                                const msg = tx["meta"]["logMessages"][5];
+                                const parsedMsg = Buffer.from(msg.slice(23, msg.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
+                                const msgNonce: any = tx["meta"]["logMessages"][6];
+                                const parsedNonce = Buffer.from(msgNonce.slice(21, msgNonce.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
+                                const msgPubkey: any = tx["meta"]["logMessages"][7];
+                                const parsedPubkey = Buffer.from(msgPubkey.slice(22, msgPubkey.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
+                                const decipheredText: any = box.open(parsedMsg, parsedNonce, parsedPubkey, inboxKeypair.secretKey);
+                                const decryptedText = Buffer.from(decipheredText).toString();
+                                mySentMessage.push({
+                                    signature: sigInfo,
+                                    from: parsedFromAddress,
+                                    at: parsedTimestamp,
+                                    message: decryptedText,
+                                })
+                            } else if (tx["meta"]["logMessages"].length === 8) {
+                                const fromAddress = tx["meta"]["logMessages"][3];
+                                const parsedFromAddress = fromAddress.slice(19);
+                                const timestamp = tx["meta"]["logMessages"][4];
+                                const parsedTimestamp = new Date(parseInt(timestamp.slice(17)) * 1000);
+                                const msg = tx["meta"]["logMessages"][5];
+                                const parsedMsg = Buffer.from(msg.slice(23, msg.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
+                                const decryptedText = Buffer.from(parsedMsg).toString();
+                                mySentMessage.push({
+                                    signature: sigInfo,
+                                    from: parsedFromAddress,
+                                    at: parsedTimestamp,
+                                    message: decryptedText,
+                                });
+                            }
+                            
+                        }
+                    } catch (error) {
+                        console.log(error);
+                    }
+                }
+                setSentMessage(mySentMessage);
+            }
+        }
+        checkInbox();
+    },
+        [anchorWallet]
     );
 
     let messageList: any = null;
@@ -165,6 +226,28 @@ export const Message = () => {
             );
         } else if (selectedIndex === 2) {
             messageList = globalMessage.map(v => 
+                <ListItem key={v.signature}>
+                    <div style={{width: "30%", overflow: "hidden"}}>
+                        {v.from}
+                    </div>
+                    <div style={{marginLeft: "auto", marginRight: "auto", width: "50%", overflowWrap: "break-word"}}>
+                        {v.message}
+                    </div>
+                    <div >
+                        {v.at.toLocaleString()}
+                    </div>
+                    <div >
+                        <IconButton onClick={() => {
+                            setCurrentTo(v.from);
+                            setDrafting(true);
+                        }}>
+                            <ReplyIcon/>
+                        </IconButton>
+                    </div>
+                </ListItem>
+            );
+        } else if (selectedIndex === 3) {
+            messageList = sentMessage.map(v => 
                 <ListItem key={v.signature}>
                     <div style={{width: "30%", overflow: "hidden"}}>
                         {v.from}
@@ -304,7 +387,6 @@ export const Message = () => {
                                             }, {
                                                 accounts: {
                                                     from: anchorWallet.publicKey,
-                                                    to: toAddress,
                                                     inbox: toInbox,
                                                 }
                                             });
@@ -348,6 +430,15 @@ export const Message = () => {
                         </ListItemIcon>
                         <ListItemText primary="Broadcasts" />
                         </ListItemButton>
+                        <ListItemButton
+                        selected={selectedIndex === 3}
+                        onClick={(event) => setSelectedIndex(3)}
+                        >
+                        <ListItemIcon>
+                            <SendIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Sent" />
+                        </ListItemButton>
                     </List>
 
                 </div>
@@ -376,13 +467,13 @@ export const Message = () => {
                                             if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58()) {
                                                 const fromAddress = tx["meta"]["logMessages"][3];
                                                 const parsedFromAddress = fromAddress.slice(19);
-                                                const timestamp = tx["meta"]["logMessages"][5];
+                                                const timestamp = tx["meta"]["logMessages"][4];
                                                 const parsedTimestamp = new Date(parseInt(timestamp.slice(17)) * 1000);
-                                                const msg = tx["meta"]["logMessages"][6];
+                                                const msg = tx["meta"]["logMessages"][5];
                                                 const parsedMsg = Buffer.from(msg.slice(23, msg.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                                                const msgNonce: any = tx["meta"]["logMessages"][7];
+                                                const msgNonce: any = tx["meta"]["logMessages"][6];
                                                 const parsedNonce = Buffer.from(msgNonce.slice(21, msgNonce.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                                                const msgPubkey: any = tx["meta"]["logMessages"][8];
+                                                const msgPubkey: any = tx["meta"]["logMessages"][7];
                                                 const parsedPubkey = Buffer.from(msgPubkey.slice(22, msgPubkey.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
                                                 const decipheredText: any = box.open(parsedMsg, parsedNonce, parsedPubkey, inboxKeypair.secretKey);
                                                 const decryptedText = Buffer.from(decipheredText).toString();
@@ -426,6 +517,59 @@ export const Message = () => {
                                     }
                                 }
                                 setGlobalMessage(myGlobalMessage);
+                            } else if (selectedIndex === 3) {
+                                if (!anchorWallet || !inboxKeypair) {
+                                    notify({message: "Your inbox is not connected"});
+                                } else {
+                                    const sigs = await connection.getConfirmedSignaturesForAddress2(anchorWallet.publicKey, {limit: 100}, "confirmed");
+                                    const mySentMessage: any = [];
+                                    for (let sig of sigs) {
+                                        try {
+                                            const sigInfo = sig.signature;
+                                            const tx: any = await connection.getConfirmedTransaction(sigInfo, "confirmed");
+                                            if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58()) {
+                                                if (tx["meta"]["logMessages"].length === 10) {
+                                                    const fromAddress = tx["meta"]["logMessages"][3];
+                                                    const parsedFromAddress = fromAddress.slice(19);
+                                                    const timestamp = tx["meta"]["logMessages"][4];
+                                                    const parsedTimestamp = new Date(parseInt(timestamp.slice(17)) * 1000);
+                                                    const msg = tx["meta"]["logMessages"][5];
+                                                    const parsedMsg = Buffer.from(msg.slice(23, msg.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
+                                                    const msgNonce: any = tx["meta"]["logMessages"][6];
+                                                    const parsedNonce = Buffer.from(msgNonce.slice(21, msgNonce.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
+                                                    const msgPubkey: any = tx["meta"]["logMessages"][7];
+                                                    const parsedPubkey = Buffer.from(msgPubkey.slice(22, msgPubkey.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
+                                                    const decipheredText: any = box.open(parsedMsg, parsedNonce, parsedPubkey, inboxKeypair.secretKey);
+                                                    const decryptedText = Buffer.from(decipheredText).toString();
+                                                    mySentMessage.push({
+                                                        signature: sigInfo,
+                                                        from: parsedFromAddress,
+                                                        at: parsedTimestamp,
+                                                        message: decryptedText,
+                                                    })
+                                                } else if (tx["meta"]["logMessages"].length === 8) {
+                                                    const fromAddress = tx["meta"]["logMessages"][3];
+                                                    const parsedFromAddress = fromAddress.slice(19);
+                                                    const timestamp = tx["meta"]["logMessages"][4];
+                                                    const parsedTimestamp = new Date(parseInt(timestamp.slice(17)) * 1000);
+                                                    const msg = tx["meta"]["logMessages"][5];
+                                                    const parsedMsg = Buffer.from(msg.slice(23, msg.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
+                                                    const decryptedText = Buffer.from(parsedMsg).toString();
+                                                    mySentMessage.push({
+                                                        signature: sigInfo,
+                                                        from: parsedFromAddress,
+                                                        at: parsedTimestamp,
+                                                        message: decryptedText,
+                                                    });
+                                                }
+                                                
+                                            }
+                                        } catch (error) {
+                                            console.log(error);
+                                        }
+                                    }
+                                    setSentMessage(mySentMessage);
+                                }
                             }
                         }}>
                             <RefreshIcon />

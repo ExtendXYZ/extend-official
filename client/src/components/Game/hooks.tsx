@@ -247,7 +247,6 @@ export function Screen(props) {
                             }, {
                                 accounts: {
                                     from: anchorWallet.publicKey,
-                                    to: toAddress,
                                     inbox: toInbox,
                                 }
                             });
