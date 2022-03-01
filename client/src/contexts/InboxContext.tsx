@@ -20,6 +20,7 @@ export const InboxProvider = ({ children }) => {
     const connection = useConnection();
     const [inboxKey, setInboxKey] = useLocalStorageState("inbox");
     const [lastUser, setLastUser] = useLocalStorageState("lastUser");
+    const [name, setName] = useLocalStorageState("walletName");
     const [inboxKeypair, setInboxKeypair] = useState<any>(null);
 
     useEffect(() => {
@@ -85,8 +86,20 @@ export const InboxProvider = ({ children }) => {
     );
 
     useEffect(() => {
+        if (!name) {
+            setInboxKey(null);
+            setLastUser(null);
+        }
+    },
+        [name]
+    );
+
+
+    useEffect(() => {
         if (inboxKey) {
             setInboxKeypair(box.keyPair.fromSecretKey(base58.decode(inboxKey)));
+        } else {
+            setInboxKeypair(null);
         }
     }, [inboxKey]);
     
