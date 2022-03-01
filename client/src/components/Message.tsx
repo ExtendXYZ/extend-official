@@ -144,7 +144,7 @@ export const Message = () => {
         if (selectedIndex === 1) {
             messageList = inboxMessage.map(v => 
                 <ListItem key={v.signature}>
-                    <div style={{width: "30%"}}>
+                    <div style={{width: "30%", overflow: "hidden"}}>
                         {v.from}
                     </div>
                     <div style={{marginLeft: "auto", marginRight: "auto", width: "50%", overflowWrap: "break-word"}}>
@@ -166,7 +166,7 @@ export const Message = () => {
         } else if (selectedIndex === 2) {
             messageList = globalMessage.map(v => 
                 <ListItem key={v.signature}>
-                    <div style={{width: "30%"}}>
+                    <div style={{width: "30%", overflow: "hidden"}}>
                         {v.from}
                     </div>
                     <div style={{marginLeft: "auto", marginRight: "auto", width: "50%", overflowWrap: "break-word"}}>
