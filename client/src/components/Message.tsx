@@ -1,5 +1,5 @@
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Header } from "./Header/Header";
 import Box from "@mui/material/Box";
@@ -22,10 +22,11 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import ReplyIcon from '@mui/icons-material/Reply';
 import SendIcon from '@mui/icons-material/Send';
 import {box} from "tweetnacl";
+import base58 from "bs58";
 
-import {useAnchorWallet, useWallet} from "@solana/wallet-adapter-react";
+import {useAnchorWallet} from "@solana/wallet-adapter-react";
 import * as anchor from "@project-serum/anchor";
-import {useConnection} from "../contexts";
+import {useConnection, useInbox} from "../contexts";
 import {notify} from "../utils";
 import {sendTransaction} from "../actions";
 
@@ -42,79 +43,17 @@ const theme = createTheme({
 });
 
 export const Message = () => {
-    const wallet = useWallet();
     const anchorWallet = useAnchorWallet();
     const connection = useConnection();
-
+    const inboxKey = useInbox();
+    const inboxKeypair = box.keyPair.fromSecretKey(base58.decode(inboxKey));
     const [selectedIndex, setSelectedIndex] = useState(1);
     const [drafting, setDrafting] = useState(false);
-    const [inboxKeypair, setInboxKeypair] = useState<any>(null);
     const [inboxMessage, setInboxMessage] = useState<any>([]);
     const [globalMessage, setGlobalMessage] = useState<any>([]);
     const [currentTo, setCurrentTo] = useState("");
     const [currentMessage, setCurrentMessage] = useState("");
     const crypto = require("crypto");
-
-    useEffect(() => {
-        const connectInbox = async () => {
-            if (wallet.signMessage && anchorWallet) {
-                try {
-                    const inboxSignature = await wallet.signMessage(Buffer.from("inbox"));
-                    const inboxSeed = inboxSignature.slice(0, 32);
-                    const myInboxKeypair = box.keyPair.fromSecretKey(inboxSeed);
-                    const provider = new anchor.Provider(connection, anchorWallet, {
-                        preflightCommitment: "recent",
-                    });
-                    const idl = await anchor.Program.fetchIdl(MESSAGE_PROGRAM_ID, provider);
-                    const program = new anchor.Program(idl, MESSAGE_PROGRAM_ID, provider);
-                    const myInbox = (await anchor.web3.PublicKey.findProgramAddress(
-                        [
-                            BASE.toBuffer(),
-                            Buffer.from("inbox"),
-                            anchorWallet.publicKey.toBuffer(),
-                        ],
-                        MESSAGE_PROGRAM_ID,
-                    ))[0];
-                    try {
-                        const myInboxData: any = await program.account.inbox.fetch(myInbox);
-                        if (Buffer.compare(Buffer.from(myInboxData.address), Buffer.from(myInboxKeypair.publicKey)) !== 0) {
-                            notify({ message: "Your inbox is not up to date" });
-                            throw "inbox address not match";
-                        } else {
-                            setInboxKeypair(myInboxKeypair);
-                            notify({message: "Your inbox is ready"});
-                        }
-                    } catch (error) {
-                        console.log(error);
-                        const instruction = await program.instruction.createInbox({
-                            address: myInboxKeypair.publicKey
-                        }, {
-                            accounts: {
-                                inbox: myInbox,
-                                payer: anchorWallet.publicKey,
-                                base: BASE,
-                                systemProgram: anchor.web3.SystemProgram.programId
-                            }
-                        });
-                        const response = await sendTransaction(connection, anchorWallet, [instruction], "Create Inbox");
-                        if (response) {
-                            setInboxKeypair(myInboxKeypair);
-                            notify({ message: "Your new inbox is initialized" });
-                        } else {
-                            setInboxKeypair(null);
-                            notify({ message: "Your new inbox is not initialized" });
-                        }
-                    }
-                } catch (error) {
-                    setInboxKeypair(null);
-                    notify({ message: "Can not get your inbox address"});
-                }
-            }
-        }
-        connectInbox();
-    },
-        [anchorWallet]
-    );
 
     useEffect(() => {
         const checkInbox = async () => {
@@ -162,7 +101,7 @@ export const Message = () => {
         }
         checkInbox();
     },
-        [inboxKeypair]
+        [anchorWallet]
     );
 
     useEffect(() => {
@@ -311,14 +250,6 @@ export const Message = () => {
                                     });
                                     const idl = await anchor.Program.fetchIdl(MESSAGE_PROGRAM_ID, provider);
                                     const program = new anchor.Program(idl, MESSAGE_PROGRAM_ID, provider);
-                                    const myInbox = (await anchor.web3.PublicKey.findProgramAddress(
-                                        [
-                                            BASE.toBuffer(),
-                                            Buffer.from("inbox"),
-                                            anchorWallet.publicKey.toBuffer(),
-                                        ],
-                                        MESSAGE_PROGRAM_ID,
-                                    ))[0];
                                     try {
                                         if (currentTo === "Global") {
                                             const plainText = Buffer.alloc(128);

@@ -9,7 +9,7 @@ import "@fontsource/sora";
 import App from "./App";
 import AppMint from "./AppMint";
 import { Activity, Message } from "./components";
-import { ConnectionProvider, WalletProvider } from "./contexts";
+import { ConnectionProvider, WalletProvider, InboxProvider } from "./contexts";
 import reportWebVitals from "./reportWebVitals";
 
 import "./index.css";
@@ -18,6 +18,7 @@ ReactDOM.render(
   <React.StrictMode>
     <ConnectionProvider>
       <WalletProvider>
+        <InboxProvider>
         <Router>
           <Switch>
             <Route exact path="/mint"><AppMint /></Route>
@@ -31,6 +32,7 @@ ReactDOM.render(
             <Route exact path="/"><App /></Route>
           </Switch>
         </Router>
+        </InboxProvider>
       </WalletProvider>
     </ConnectionProvider>
   </React.StrictMode>,

@@ -37,7 +37,7 @@ function TabPanel(props) {
         aria-labelledby={`scrollable-auto-tab-${index}`}
         {...other}
       >
-        <Box p={3}>{children}</Box>
+        <Box p={4}>{children}</Box>
       </Typography>
     );
   }
@@ -60,8 +60,9 @@ function TabPanel(props) {
 export class FocusSidebar extends React.Component {
     constructor(props) {
       super(props);
-      this.state = {value: 0, owned: false, editable: false};
+      this.state = {value: 0, owned: false, editable: false, toGlobal: true};
       this.handleTabChange = this.handleTabChange.bind(this);
+      this.handleChangeReceiver = this.handleChangeReceiver.bind(this);
     }
 
     componentDidMount(){
@@ -84,11 +85,21 @@ export class FocusSidebar extends React.Component {
                 editable: (this.props.focus.time < (Date.now() / 1000))
             });
         }
+        if (!this.props.focus.owner && prevProps.focus.owner) {
+            this.setState({toGlobal: true})
+        }
     }
 
     handleTabChange(event, newValue) {
         this.setState({value: newValue});
     };
+
+    handleChangeReceiver(event) {
+        let isTrue = (event.target.value === "true")
+        this.setState({
+            toGlobal: isTrue,
+        });
+    }
 
     
 
@@ -270,7 +281,8 @@ export class FocusSidebar extends React.Component {
                       >
                         <Tab label="Modify" {...a11yProps(0)} />
                         <Tab label={priceInfoName} {...a11yProps(1)} />
-                        <Tab label="Advanced" {...a11yProps(2)} />
+                        <Tab label="Message" {...a11yProps(2)} />
+                        <Tab label="Advanced" {...a11yProps(3)} />
                         {/* <Tab label="Rent" {...a11yProps(3)} /> */}
                       </Tabs>
                     </AppBar>
@@ -516,6 +528,83 @@ export class FocusSidebar extends React.Component {
                     </TabPanel>
 
                     <TabPanel value={this.state.value} index={2}>
+                        {sidebarHeader}
+
+                        {/* message */}
+                        
+                        {(!this.props.focus.infoLoaded || !this.props.focus.imgLoaded) ?
+                            null
+                            :
+                            <>
+                                <Divider className="sidebarDivider">
+                                        Message
+                                </Divider>
+                                <ListItem className="info" style={{ display: "block" }}>
+                                <RadioGroup
+                                    row
+                                    value={this.state.toGlobal}
+                                    onChange={(e) => {
+                                        this.handleChangeReceiver(e);
+                                    }}
+                                    >
+                                    <FormControlLabel
+                                        value={false}
+                                        control={<Radio size="small" />}
+                                        disabled={!this.props.focus.owner}
+                                        label={
+                                        <Typography
+                                            className="infoText2"
+                                        >
+                                            To Owner
+                                        </Typography>
+                                        }
+                                    />
+                                    <FormControlLabel
+                                        value={true}
+                                        control={<Radio size="small" />}
+                                        label={
+                                        <Typography className="infoText2">
+                                            To Global
+                                        </Typography>
+                                        }
+                                    />
+                                </RadioGroup>
+                                <TextField
+                                        id="messageContent"
+                                        margin="dense"
+                                        label="Message"
+                                        fullWidth
+                                        variant="standard"
+                                        multiline
+                                        rows={4}
+                                />
+                                </ListItem>
+                                <ListItem>
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    onClick={() => 
+                                        this.props.sendMessage({
+                                            to: this.state.toGlobal ? "Global" : this.props.focus.owner,
+                                            message: document.getElementById("messageContent").value
+                                        })
+                                    }
+                                    style={{
+                                        width: "100%",
+                                        color: "#FFFFFF",
+                                        background: "linear-gradient(to right bottom, #36EAEF7F, #6B0AC97F)",
+                                    }}
+                                    disabled={!this.props.user}
+                                    >
+                                    Send
+                                </Button>
+                                </ListItem>
+                            </>
+                        }
+                                
+                    </TabPanel>
+
+                    <TabPanel value={this.state.value} index={3}>
                         {advancedSidebar}
 
                         {/* Advanced */}
@@ -580,7 +669,7 @@ export class FocusSidebar extends React.Component {
                         }
                     </TabPanel>
 
-                    <TabPanel value={this.state.value} index={3}>
+                    <TabPanel value={this.state.value} index={4}>
                         {sidebarHeader}
 
                         {/* rent info */}

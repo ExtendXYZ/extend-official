@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from "react";
 import {box} from "tweetnacl";
 import {Game} from "./index"
 import {useAnchorWallet, useWallet} from "@solana/wallet-adapter-react";
-import {useConnection} from "../../contexts";
+import {useConnection, useInbox} from "../../contexts";
 import {PublicKey, Transaction, Keypair, SystemProgram} from "@solana/web3.js";
 import {
     AcceptOfferArgs,
@@ -53,6 +53,7 @@ import {notify, loading, rgbToHex} from "../../utils";
 import {signedIntToBytes} from "../../utils/borsh"
 import * as anchor from "@project-serum/anchor";
 import {sleep} from "../../utils";
+import base58 from "bs58";
 
 const axios = require('axios');
 
@@ -62,6 +63,8 @@ export function Screen(props) {
     const wallet = useWallet();
     const anchorWallet = useAnchorWallet();
     const connection = useConnection();
+    const inboxKey = useInbox();
+    const inboxKeypair = box.keyPair.fromSecretKey(base58.decode(inboxKey));
     const server = new Server();
     const database = new Database();
 
@@ -88,14 +91,8 @@ export function Screen(props) {
     const [changeRentsTrigger, setChangeRentsTrigger] = useState({});
     const [acceptRentTrigger, setAcceptRentTrigger] = useState({});
     const [acceptRentsTrigger, setAcceptRentsTrigger] = useState({});
-    const [messageOpenTrigger, setMessageOpenTrigger] = useState({});
     const [sendMessageTrigger, setSendMessageTrigger] = useState<any>({});
-    const [checkInboxTrigger, setCheckInboxTrigger] = useState({});
-    const [checkGlobalTrigger, setCheckGlobalTrigger] = useState({});
     const [viewer, setViewer] = useState(0);
-    const [inboxKeypair, setInboxKeypair] = useState<any>(null);
-    const [inboxMessage, setInboxMessage] = useState([]);
-    const [globalMessage, setGlobalMessage] = useState([]);
     const game = useRef<Game>(null);
     const crypto = require("crypto");
 
@@ -188,232 +185,77 @@ export function Screen(props) {
     );
 
     useEffect(() => {
-        setInboxKeypair(null);
-    },
-        [wallet, user]
-    );
-
-    useEffect(() => {
-        const checkInbox = async () => {
-            if (wallet.signMessage && user && anchorWallet) {
-                if (!inboxKeypair) {
-                    notify({message: "You don't have your inbox"});
-                    return;
-                }
-                const myInbox = (await PublicKey.findProgramAddress(
-                    [
-                        BASE.toBuffer(),
-                        Buffer.from("inbox"),
-                        user.toBuffer(),
-                    ],
-                    MESSAGE_PROGRAM_ID,
-                ))[0];
-                const sigs = await connection.getConfirmedSignaturesForAddress2(myInbox, undefined, "confirmed");
-                let myInboxMessage: any = [];
-                for (let sig of sigs) {
+        const sendMessage = async () => {
+            if ("to" in sendMessageTrigger) {
+                if (!inboxKeypair || !anchorWallet) {
+                    notify({message: "Your inbox is not connected"});
+                } else {
+                    const provider = new anchor.Provider(connection, anchorWallet, {
+                        preflightCommitment: "recent",
+                    });
+                    const idl = await anchor.Program.fetchIdl(MESSAGE_PROGRAM_ID, provider);
+                    const program = new anchor.Program(idl, MESSAGE_PROGRAM_ID, provider);
                     try {
-                        const sigInfo = sig.signature;
-                        const tx: any = await connection.getConfirmedTransaction(sigInfo, "confirmed");
-                        const fromAddress = tx["meta"]["logMessages"][3];
-                        const parsedFromAddress = fromAddress.slice(19);
-                        const timestamp = tx["meta"]["logMessages"][5];
-                        const parsedTimestamp = new Date(parseInt(timestamp.slice(17)) * 1000);
-                        const msg = tx["meta"]["logMessages"][6];
-                        const parsedMsg = Buffer.from(msg.slice(23, msg.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                        const msgNonce: any = tx["meta"]["logMessages"][7];
-                        const parsedNonce = Buffer.from(msgNonce.slice(21, msgNonce.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                        const msgPubkey: any = tx["meta"]["logMessages"][8];
-                        const parsedPubkey = Buffer.from(msgPubkey.slice(22, msgPubkey.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                        const decipheredText: any = box.open(parsedMsg, parsedNonce, parsedPubkey, inboxKeypair.secretKey);
-                        const decryptedText = Buffer.from(decipheredText).toString();
-                        myInboxMessage = [...myInboxMessage, {
-                            from: parsedFromAddress,
-                            at: parsedTimestamp,
-                            message: decryptedText,
-                        }];
-                        setInboxMessage(myInboxMessage);
+                        if (sendMessageTrigger.to === "Global") {
+                            const plainText = Buffer.alloc(128);
+                            plainText.write(sendMessageTrigger.message, 0);
+                            const instruction = await program.instruction.broadCast({
+                                message: plainText,
+                            }, {
+                                accounts: {
+                                    from: anchorWallet.publicKey,
+                                    global: GlOBAL_CHANNEL,
+                                }
+                            });
+                            const response = await sendTransaction(connection, anchorWallet, [instruction], "Sent Message");
+                            if (!response) {
+                                notify({ message: "Failed to broadcast" });
+                            } else {
+                                notify({ message: "Broadcasted" });
+                            }
+                        } else {
+                            const toAddress = sendMessageTrigger.to;
+                            const toInbox = (await anchor.web3.PublicKey.findProgramAddress(
+                                [
+                                    BASE.toBuffer(),
+                                    Buffer.from("inbox"),
+                                    toAddress.toBuffer(),
+                                ],
+                                MESSAGE_PROGRAM_ID,
+                            ))[0];
+                            const toInboxData: any = await program.account.inbox.fetch(toInbox);
+                            const plainText = Buffer.alloc(112);
+                            plainText.write(sendMessageTrigger.message, 0);
+                            const nonce = crypto.randomBytes(24);
+                            const cipherText = box(plainText, nonce, Buffer.from(toInboxData.address), inboxKeypair.secretKey);
+                            const instruction = await program.instruction.sendMessage({
+                                message: cipherText,
+                                nonce: nonce,
+                                pubkey: inboxKeypair.publicKey,
+                            }, {
+                                accounts: {
+                                    from: anchorWallet.publicKey,
+                                    to: toAddress,
+                                    inbox: toInbox,
+                                }
+                            });
+                            const response = await sendTransaction(connection, anchorWallet, [instruction], "Sent Message");
+                            if (!response) {
+                                notify({ message: "Failed to send message" });
+                            } else {
+                                notify({ message: "Message sent" });
+                            }
+                        }
                     } catch (error) {
                         console.log(error);
+                        notify({ message: "Both you and receiver should have inboxes ready" });
                     }
-                    
-                }
-            }
-        }
-        checkInbox();
-    },
-        [checkInboxTrigger]
-    );
-
-    useEffect(() => {
-        const checkInbox = async () => {
-            const sigs = await connection.getConfirmedSignaturesForAddress2(GlOBAL_CHANNEL, undefined, "confirmed");
-            let myGlobalMessage: any = [];
-            for (let sig of sigs) {
-                try {
-                    const sigInfo = sig.signature;
-                    const tx: any = await connection.getConfirmedTransaction(sigInfo, "confirmed");
-                    if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58()) {
-                        const fromAddress = tx["meta"]["logMessages"][3];
-                        const parsedFromAddress = fromAddress.slice(19);
-                        const timestamp = tx["meta"]["logMessages"][4];
-                        const parsedTimestamp = new Date(parseInt(timestamp.slice(17)) * 1000);
-                        const msg = tx["meta"]["logMessages"][5];
-                        const parsedMsg = Buffer.from(msg.slice(23, msg.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                        const decryptedText = Buffer.from(parsedMsg).toString();
-                        myGlobalMessage = [...myGlobalMessage, {
-                            from: parsedFromAddress,
-                            at: parsedTimestamp,
-                            message: decryptedText,
-                        }];
-                        setGlobalMessage(myGlobalMessage);
-                    }
-                } catch (error) {
-                    console.log(error);
-                }
-                
-            }
-        }
-        checkInbox();
-    },
-        [checkGlobalTrigger]
-    );
-
-    useEffect(() => {
-        const sendMessage = async () => {
-            if (wallet.signMessage && user && anchorWallet) {
-                if (!inboxKeypair) {
-                    notify({message: "You don't have inbox"});
-                    return;
-                }
-                const provider = new anchor.Provider(connection, anchorWallet, {
-                    preflightCommitment: "recent",
-                });
-                const idl = await anchor.Program.fetchIdl(MESSAGE_PROGRAM_ID, provider);
-                const program = new anchor.Program(idl, MESSAGE_PROGRAM_ID, provider);
-                const myInbox = (await PublicKey.findProgramAddress(
-                    [
-                        BASE.toBuffer(),
-                        Buffer.from("inbox"),
-                        user.toBuffer(),
-                    ],
-                    MESSAGE_PROGRAM_ID,
-                ))[0];
-                try {
-                    if (sendMessageTrigger.to === "Global") {
-                        const plainText = Buffer.alloc(128);
-                        plainText.write(sendMessageTrigger.message, 0);
-                        const instruction = await program.instruction.broadCast({
-                            message: plainText,
-                        }, {
-                            accounts: {
-                                from: user,
-                                global: GlOBAL_CHANNEL,
-                            }
-                        });
-                        const response = await sendTransaction(connection, wallet, [instruction], "Sent Message");
-                        if (!response) {
-                            notify({ message: "Failed to broadcast" });
-                        } else {
-                            notify({ message: "Broadcasted" });
-                        }
-                    } else {
-                        const toAddress = new PublicKey(sendMessageTrigger.to);
-                        const toInbox = (await PublicKey.findProgramAddress(
-                            [
-                                BASE.toBuffer(),
-                                Buffer.from("inbox"),
-                                toAddress.toBuffer(),
-                            ],
-                            MESSAGE_PROGRAM_ID,
-                        ))[0];
-                        const toInboxData: any = await program.account.inbox.fetch(toInbox);
-                        const plainText = Buffer.alloc(112);
-                        plainText.write(sendMessageTrigger.message, 0);
-                        const nonce = crypto.randomBytes(24);
-                        const cipherText = box(plainText, nonce, Buffer.from(toInboxData.address), inboxKeypair.secretKey);
-                        const instruction = await program.instruction.sendMessage({
-                            message: cipherText,
-                            nonce: nonce,
-                            pubkey: inboxKeypair.publicKey,
-                        }, {
-                            accounts: {
-                                from: user,
-                                to: toAddress,
-                                inbox: toInbox,
-                            }
-                        });
-                        const response = await sendTransaction(connection, wallet, [instruction], "Sent Message");
-                        if (!response) {
-                            notify({ message: "Failed to send message" });
-                        } else {
-                            notify({ message: "Message sent" });
-                        }
-                    }
-                } catch (error) {
-                    console.log(error);
-                    notify({ message: "Both you and receiver should have inboxes ready" });
                 }
             }
         }
         sendMessage();
     },
         [sendMessageTrigger]
-    );
-
-    useEffect(() => {
-        const checkInbox = async () => {
-            if (wallet.signMessage && user && anchorWallet && !inboxKeypair) {
-                const inboxSignature = await wallet.signMessage(Buffer.from("inbox"));
-                const inboxSeed = inboxSignature.slice(0, 32);
-                const myInboxKeypair = box.keyPair.fromSecretKey(inboxSeed);
-                const provider = new anchor.Provider(connection, anchorWallet, {
-                    preflightCommitment: "recent",
-                });
-                const idl = await anchor.Program.fetchIdl(MESSAGE_PROGRAM_ID, provider);
-                const program = new anchor.Program(idl, MESSAGE_PROGRAM_ID, provider);
-                const myInbox = (await PublicKey.findProgramAddress(
-                    [
-                        BASE.toBuffer(),
-                        Buffer.from("inbox"),
-                        user.toBuffer(),
-                    ],
-                    MESSAGE_PROGRAM_ID,
-                ))[0];
-                try {
-                    const myInboxData: any = await program.account.inbox.fetch(myInbox);
-                    if (Buffer.compare(Buffer.from(myInboxData.address), Buffer.from(myInboxKeypair.publicKey)) !== 0) {
-                        notify({ message: "Your inbox is not up to date" });
-                        throw "inbox address not match";
-                    } else {
-                        setInboxKeypair(myInboxKeypair);
-                        notify({message: "Your inbox is ready"});
-                    }
-                } catch (error) {
-                    console.log(error);
-                    const instruction = await program.instruction.createInbox({
-                        address: myInboxKeypair.publicKey
-                    }, {
-                        accounts: {
-                            inbox: myInbox,
-                            payer: user,
-                            base: BASE,
-                            systemProgram: SystemProgram.programId
-                        }
-                    });
-                    const response = await sendTransaction(connection, wallet, [instruction], "Create Inbox");
-                    if (response) {
-                        setInboxKeypair(myInboxKeypair);
-                        notify({ message: "Your new inbox is initialized" });
-                    } else {
-                        setInboxKeypair(null);
-                        notify({ message: "Your new inbox is not initialized" });
-                    }
-                }
-            }
-        }
-        checkInbox();
-    },
-        [messageOpenTrigger]
     );
 
 
@@ -1630,12 +1472,7 @@ export function Screen(props) {
             setChangeRentsTrigger={setChangeRentsTrigger}
             setAcceptRentTrigger={setAcceptRentTrigger}
             setAcceptRentsTrigger={setAcceptRentsTrigger}
-            setCheckInboxTrigger={setCheckInboxTrigger}
-            setCheckGlobalTrigger={setCheckGlobalTrigger}
-            setMessageOpenTrigger={setMessageOpenTrigger}
             setSendMessageTrigger={setSendMessageTrigger}
-            inboxMessage={inboxMessage}
-            globalMessage={globalMessage}
             locator={props.locator}
             database={database}
             server={server}
