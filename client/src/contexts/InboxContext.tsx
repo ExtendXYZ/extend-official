@@ -23,12 +23,6 @@ export const InboxProvider = ({ children }) => {
     const [inboxKeypair, setInboxKeypair] = useState<any>(null);
 
     useEffect(() => {
-        if (inboxKey) {
-            setInboxKeypair(box.keyPair.fromSecretKey(base58.decode(inboxKey)));
-        }
-    }, [inboxKey]);
-
-    useEffect(() => {
         const connectInbox = async () => {
             if (wallet.signMessage && anchorWallet && lastUser !== anchorWallet.publicKey.toBase58()) {
                 try {
@@ -90,6 +84,12 @@ export const InboxProvider = ({ children }) => {
         [anchorWallet]
     );
 
+    useEffect(() => {
+        if (inboxKey) {
+            setInboxKeypair(box.keyPair.fromSecretKey(base58.decode(inboxKey)));
+        }
+    }, [inboxKey]);
+    
     return (
         <InboxContext.Provider
             value={inboxKeypair}
