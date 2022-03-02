@@ -1,7 +1,7 @@
 import {PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction,} from "@solana/web3.js";
 import {Schema, serialize} from "borsh";
 import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID,} from "@solana/spl-token";
-import {SPACE_PROGRAM_ID, NEIGHBORHOOD_METADATA_SEED, VOUCHER_MINT_SEED, VOUCHER_SINK_SEED, VOUCHER_MINT_AUTH} from "../constants";
+import {SPACE_PROGRAM_ID, NEIGHBORHOOD_METADATA_SEED, VOUCHER_MINT_SEED, VOUCHER_MINT_AUTH} from "../constants";
 import {correct_negative_serialization, signedIntToBytes} from "../utils/borsh";
 
 export class GetVouchersInstructionData {

@@ -3,7 +3,7 @@ import {box} from "tweetnacl";
 import {Game} from "./index"
 import {useAnchorWallet, useWallet} from "@solana/wallet-adapter-react";
 import {useConnection, useInbox} from "../../contexts";
-import {PublicKey, Transaction, Keypair, SystemProgram} from "@solana/web3.js";
+import {PublicKey, Transaction } from "@solana/web3.js";
 import {
     AcceptOfferArgs,
     acceptOfferInstruction,
@@ -54,7 +54,6 @@ import {notify, loading, rgbToHex} from "../../utils";
 import {signedIntToBytes} from "../../utils/borsh"
 import * as anchor from "@project-serum/anchor";
 import {sleep} from "../../utils";
-import base58 from "bs58";
 
 const axios = require('axios');
 
@@ -401,9 +400,9 @@ export function Screen(props) {
                 const p_y = ((y % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
                 const p_x = ((x % NEIGHBORHOOD_SIZE) + NEIGHBORHOOD_SIZE) % NEIGHBORHOOD_SIZE;
                 const nhood = JSON.stringify({n_x, n_y});
-                if (frame !== -1 && game.current?.viewport.neighborhoodColors[nhood][p_y][p_x] === color) {
+                if (frame !== -1 && game.current?.viewport.neighborhood_colors[nhood][p_y][p_x] === color) {
                     notify({
-                        message: "Already the selected color, try changing to a different color",
+                        message: "Space already has the selected color, try changing to a different color",
                     });
                     return;
                 }

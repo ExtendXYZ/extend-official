@@ -391,7 +391,7 @@ export const sendTransactions = async (
                 return 0;
               })
         ))
-
+        
         let responses = await Promise.all(promises);
         for (let j = 0; j < responses.length; j++) { // populate finalResponses with whether each tx succeed
           finalResponses[idxMap[j]] = (responses[j] === 2);
@@ -406,7 +406,7 @@ export const sendTransactions = async (
             newIdxMap.push(idxMap[k]);
           }
         }
-        // console.log("Need to retry", nextArr.length);
+        console.log("Need to retry on blockhash", nextArr.length);
 
         // shuffling nextArr
         let outp = shuffle(nextArr, newIdxMap);
@@ -646,10 +646,10 @@ export async function sendSignedTransaction({
         "recent",
         true
       );
-      // if (!confirmation) {
-      //   // // console.log("Not confirmed, max retry hit")
-      //   throw new Error("Max signature retries hit")
-      // }
+      if (!confirmation) {
+        // console.log("Not confirmed, max retry hit")
+        throw new Error("Max signature retries hit")
+      }
       if (confirmation && confirmation.err) {
         console.error(confirmation.err);
         throw new Error("Transaction failed: Custom instruction error");
@@ -753,7 +753,7 @@ async function awaitTransactionSignatureConfirmation(
     }, timeout);
 
     let numTries = 0;
-    let maxTries = 2;
+    let maxTries = 12;
     while (!done && numTries < maxTries && queryStatus) {
       // eslint-disable-next-line no-loop-func
       await (async () => {
@@ -776,7 +776,7 @@ async function awaitTransactionSignatureConfirmation(
               done = true;
               reject(status.err);
             } else if (!status.confirmations) {
-              // // console.log("REST no confirmations for", txid, status);
+              // console.log("REST no confirmations for", txid, status);
             } else {
               // // console.log("REST confirmation for", txid, status);
               done = true;

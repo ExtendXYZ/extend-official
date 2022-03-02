@@ -18,7 +18,7 @@ import {
 } from "../../constants";
 import {TOKEN_PROGRAM_ID} from '@solana/spl-token';
 import {decodeMetadata} from "../../actions/metadata";
-import {signedIntToBytes, bytesToUInt, bytesToFloat} from "../../utils/borsh";
+import {signedIntToBytes, bytesToUInt} from "../../utils/borsh";
 import { sleep } from "../../utils/utils";
 import {loading} from '../../utils/loading';
 

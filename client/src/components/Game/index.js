@@ -26,7 +26,7 @@ import { Board } from './canvas.js';
 import { FocusSidebar } from './focus_sidebar.js';
 import { SelectingSidebar } from './selecting_sidebar.js';
 import { NeighborhoodSidebar } from './neighborhood_sidebar.js';
-import { solToLamports, lamportsToSol, intersection, xor, priceToColor, sleep} from "../../utils";
+import { solToLamports, lamportsToSol, intersection, xor, priceToColor} from "../../utils";
 import {loading} from '../../utils/loading';
 import { ReloadOutlined } from "@ant-design/icons";
 
@@ -34,7 +34,6 @@ import Search from "antd/es/input/Search";
 
 const SIDE_NAV_WIDTH = 400;
 const FETCH_COLORS_INTERVAL = 10 * 1000;
-const FETCH_TIMES_INTERVAL = 30 * 1000;
 const FETCH_NAMES_INTERVAL = 60 * 1000;
 const FETCH_PRICES_INTERVAL = 20 * 1000;
 const FETCH_EDITABLE_INTERVAL = 10 * 1000;
@@ -278,8 +277,6 @@ export class Game extends React.Component {
     }
 
     fetchNeighborhoodNames = async() => {
-        const connection = this.props.connection;
-
         const neighborhoods = await this.getViewportNeighborhoods();
         
         const neighborhood_accounts = await Promise.all(
@@ -332,7 +329,6 @@ export class Game extends React.Component {
         let tmpNeighborhoodPriceView = {};
         await Promise.all(
             neighborhoods.map(async (value) => {
-                let {n_x, n_y} = value;
                 for(let {n_x, n_y} of neighborhoods){ // loop through all spaces
                     let colors = Array.from({ length: NEIGHBORHOOD_SIZE }, () => new Array(NEIGHBORHOOD_SIZE).fill(null));
                     for(let x = n_x * NEIGHBORHOOD_SIZE; x < (n_x + 1) * NEIGHBORHOOD_SIZE; x++){
@@ -375,9 +371,7 @@ export class Game extends React.Component {
         );
         // let tmpNeighborhoodEditableView = {};
         this.viewport.neighborhoodEditableTimes = {};
-        let newMax = this.state.maxFrame;
-        let now = Date.now() / 1000;
-        const neighborhood_accounts = await Promise.all(
+        await Promise.all(
             neighborhoods.map(async (value, i) => {
                 let { n_x, n_y } = value;
                 let nhash = JSON.stringify({n_x, n_y});
@@ -2265,8 +2259,8 @@ export class Game extends React.Component {
     }
 
     setColorView = () => {
-        this.resetViews(0);
-        this.state.view = 0;
+        this.resetViews();
+        this.setState({view: 0});
         this.board.current.resetCanvas();
         this.setState({
             viewMenuOpen: false,
@@ -2274,8 +2268,8 @@ export class Game extends React.Component {
         });
     }
     setEditableView = () => {
-        this.resetViews(1);
-        this.state.view = 1;
+        this.resetViews();
+        this.setState({view: 1});
         this.board.current.resetCanvas();
         this.setState({
             viewMenuOpen: false,
@@ -2283,12 +2277,12 @@ export class Game extends React.Component {
         });
     }
     setPriceView = () => {
-        this.resetViews(2);
+        this.resetViews();
         // this.setState({
         //     animations: false
         // });
         // clearInterval(this.intervalChangeFrame);
-        this.state.view = 2;
+        this.setState({view: 2});
         this.board.current.resetCanvas();
         this.fetchPriceView();
         this.intervalFetchPriceView = setInterval(async () => {
