@@ -175,12 +175,12 @@ export const Message = () => {
                                 const parsedTimestamp = new Date(parseInt(timestamp.slice(17)) * 1000);
                                 const msg = tx["meta"]["logMessages"][5];
                                 const parsedMsg = Buffer.from(msg.slice(23, msg.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                                const msgNonce: any = tx["meta"]["logMessages"][6];
-                                const parsedNonce = Buffer.from(msgNonce.slice(21, msgNonce.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                                const msgPubkey: any = tx["meta"]["logMessages"][7];
-                                const parsedPubkey = Buffer.from(msgPubkey.slice(22, msgPubkey.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                                const decipheredText: any = box.open(parsedMsg, parsedNonce, parsedPubkey, inboxKeypair.secretKey);
-                                const decryptedText = Buffer.from(decipheredText).toString();
+                                // const msgNonce: any = tx["meta"]["logMessages"][6];
+                                // const parsedNonce = Buffer.from(msgNonce.slice(21, msgNonce.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
+                                // const msgPubkey: any = tx["meta"]["logMessages"][7];
+                                // const parsedPubkey = Buffer.from(msgPubkey.slice(22, msgPubkey.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
+                                // const decipheredText: any = box.open(parsedMsg, parsedNonce, parsedPubkey, inboxKeypair.secretKey);
+                                const decryptedText = Buffer.from(parsedMsg).toString();
                                 mySentMessage.push({
                                     signature: sigInfo,
                                     from: parsedFromAddress,
@@ -555,12 +555,12 @@ export const Message = () => {
                                                     const parsedTimestamp = new Date(parseInt(timestamp.slice(17)) * 1000);
                                                     const msg = tx["meta"]["logMessages"][5];
                                                     const parsedMsg = Buffer.from(msg.slice(23, msg.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                                                    const msgNonce: any = tx["meta"]["logMessages"][6];
-                                                    const parsedNonce = Buffer.from(msgNonce.slice(21, msgNonce.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                                                    const msgPubkey: any = tx["meta"]["logMessages"][7];
-                                                    const parsedPubkey = Buffer.from(msgPubkey.slice(22, msgPubkey.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
-                                                    const decipheredText: any = box.open(parsedMsg, parsedNonce, parsedPubkey, inboxKeypair.secretKey);
-                                                    const decryptedText = Buffer.from(decipheredText).toString();
+                                                    // const msgNonce: any = tx["meta"]["logMessages"][6];
+                                                    // const parsedNonce = Buffer.from(msgNonce.slice(21, msgNonce.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
+                                                    // const msgPubkey: any = tx["meta"]["logMessages"][7];
+                                                    // const parsedPubkey = Buffer.from(msgPubkey.slice(22, msgPubkey.length - 1).split(",").map((v: string) => v.trim()).map((v : string) => parseInt(v)));
+                                                    // const decipheredText: any = box.open(parsedMsg, parsedNonce, parsedPubkey, inboxKeypair.secretKey);
+                                                    const decryptedText = Buffer.from(parsedMsg).toString();
                                                     mySentMessage.push({
                                                         signature: sigInfo,
                                                         from: parsedFromAddress,
