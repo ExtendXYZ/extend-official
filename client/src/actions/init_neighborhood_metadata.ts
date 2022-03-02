@@ -167,7 +167,6 @@ export const initNeighborhoodMetadataInstruction = async (
   let data2 = data.slice(25, data.length); // part after name
 
   // construct and insert name buffer
-  console.log(name);
   let name_buffer = Buffer.from(name, "utf-8");
   let zeros = Buffer.from(new Array(64 - name_buffer.length).fill(0));
   name_buffer = Buffer.concat([name_buffer, zeros]);

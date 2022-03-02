@@ -163,7 +163,6 @@ export class Game extends React.Component {
             neighborhoodCensors: {},
             neighborhoodNames: {},
             neighborhoodPriceView: {},
-            neighborhoodEditableView: {},
             neighborhoodEditableTimes: {},
         };
         this.censors = {};
@@ -221,7 +220,9 @@ export class Game extends React.Component {
                 newMax = newNumFrames > newMax ? newNumFrames : newMax;
             })
         );
-        this.viewport.neighborhoodColors = tmpNeighborhoodColors;
+        for(let key in tmpNeighborhoodColors){
+            this.viewport.neighborhoodColors[key] = tmpNeighborhoodColors[key]
+        }
         const tmpNeighborhoodCensors = {};
         neighborhoods.forEach(value => {
             tmpNeighborhoodCensors[JSON.stringify(value)] = this.fetchCensors(frame, value);
@@ -270,6 +271,9 @@ export class Game extends React.Component {
 
             tmpNeighborhoodColorsAllFrames[key][frame] =
                 await this.props.server.getFrameData(frameDatas[i]);
+        }
+        for(let key in tmpNeighborhoodColorsAllFrames){
+            this.viewport.neighborhoodColorsAllFrames[key] = tmpNeighborhoodColorsAllFrames[key];
         }
         this.viewport.neighborhoodColorsAllFrames = tmpNeighborhoodColorsAllFrames;
 
@@ -349,8 +353,9 @@ export class Game extends React.Component {
                 }
             })
         )
-        
-        this.viewport.neighborhoodPriceView = tmpNeighborhoodPriceView;
+        for(let key in tmpNeighborhoodPriceView){
+            this.viewport.neighborhoodPriceView[key] = tmpNeighborhoodPriceView[key];
+        }
     }
   
     fetchEditableTimes = async() => {
@@ -369,8 +374,8 @@ export class Game extends React.Component {
             this.props.connection,
             editableClusterKeys
         );
-        // let tmpNeighborhoodEditableView = {};
-        this.viewport.neighborhoodEditableTimes = {};
+        
+       let tmpNeighborhoodEditableTimes = {};
         await Promise.all(
             neighborhoods.map(async (value, i) => {
                 let { n_x, n_y } = value;
@@ -378,21 +383,12 @@ export class Game extends React.Component {
                 let editableTimes = await this.props.server.getEditableTimeData(
                     editableClusterDatas[i]
                 );
-                this.viewport.neighborhoodEditableTimes[nhash] = editableTimes;
-                // let editableColors = Array.from({ length: NEIGHBORHOOD_SIZE }, () => new Array(NEIGHBORHOOD_SIZE).fill(null));
-                // for(let x = n_x * NEIGHBORHOOD_SIZE; x < (n_x + 1) * NEIGHBORHOOD_SIZE; x++){
-                //     for(let y = n_y * NEIGHBORHOOD_SIZE; y < (n_y + 1) * NEIGHBORHOOD_SIZE; y++){
-                //         let x_relative = x - n_x * NEIGHBORHOOD_SIZE;
-                //         let y_relative = y - n_y * NEIGHBORHOOD_SIZE;
-                //         let color = this.viewport.neighborhoodColors[nhash][y_relative][x_relative];
-                //         editableColors[y_relative][x_relative] = (now > editableTimes[nhash][y_relative][x_relative] ? color : "gray");
-                //     }
-                // }
-                // tmpNeighborhoodEditableView[nhash] = editableColors;
+                tmpNeighborhoodEditableTimes[nhash] = editableTimes;
             })
         );
-        // console.log(this.viewport.neighborhoodEditableTimes);
-        // this.viewport.neighborhoodEditableView = tmpNeighborhoodEditableView;
+        for(let key in tmpNeighborhoodEditableTimes){
+            this.viewport.neighborhoodEditableTimes[key] = tmpNeighborhoodEditableTimes[key];
+        }
     }
 
     fetchCensors = (frame, {n_x, n_y}) => {
