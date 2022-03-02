@@ -1204,8 +1204,6 @@ export function Screen(props) {
                     // NeighborhoodTx.add(createTimeClusterIx);
                     NeighborhoodTx.add(initializeFrameIx);
 
-
-
                     NeighborhoodTx.recentBlockhash = (await connection.getRecentBlockhash("singleGossip")).blockhash;
                     
                     let data = {
@@ -1214,26 +1212,26 @@ export function Screen(props) {
                     }
                     
                     let res = await axios.post(CAPTCHA_VERIFY_URL, data);
-                    if (!res.data.success) {
-                        return;
+                    if (res.data.success) {
+                        NeighborhoodTx = Transaction.from(res.data.transaction.data);
+
+                        // NeighborhoodTx.partialSign(colorRes.keypair);
+                        // NeighborhoodTx.partialSign(timeRes.keypair);
+                        
+                        if (wallet.signTransaction) {
+                            NeighborhoodTx = await wallet.signTransaction(NeighborhoodTx);
+                        }
+                        await sendSignedTransaction({
+                            connection,
+                            signedTransaction: NeighborhoodTx,
+                        });
+                        notify({ message: `Expand succeeded` });
                     }
-
-                    NeighborhoodTx = Transaction.from(res.data.transaction.data);
-
-                    // NeighborhoodTx.partialSign(colorRes.keypair);
-                    // NeighborhoodTx.partialSign(timeRes.keypair);
-                    
-                    if (wallet.signTransaction) {
-                        NeighborhoodTx = await wallet.signTransaction(NeighborhoodTx);
+                    else{
+                        notify({ message: `Unexpected error, please try again later` });
                     }
-                    await sendSignedTransaction({
-                        connection,
-                        signedTransaction: NeighborhoodTx,
-                    });
-                    notify({ message: `Expand succeeded` });
-
                 } catch (e) {
-                    notify({ message: `Unexpected error, please try again later` });
+                    notify({ message: `Expand failed` });
                     console.error(e);
                 }
                 loading(null, "Expanding", "success");
