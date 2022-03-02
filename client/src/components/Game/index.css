@@ -179,7 +179,7 @@
 .sidenav .close {
     z-index: 2;
     position: absolute;
-    top: 45%;
+    top: 60px;
     right: 10px;
     color: grey;
 }

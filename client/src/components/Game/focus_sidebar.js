@@ -60,7 +60,7 @@ function TabPanel(props) {
 export class FocusSidebar extends React.Component {
     constructor(props) {
       super(props);
-      this.state = {value: 0, owned: false, editable: false, toGlobal: true};
+      this.state = {value: 0, owned: false, editable: false, toGlobal: false};
       this.handleTabChange = this.handleTabChange.bind(this);
       this.handleChangeReceiver = this.handleChangeReceiver.bind(this);
     }
