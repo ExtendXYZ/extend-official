@@ -9,6 +9,7 @@ import base58 from "bs58";
 
 import {
     BASE,
+    GlOBAL_CHANNEL,
     MESSAGE_PROGRAM_ID,
 } from "../constants";
 
@@ -21,6 +22,9 @@ export const InboxProvider = ({ children }) => {
     const [inboxKey, setInboxKey] = useLocalStorageState("inbox");
     const [inboxKeypair, setInboxKeypair] = useState<any>(null);
     const [myInbox, setMyInbox] = useState<any>(null);
+    const [newMessage, setNewMessage] = useState(true);
+    const [newBroadcast, setNewBroadcast] = useState(true);
+    const [newSent, setNewSent] = useState(true);
 
     useEffect(() => {
         if (!localStorage.getItem("walletName")) {
@@ -171,19 +175,34 @@ export const InboxProvider = ({ children }) => {
         [anchorWallet, myInbox, inboxKeypair]
     );
 
-    // useEffect(() => {
+    useEffect(() => {
 
-    //     const id = connection.onProgramAccountChange(MESSAGE_PROGRAM_ID, (accountInfo) => {
-    //         if (accountInfo.accountId.toBase58() === myInbox.toBase58()) {
-
-    //         }
-    //     }, "confirmed");
-    //     return () => {
-    //         connection.removeProgramAccountChangeListener(id);
-    //     };
-    // },
-    //     [anchorWallet] 
-    // )
+        const id = connection.onLogs(MESSAGE_PROGRAM_ID, (logs) => {
+            let receiver = "";
+            let sender = "";
+            if (logs.logs.length === 11) {
+                sender = logs.logs[3].slice(19);
+                receiver = logs.logs[8].slice(17);
+            } else if (logs.logs.length === 9) {
+                sender = logs.logs[3].slice(19);
+                receiver = logs.logs[6].slice(17);
+            }
+            if (myInbox && receiver === myInbox.toBase58()) {
+                setNewMessage(true);
+            }
+            if (receiver === GlOBAL_CHANNEL.toBase58()) {
+                setNewBroadcast(true);
+            } 
+            if (anchorWallet && sender === anchorWallet.publicKey.toBase58()) {
+                setNewSent(true);
+            }
+        }, "confirmed");
+        return () => {
+            connection.removeOnLogsListener(id);
+        };
+    },
+        [anchorWallet, myInbox] 
+    )
     
     return (
         <InboxContext.Provider
@@ -191,6 +210,12 @@ export const InboxProvider = ({ children }) => {
                 inboxKeypair: inboxKeypair,
                 inboxAddress: myInbox,
                 connect: connect,
+                newMessage: newMessage,
+                readNewMessage: () => setNewMessage(false),
+                newBroadcast: newBroadcast,
+                readNewBroadcast: () => setNewBroadcast(false),
+                newSent: newSent,
+                readNewSent: () => setNewSent(false),
             }}
         >
             {children}

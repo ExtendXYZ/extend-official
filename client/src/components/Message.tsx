@@ -45,7 +45,16 @@ const theme = createTheme({
 export const Message = () => {
     const anchorWallet = useAnchorWallet();
     const connection = useConnection();
-    const {inboxKeypair, connect} = useInbox();
+    const {
+        inboxKeypair, 
+        connect, 
+        newMessage, 
+        newBroadcast, 
+        newSent, 
+        readNewMessage,
+        readNewBroadcast,
+        readNewSent
+    } = useInbox();
     const [selectedIndex, setSelectedIndex] = useState(1);
     const [drafting, setDrafting] = useState(false);
     const [inboxMessage, setInboxMessage] = useState<any>([]);
@@ -54,6 +63,16 @@ export const Message = () => {
     const [currentTo, setCurrentTo] = useState("");
     const [currentMessage, setCurrentMessage] = useState("");
     const crypto = require("crypto");
+
+    useEffect(() => {
+        if (selectedIndex === 1) {
+            readNewMessage();
+        } else if (selectedIndex === 2) {
+            readNewBroadcast();
+        } else if (selectedIndex === 3) {
+            readNewSent();
+        }
+    }, [selectedIndex]);
 
     useEffect(() => {
         const checkInbox = async () => {
@@ -73,7 +92,7 @@ export const Message = () => {
                         const sigInfo = sig.signature;
                         const tx: any = await connection.getConfirmedTransaction(sigInfo, "confirmed");
                         if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58() && 
-                            tx["meta"]["logMessages"].length === 10) {
+                            tx["meta"]["logMessages"].length === 11) {
                             const fromAddress = tx["meta"]["logMessages"][3];
                             const parsedFromAddress = fromAddress.slice(19);
                             const timestamp = tx["meta"]["logMessages"][4];
@@ -114,7 +133,7 @@ export const Message = () => {
                     const sigInfo = sig.signature;
                     const tx: any = await connection.getConfirmedTransaction(sigInfo, "confirmed");
                     if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58() &&
-                        tx["meta"]["logMessages"].length === 8) {
+                        tx["meta"]["logMessages"].length === 9) {
                         const fromAddress = tx["meta"]["logMessages"][3];
                         const parsedFromAddress = fromAddress.slice(19);
                         const timestamp = tx["meta"]["logMessages"][4];
@@ -143,14 +162,14 @@ export const Message = () => {
     useEffect(() => {
         const checkInbox = async () => {
             if (anchorWallet && inboxKeypair) {
-                const sigs = await connection.getConfirmedSignaturesForAddress2(anchorWallet.publicKey, {limit: 100}, "confirmed");
+                const sigs = await connection.getConfirmedSignaturesForAddress2(anchorWallet.publicKey, {limit: 50}, "confirmed");
                 const mySentMessage: any = [];
                 for (let sig of sigs) {
                     try {
                         const sigInfo = sig.signature;
                         const tx: any = await connection.getConfirmedTransaction(sigInfo, "confirmed");
                         if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58()) {
-                            if (tx["meta"]["logMessages"].length === 10) {
+                            if (tx["meta"]["logMessages"].length === 11) {
                                 const fromAddress = tx["meta"]["logMessages"][3];
                                 const parsedFromAddress = fromAddress.slice(19);
                                 const timestamp = tx["meta"]["logMessages"][4];
@@ -169,7 +188,7 @@ export const Message = () => {
                                     at: parsedTimestamp,
                                     message: decryptedText,
                                 })
-                            } else if (tx["meta"]["logMessages"].length === 8) {
+                            } else if (tx["meta"]["logMessages"].length === 9) {
                                 const fromAddress = tx["meta"]["logMessages"][3];
                                 const parsedFromAddress = fromAddress.slice(19);
                                 const timestamp = tx["meta"]["logMessages"][4];
@@ -419,7 +438,7 @@ export const Message = () => {
                         <ListItemIcon>
                             <InboxIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Inbox" />
+                        <ListItemText primary={newMessage ? "Inbox !" : "Inbox"} />
                         </ListItemButton>
                         <ListItemButton
                         selected={selectedIndex === 2}
@@ -428,7 +447,7 @@ export const Message = () => {
                         <ListItemIcon>
                             <PodcastsIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Broadcasts" />
+                        <ListItemText primary={newBroadcast ? "Broadcasts !" : "Broadcast"} />
                         </ListItemButton>
                         <ListItemButton
                         selected={selectedIndex === 3}
@@ -437,7 +456,7 @@ export const Message = () => {
                         <ListItemIcon>
                             <SendIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Sent" />
+                        <ListItemText primary={newSent? "Sent !" : "Sent"} />
                         </ListItemButton>
                     </List>
 
@@ -464,7 +483,8 @@ export const Message = () => {
                                         try {
                                             const sigInfo = sig.signature;
                                             const tx: any = await connection.getConfirmedTransaction(sigInfo, "confirmed");
-                                            if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58()) {
+                                            if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58() &&
+                                                tx["meta"]["logMessages"].length === 11) {
                                                 const fromAddress = tx["meta"]["logMessages"][3];
                                                 const parsedFromAddress = fromAddress.slice(19);
                                                 const timestamp = tx["meta"]["logMessages"][4];
@@ -497,7 +517,8 @@ export const Message = () => {
                                     try {
                                         const sigInfo = sig.signature;
                                         const tx: any = await connection.getConfirmedTransaction(sigInfo, "confirmed");
-                                        if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58()) {
+                                        if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58() &&
+                                            tx["meta"]["logMessages"].length === 9) {
                                             const fromAddress = tx["meta"]["logMessages"][3];
                                             const parsedFromAddress = fromAddress.slice(19);
                                             const timestamp = tx["meta"]["logMessages"][4];
@@ -521,14 +542,14 @@ export const Message = () => {
                                 if (!anchorWallet || !inboxKeypair) {
                                     notify({message: "Your inbox is not connected"});
                                 } else {
-                                    const sigs = await connection.getConfirmedSignaturesForAddress2(anchorWallet.publicKey, {limit: 100}, "confirmed");
+                                    const sigs = await connection.getConfirmedSignaturesForAddress2(anchorWallet.publicKey, {limit: 50}, "confirmed");
                                     const mySentMessage: any = [];
                                     for (let sig of sigs) {
                                         try {
                                             const sigInfo = sig.signature;
                                             const tx: any = await connection.getConfirmedTransaction(sigInfo, "confirmed");
                                             if (tx["transaction"]["programId"].toBase58() === MESSAGE_PROGRAM_ID.toBase58()) {
-                                                if (tx["meta"]["logMessages"].length === 10) {
+                                                if (tx["meta"]["logMessages"].length === 11) {
                                                     const fromAddress = tx["meta"]["logMessages"][3];
                                                     const parsedFromAddress = fromAddress.slice(19);
                                                     const timestamp = tx["meta"]["logMessages"][4];
@@ -547,7 +568,7 @@ export const Message = () => {
                                                         at: parsedTimestamp,
                                                         message: decryptedText,
                                                     })
-                                                } else if (tx["meta"]["logMessages"].length === 8) {
+                                                } else if (tx["meta"]["logMessages"].length === 9) {
                                                     const fromAddress = tx["meta"]["logMessages"][3];
                                                     const parsedFromAddress = fromAddress.slice(19);
                                                     const timestamp = tx["meta"]["logMessages"][4];

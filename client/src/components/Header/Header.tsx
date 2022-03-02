@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { Box } from "@mui/system";
 
 import ConnectButton from "../ConnectButton";
-import { ModalEnum, useModal, useWalletModal } from "../../contexts";
+import { ModalEnum, useInbox, useModal, useWalletModal } from "../../contexts";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Link, useLocation } from "react-router-dom";
 import { Tab, Tabs } from "@mui/material";
@@ -14,6 +14,7 @@ export const Header = (props: { setNotificationsBar?: (type: string) => void }) 
   const wallet = useWallet();
   const connected = wallet.connected;
   const location = useLocation();
+  const {newMessage, newBroadcast, newSent} = useInbox();
   const paths = location.pathname.split('/');
   // const head = paths[1] ? "/" + paths[1] : "";
   const tail = paths[paths.length - 1] ? paths[paths.length - 1] : ""
@@ -80,7 +81,7 @@ export const Header = (props: { setNotificationsBar?: (type: string) => void }) 
                 <Tab value={2} label="Mint" sx={{ fontWeight: "bold", fontFamily: "Attila Sans Sharp" }} />
               </Link>
               <Link to={"/message"} style={{ color: '#FFFFFF' }}>
-                <Tab value={3} label="Message" sx={{ fontWeight: "bold", fontFamily: "Attila Sans Sharp" }} />
+                <Tab value={3} label={(newMessage || newBroadcast || newSent) ? "Message !" : "Message"} sx={{ fontWeight: "bold", fontFamily: "Attila Sans Sharp" }} />
               </Link>
               <a href={HELP_URL} target="_blank" rel="noopener noreferrer" style={{ color: '#FFFFFF' }}>
                 <Tab value={2} label="Help" sx={{ fontWeight: "bold", fontFamily: "Attila Sans Sharp" }} />
