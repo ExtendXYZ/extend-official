@@ -26,7 +26,7 @@ import {box} from "tweetnacl";
 import {useAnchorWallet} from "@solana/wallet-adapter-react";
 import * as anchor from "@project-serum/anchor";
 import {useConnection, useInbox} from "../contexts";
-import {notify} from "../utils";
+import {notify, shortenAddress} from "../utils";
 import {sendTransaction} from "../actions";
 
 import {
@@ -228,8 +228,8 @@ export const Message = () => {
             } else {
                 currentList = inboxMessage.map(v => 
                     <ListItem key={v.signature}>
-                        <div style={{width: "30%", overflow: "hidden"}}>
-                            {v.from}
+                        <div style={{width: "20%", overflow: "hidden"}}>
+                            {shortenAddress(v.from, 8)}
                         </div>
                         <div style={{marginLeft: "auto", marginRight: "auto", width: "50%", overflowWrap: "break-word"}}>
                             {v.message}
@@ -253,7 +253,7 @@ export const Message = () => {
             currentList = globalMessage.map(v => 
                 <ListItem key={v.signature}>
                     <div style={{width: "30%", overflow: "hidden"}}>
-                        {v.from}
+                        {shortenAddress(v.from, 8)}
                     </div>
                     <div style={{marginLeft: "auto", marginRight: "auto", width: "50%", overflowWrap: "break-word"}}>
                         {v.message}
@@ -279,7 +279,7 @@ export const Message = () => {
                 currentList = sentMessage.map(v => 
                     <ListItem key={v.signature}>
                         <div style={{width: "30%", overflow: "hidden"}}>
-                            {v.from}
+                            {v.from === "Broadcast" ? v.from : shortenAddress(v.from, 8)}
                         </div>
                         <div style={{marginLeft: "auto", marginRight: "auto", width: "50%", overflowWrap: "break-word"}}>
                             {v.message}
