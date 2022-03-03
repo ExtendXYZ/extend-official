@@ -60,7 +60,7 @@ export const METADATA_PROGRAM_ID = new PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 );
 export const MESSAGE_PROGRAM_ID = new PublicKey(
-  "4ciGfCchaZo2dLpd1PxZUXPSbdGHpemCywkC4YvmoePz"
+  "6dR8vyzsgtSQximEALvaPRvdogZJsg63g4weFhzLnGYy"
 );
 export const GlOBAL_CHANNEL = new PublicKey(
   "gbBGoujYwo5phcb25sjsBr4fcWViATL8NPfphL62c7q"

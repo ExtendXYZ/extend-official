@@ -21,43 +21,26 @@ export const InboxProvider = ({ children }) => {
     const connection = useConnection();
     const [inboxKey, setInboxKey] = useLocalStorageState("inbox");
     const [inboxKeypair, setInboxKeypair] = useState<any>(null);
-    const [myInbox, setMyInbox] = useState<any>(null);
-    const [newMessage, setNewMessage] = useState(true);
-    const [newBroadcast, setNewBroadcast] = useState(true);
-    const [newSent, setNewSent] = useState(true);
+    const [newMessage, setNewMessage] = useState(-1);
+    const [newBroadcast, setNewBroadcast] = useState(-1);
+    const [newSent, setNewSent] = useState(-1);
 
     useEffect(() => {
-        if (!localStorage.getItem("walletName")) {
-            setInboxKey(null);
-            setInboxKeypair(null);
-            setMyInbox(null);
+        if (!anchorWallet) {
+            if (!localStorage.getItem("walletName")) {
+                setInboxKey(null);
+                setInboxKeypair(null);
+            } else if (inboxKey && !inboxKeypair) {
+                setInboxKeypair(box.keyPair.fromSecretKey(base58.decode(inboxKey)));
+            }
         }
     },
         [anchorWallet]
     );
 
     useEffect(() => {
-        const findMyInbox = async () => {
-            if (anchorWallet) {
-                const foundInbox = (await anchor.web3.PublicKey.findProgramAddress(
-                    [
-                        BASE.toBuffer(),
-                        Buffer.from("inbox"),
-                        anchorWallet.publicKey.toBuffer(),
-                    ],
-                    MESSAGE_PROGRAM_ID,
-                ))[0];
-                setMyInbox(foundInbox);
-            }
-        }
-        findMyInbox();
-    },
-        [anchorWallet] 
-    );
-
-    useEffect(() => {
         const connectInbox = async () => {
-            if (wallet.signMessage && anchorWallet && myInbox && !inboxKeypair) {
+            if (wallet.signMessage && anchorWallet && !inboxKeypair) {
                 try {
                     const inboxSignature = await wallet.signMessage(Buffer.from("inbox"));
                     const inboxSeed = inboxSignature.slice(0, 32);
@@ -67,9 +50,17 @@ export const InboxProvider = ({ children }) => {
                     });
                     const idl = await anchor.Program.fetchIdl(MESSAGE_PROGRAM_ID, provider);
                     const program = new anchor.Program(idl, MESSAGE_PROGRAM_ID, provider);
+                    const myInbox = (await anchor.web3.PublicKey.findProgramAddress(
+                        [
+                            BASE.toBuffer(),
+                            Buffer.from("inbox"),
+                            anchorWallet.publicKey.toBuffer(),
+                        ],
+                        MESSAGE_PROGRAM_ID,
+                    ))[0];
                     try {
                         const myInboxData: any = await program.account.inbox.fetch(myInbox);
-                        if (Buffer.compare(Buffer.from(myInboxData.address), Buffer.from(myInboxKeypair.publicKey)) !== 0) {
+                        if (base58.encode(myInboxData.address) !== base58.encode(myInboxKeypair.publicKey)) {
                             notify({ message: "Your inbox is not up to date" });
                             throw "inbox address not match";
                         } else {
@@ -109,18 +100,12 @@ export const InboxProvider = ({ children }) => {
         }
         connectInbox();
     },
-        [anchorWallet, myInbox, inboxKeypair]
+        [anchorWallet, inboxKeypair]
     );
-
-    useEffect(() => {
-        if (inboxKey && !inboxKeypair) {
-            setInboxKeypair(box.keyPair.fromSecretKey(base58.decode(inboxKey)));
-        }
-    }, [inboxKey]);
 
     const connect = useCallback(() => {
         const connectInbox = async () => {
-            if (wallet.signMessage && anchorWallet && myInbox && !inboxKeypair) {
+            if (wallet.signMessage && anchorWallet && !inboxKeypair) {
                 try {
                     const inboxSignature = await wallet.signMessage(Buffer.from("inbox"));
                     const inboxSeed = inboxSignature.slice(0, 32);
@@ -130,9 +115,17 @@ export const InboxProvider = ({ children }) => {
                     });
                     const idl = await anchor.Program.fetchIdl(MESSAGE_PROGRAM_ID, provider);
                     const program = new anchor.Program(idl, MESSAGE_PROGRAM_ID, provider);
+                    const myInbox = (await anchor.web3.PublicKey.findProgramAddress(
+                        [
+                            BASE.toBuffer(),
+                            Buffer.from("inbox"),
+                            anchorWallet.publicKey.toBuffer(),
+                        ],
+                        MESSAGE_PROGRAM_ID,
+                    ))[0];
                     try {
                         const myInboxData: any = await program.account.inbox.fetch(myInbox);
-                        if (Buffer.compare(Buffer.from(myInboxData.address), Buffer.from(myInboxKeypair.publicKey)) !== 0) {
+                        if (base58.encode(myInboxData.address) !== base58.encode(myInboxKeypair.publicKey)) {
                             notify({ message: "Your inbox is not up to date" });
                             throw "inbox address not match";
                         } else {
@@ -172,7 +165,7 @@ export const InboxProvider = ({ children }) => {
         }
         connectInbox();
     },
-        [anchorWallet, myInbox, inboxKeypair]
+        [anchorWallet, inboxKeypair]
     );
 
     useEffect(() => {
@@ -187,35 +180,34 @@ export const InboxProvider = ({ children }) => {
                 sender = logs.logs[3].slice(19);
                 receiver = logs.logs[6].slice(17);
             }
-            if (myInbox && receiver === myInbox.toBase58()) {
-                setNewMessage(true);
+            if (anchorWallet && receiver === anchorWallet.publicKey.toBase58()) {
+                setNewMessage(newMessage === -1 ? 1 : newMessage + 1);
             }
             if (receiver === GlOBAL_CHANNEL.toBase58()) {
-                setNewBroadcast(true);
+                setNewBroadcast(newBroadcast === -1 ? 1 : newBroadcast + 1);
             } 
             if (anchorWallet && sender === anchorWallet.publicKey.toBase58()) {
-                setNewSent(true);
+                setNewSent(newSent === -1 ? 1 : newSent + 1);
             }
         }, "confirmed");
         return () => {
             connection.removeOnLogsListener(id);
         };
     },
-        [anchorWallet, myInbox] 
-    )
+        [anchorWallet] 
+    );
     
     return (
         <InboxContext.Provider
             value={{
                 inboxKeypair: inboxKeypair,
-                inboxAddress: myInbox,
                 connect: connect,
                 newMessage: newMessage,
-                readNewMessage: () => setNewMessage(false),
+                readNewMessage: () => setNewMessage(0),
                 newBroadcast: newBroadcast,
-                readNewBroadcast: () => setNewBroadcast(false),
+                readNewBroadcast: () => setNewBroadcast(0),
                 newSent: newSent,
-                readNewSent: () => setNewSent(false),
+                readNewSent: () => setNewSent(0),
             }}
         >
             {children}

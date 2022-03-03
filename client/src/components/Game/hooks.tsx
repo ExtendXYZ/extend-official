@@ -198,9 +198,17 @@ export function Screen(props) {
     useEffect(() => {
         const sendMessage = async () => {
             if ("to" in sendMessageTrigger) {
-                if (!inboxKeypair || !anchorWallet) {
-                    notify({message: "Your inbox is not connected"});
+                if (!anchorWallet) {
+                    notify({message: "Your wallet is not connected"});
                 } else {
+                    const myOutbox = (await anchor.web3.PublicKey.findProgramAddress(
+                        [
+                            BASE.toBuffer(),
+                            Buffer.from("outbox"),
+                            anchorWallet.publicKey.toBuffer(),
+                        ],
+                        MESSAGE_PROGRAM_ID,
+                    ))[0];
                     const provider = new anchor.Provider(connection, anchorWallet, {
                         preflightCommitment: "recent",
                     });
@@ -215,6 +223,7 @@ export function Screen(props) {
                             }, {
                                 accounts: {
                                     from: anchorWallet.publicKey,
+                                    outbox: myOutbox,
                                     global: GlOBAL_CHANNEL,
                                 }
                             });
@@ -225,6 +234,9 @@ export function Screen(props) {
                                 notify({ message: "Broadcasted" });
                             }
                         } else {
+                            if (!inboxKeypair) {
+                                notify({message: "Your inbox is not connected"});
+                            }
                             const toAddress = sendMessageTrigger.to;
                             const toInbox = (await anchor.web3.PublicKey.findProgramAddress(
                                 [
@@ -246,6 +258,8 @@ export function Screen(props) {
                             }, {
                                 accounts: {
                                     from: anchorWallet.publicKey,
+                                    outbox: myOutbox,
+                                    to: toAddress,
                                     inbox: toInbox,
                                 }
                             });
@@ -258,7 +272,7 @@ export function Screen(props) {
                         }
                     } catch (error) {
                         console.log(error);
-                        notify({ message: "Both you and receiver should have inboxes ready" });
+                        notify({ message: "Receiver should have inboxes ready" });
                     }
                 }
             }
