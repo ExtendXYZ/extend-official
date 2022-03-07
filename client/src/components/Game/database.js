@@ -190,6 +190,7 @@ export class Database {
           listed_count: data.listed_stats[0][1],
           volume: Number(data.trade_stats[0][0]) / LAMPORTS_PER_SOL,
           average: Number(data.trade_stats[0][1]) / LAMPORTS_PER_SOL,
+          volume_forever : Number(data.trade_stats_global[0][0]) / LAMPORTS_PER_SOL,
           owners: data.owner_stats[0][0],
           floor: data.floor.map( el => JSON.stringify({x : el[0], y: el[1]})),
           listed: data.listed.map( el => JSON.stringify({x : el[0], y: el[1]})),
