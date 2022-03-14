@@ -117,6 +117,22 @@ export class NeighborhoodSidebar extends React.Component {
               </Box>
             </ListItem>
             <ListItem className="info" style={{ display: "block" }}>
+              <Box className="infoHeader">VOLUME (ALL TIME)</Box>
+              <Box>
+                <img
+                  src={
+                    require("../../assets/images/solana-transparent.svg").default
+                  }
+                  alt="SOL"
+                />
+                <b>
+                  <font color="#82CBC5" style={{ marginLeft: "5px" }}>
+                    {formatPrice(this.props.neighborhood.trades.volume_forever)}
+                  </font>
+                </b>
+              </Box>
+            </ListItem>
+            <ListItem className="info" style={{ display: "block" }}>
               <Box className="infoHeader">LISTED ITEMS</Box>
               <div style={{ display: "flex", alignItems: "center" }}>
                 <Box>
