@@ -57,7 +57,7 @@
     "lodash": "^4.17.21",
     "material-components-web": "^13.0.0",
     "material-ui": "^0.15.0",
-    "moment": "^2.29.1",
+    "moment": "^2.29.2",
     "rainbowvis.js": "^1.0.1",
     "react": "^17.0.2",
     "react-countdown": "^2.3.2",
